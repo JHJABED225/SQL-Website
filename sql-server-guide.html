@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL Server Reference Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c10;
+    --sidebar-bg: #0d1117;
+    --border: #1e2738;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --dim: #4a5568;
+    --fact-bg: rgba(255,255,255,0.03);
+    --fact-border: rgba(255,255,255,0.07);
+    --code-bg: #0d1117;
+    --code-border: #21262d;
+    --sidebar-w: 210px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── TOP BAR (mobile only) ── */
+  .topbar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--sidebar-bg);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    flex-shrink: 0;
+  }
+  .topbar-title { font-size: 15px; font-weight: 700; color: var(--text); }
+  .topbar-sub   { font-size: 10px; color: var(--dim); letter-spacing: .1em; text-transform: uppercase; }
+  .menu-btn {
+    background: none; border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 10px; cursor: pointer;
+    color: var(--muted); font-size: 16px; line-height: 1;
+  }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 16px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex-shrink: 0;
+    transition: transform .25s ease;
+  }
+  .sidebar-header {
+    padding: 4px 10px 14px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 6px;
+  }
+  .sidebar-header .label {
+    font-size: 11px; letter-spacing: .12em;
+    color: var(--dim); text-transform: uppercase; font-weight: 700;
+  }
+  .sidebar-header .title {
+    font-size: 16px; font-weight: 700; color: var(--text); margin-top: 2px;
+  }
+
+  .nav-btn {
+    display: flex; align-items: center; gap: 9px;
+    padding: 9px 12px; border-radius: 8px;
+    border: none; cursor: pointer; text-align: left;
+    font-size: 12.5px; font-family: 'Sora', sans-serif;
+    background: transparent; color: var(--muted);
+    border-left: 3px solid transparent;
+    transition: all .15s ease;
+    width: 100%;
+  }
+  .nav-btn .icon { font-size: 11px; opacity: .8; flex-shrink: 0; }
+  .nav-btn .lbl  { line-height: 1.3; }
+  .nav-btn:hover { background: rgba(255,255,255,.04); color: #94a3b8; }
+  .nav-btn.active { font-weight: 600; }
+
+  /* ── OVERLAY (mobile) ── */
+  .overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.6);
+    z-index: 150;
+  }
+
+  /* ── MAIN CONTENT ── */
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px 36px;
+    max-width: 900px;
+  }
+
+  /* ── TOPIC HEADER ── */
+  .topic-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 28px; padding-bottom: 20px;
+  }
+  .topic-icon-box {
+    width: 46px; height: 46px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .topic-header .meta { font-size: 11px; color: var(--dim); letter-spacing: .1em; text-transform: uppercase; font-weight: 600; margin-bottom: 2px; }
+  .topic-header h1  { font-size: 22px; font-weight: 700; margin: 0; }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 36px; }
+  .section-title {
+    font-size: 13px; font-weight: 700; color: #94a3b8;
+    letter-spacing: .06em; text-transform: uppercase; margin-bottom: 10px;
+  }
+  .section-desc { color: var(--muted); font-size: 13.5px; line-height: 1.65; margin-bottom: 18px; }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: #e6edf3;
+    white-space: pre;
+  }
+
+  /* ── USE CASE ── */
+  .use-case {
+    margin: 16px 0;
+    padding: 12px 16px;
+    border-radius: 10px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .use-case .uc-label {
+    font-size: 11px; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase;
+    display: block; margin-bottom: 3px;
+  }
+  .use-case .uc-text { font-size: 12.5px; color: #94a3b8; line-height: 1.55; }
+  .use-case .emoji   { font-size: 14px; margin-top: 1px; flex-shrink: 0; }
+
+  /* ── FACTS ── */
+  .facts-header {
+    font-size: 11px; font-weight: 700; color: var(--dim);
+    letter-spacing: .08em; text-transform: uppercase; margin: 16px 0 10px;
+  }
+  .fact-badge {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 9px 13px;
+    background: var(--fact-bg);
+    border: 1px solid var(--fact-border);
+    border-radius: 8px; margin-bottom: 7px;
+  }
+  .fact-badge .bolt  { color: #fbbf24; font-size: 13px; margin-top: 1px; flex-shrink: 0; }
+  .fact-badge .ftxt  { color: #94a3b8; font-size: 12.5px; line-height: 1.5; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 3px; }
+
+  /* ── MOBILE ── */
+  @media (max-width: 700px) {
+    body { overflow: auto; height: auto; }
+    .topbar { display: flex; }
+    .layout { overflow: visible; }
+
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 160;
+      transform: translateX(-100%);
+      width: min(280px, 85vw);
+      min-width: unset;
+      padding-top: 60px;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .overlay.open { display: block; }
+
+    .main {
+      padding: 20px 16px 40px;
+      max-width: 100%;
+      overflow-y: visible;
+    }
+    .topic-icon-box { width: 38px; height: 38px; font-size: 16px; }
+    .topic-header h1 { font-size: 18px; }
+    .code-block { font-size: 11.5px; padding: 14px 14px; }
+  }
+
+  @media (max-width: 400px) {
+    .code-block { font-size: 10.5px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Mobile top bar -->
+<div class="topbar" id="topbar">
+  <div>
+    <div class="topbar-sub">SQL Server</div>
+    <div class="topbar-title" id="topbar-title">Reference Guide</div>
+  </div>
+  <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
+</div>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay"></div>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="label">SQL SERVER</div>
+      <div class="title">Reference Guide</div>
+    </div>
+    <div id="nav-list"></div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main" id="main-content"></main>
+</div>
+
+<script>
+const topics = [
+  {
+    id:"select", label:"SELECT Queries", icon:"⬡", color:"#00d4ff",
+    sections:[{
+      title:"Core Syntax",
+      content:"SELECT is the foundation of every query. It retrieves columns from one or more tables.",
+      code:`-- Basic SELECT
+SELECT FirstName, LastName, Salary
+FROM Employees;
+
+-- Select all columns
+SELECT * FROM Employees;
+
+-- Aliases
+SELECT FirstName AS [First Name], Salary * 1.1 AS NewSalary
+FROM Employees;
+
+-- DISTINCT removes duplicates
+SELECT DISTINCT Department FROM Employees;
+
+-- TOP limits rows
+SELECT TOP 10 * FROM Employees ORDER BY Salary DESC;
+
+-- TOP with PERCENT
+SELECT TOP 5 PERCENT * FROM Employees ORDER BY HireDate;`,
+      facts:[
+        "SELECT is NOT case-sensitive in SQL Server",
+        "Use TOP instead of LIMIT (which is MySQL syntax)",
+        "SELECT * in production code is an anti-pattern — always name columns",
+        "Column aliases with spaces must use [square brackets] or 'single quotes'",
+      ],
+      useCase:"Retrieving employee records, generating reports, fetching paginated data for dashboards."
+    }]
+  },
+  {
+    id:"ddl", label:"DDL Commands", icon:"◈", color:"#ff6b6b",
+    sections:[{
+      title:"CREATE, ALTER, DROP, TRUNCATE",
+      content:"DDL (Data Definition Language) defines and modifies database structure.",
+      code:`-- CREATE TABLE
+CREATE TABLE Employees (
+    EmployeeID   INT PRIMARY KEY IDENTITY(1,1),
+    FirstName    NVARCHAR(50)  NOT NULL,
+    LastName     NVARCHAR(50)  NOT NULL,
+    DeptID       INT           REFERENCES Departments(DeptID),
+    Salary       DECIMAL(10,2) DEFAULT 0,
+    HireDate     DATE          NOT NULL,
+    IsActive     BIT           DEFAULT 1
+);
+
+-- ALTER: Add a column
+ALTER TABLE Employees ADD Email NVARCHAR(100);
+
+-- ALTER: Modify a column
+ALTER TABLE Employees ALTER COLUMN Email NVARCHAR(200);
+
+-- ALTER: Drop a column
+ALTER TABLE Employees DROP COLUMN IsActive;
+
+-- DROP: Permanently removes the table
+DROP TABLE IF EXISTS TempEmployees;
+
+-- TRUNCATE: Removes all rows, keeps structure
+TRUNCATE TABLE StagingData;`,
+      facts:[
+        "IDENTITY(1,1) auto-increments starting at 1, step 1",
+        "DROP removes the entire table; TRUNCATE only removes data",
+        "TRUNCATE is faster than DELETE — it's minimally logged",
+        "TRUNCATE cannot be used if a foreign key references the table",
+        "DROP TABLE IF EXISTS prevents errors if table doesn't exist",
+      ],
+      useCase:"Database schema design, migration scripts, creating staging/temp tables for ETL pipelines."
+    }]
+  },
+  {
+    id:"dml", label:"DML Commands", icon:"◉", color:"#ffd93d",
+    sections:[{
+      title:"INSERT, UPDATE, DELETE",
+      content:"DML (Data Manipulation Language) operates on the actual data inside tables.",
+      code:`-- INSERT single row
+INSERT INTO Employees (FirstName, LastName, Salary, HireDate)
+VALUES ('Alice', 'Smith', 75000, '2023-01-15');
+
+-- INSERT multiple rows
+INSERT INTO Employees (FirstName, LastName, Salary, HireDate)
+VALUES
+    ('Bob',   'Jones', 82000, '2022-06-01'),
+    ('Carol', 'King',  91000, '2021-03-20');
+
+-- INSERT from SELECT
+INSERT INTO EmployeesArchive
+SELECT * FROM Employees WHERE IsActive = 0;
+
+-- UPDATE
+UPDATE Employees
+SET Salary = Salary * 1.10,
+    LastModified = GETDATE()
+WHERE Department = 'Sales';
+
+-- UPDATE with JOIN
+UPDATE e
+SET e.DeptName = d.Name
+FROM Employees e
+JOIN Departments d ON e.DeptID = d.DeptID;
+
+-- DELETE
+DELETE FROM Employees WHERE EmployeeID = 42;
+
+-- DELETE with JOIN
+DELETE e
+FROM Employees e
+JOIN Departments d ON e.DeptID = d.DeptID
+WHERE d.Name = 'Closed';`,
+      facts:[
+        "Always use WHERE with UPDATE/DELETE — omitting it affects all rows",
+        "Use a transaction + rollback when testing destructive operations",
+        "INSERT...SELECT is ideal for bulk loading and ETL staging",
+        "OUTPUT clause can capture affected rows: DELETE ... OUTPUT deleted.*",
+        "SQL Server supports UPDATE with FROM+JOIN — this is not standard SQL",
+      ],
+      useCase:"Populating staging tables, updating salaries in bulk, archiving inactive records, loading fact tables."
+    }]
+  },
+  {
+    id:"where", label:"WHERE Conditions", icon:"◎", color:"#c084fc",
+    sections:[{
+      title:"AND, OR, NOT, LIKE, BETWEEN, IN",
+      content:"WHERE filters rows. Combine conditions with logical operators.",
+      code:`-- AND / OR / NOT
+SELECT * FROM Employees
+WHERE Department = 'IT' AND Salary > 70000;
+
+SELECT * FROM Employees
+WHERE Department = 'HR' OR Department = 'Finance';
+
+SELECT * FROM Employees
+WHERE NOT IsActive = 0;
+
+-- BETWEEN (inclusive on both ends)
+SELECT * FROM Orders
+WHERE OrderDate BETWEEN '2024-01-01' AND '2024-12-31';
+
+-- IN (cleaner than multiple OR)
+SELECT * FROM Employees
+WHERE Department IN ('IT', 'Finance', 'HR');
+
+-- NOT IN
+SELECT * FROM Employees
+WHERE EmployeeID NOT IN (SELECT EmployeeID FROM Managers);
+
+-- LIKE (pattern matching)
+SELECT * FROM Employees WHERE LastName LIKE 'Sm%';
+SELECT * FROM Employees WHERE Email LIKE '%@gmail%';
+SELECT * FROM Employees WHERE Phone LIKE '___-____';
+SELECT * FROM Employees WHERE FirstName LIKE '[AEI]%';
+SELECT * FROM Employees WHERE Code LIKE '[^0-9]%';`,
+      facts:[
+        "BETWEEN is inclusive: BETWEEN 1 AND 10 includes both 1 and 10",
+        "NOT IN with a subquery returns NO rows if subquery has any NULL — use NOT EXISTS instead",
+        "LIKE with leading wildcard (%) disables index usage — avoid on large tables",
+        "% = any number of chars, _ = exactly one char in LIKE patterns",
+        "IN list has no practical limit in SQL Server but avoid thousands of values",
+      ],
+      useCase:"Date range reports, department filtering, email pattern matching, excluding blacklisted IDs."
+    }]
+  },
+  {
+    id:"joins", label:"Joins (Basic)", icon:"⬡", color:"#34d399",
+    sections:[{
+      title:"INNER, LEFT, RIGHT, FULL",
+      content:"JOINs combine rows from two or more tables based on a related column.",
+      code:`-- INNER JOIN: Only matching rows in BOTH tables
+SELECT e.FirstName, d.DeptName
+FROM Employees e
+INNER JOIN Departments d ON e.DeptID = d.DeptID;
+
+-- LEFT JOIN: All rows from left, NULLs if no match
+SELECT e.FirstName, d.DeptName
+FROM Employees e
+LEFT JOIN Departments d ON e.DeptID = d.DeptID;
+
+-- RIGHT JOIN: All rows from right table
+SELECT e.FirstName, d.DeptName
+FROM Employees e
+RIGHT JOIN Departments d ON e.DeptID = d.DeptID;
+
+-- FULL OUTER JOIN: All rows from both tables
+SELECT e.FirstName, d.DeptName
+FROM Employees e
+FULL OUTER JOIN Departments d ON e.DeptID = d.DeptID;
+
+-- Find employees WITHOUT a department (NULL pattern)
+SELECT e.FirstName
+FROM Employees e
+LEFT JOIN Departments d ON e.DeptID = d.DeptID
+WHERE d.DeptID IS NULL;`,
+      facts:[
+        "INNER JOIN is the default — writing just JOIN means INNER JOIN",
+        "LEFT JOIN is by far the most commonly used join type",
+        "RIGHT JOIN can always be rewritten as a LEFT JOIN by swapping tables",
+        "FULL OUTER JOIN can be expensive on large tables",
+        "Always alias tables when joining — it prevents ambiguity errors",
+      ],
+      useCase:"Linking fact to dimension tables, finding orphan records, producing denormalized reports."
+    }]
+  },
+  {
+    id:"advanced-joins", label:"Advanced Joins", icon:"⬢", color:"#f97316",
+    sections:[{
+      title:"ANTI JOIN, CROSS JOIN, SELF JOIN",
+      content:"Beyond the basics — powerful join patterns for complex scenarios.",
+      code:`-- ANTI JOIN Pattern 1: LEFT JOIN + WHERE IS NULL
+SELECT e.FirstName
+FROM Employees e
+LEFT JOIN Orders o ON e.EmployeeID = o.SalesRepID
+WHERE o.SalesRepID IS NULL;
+
+-- ANTI JOIN Pattern 2: NOT EXISTS (preferred)
+SELECT e.FirstName
+FROM Employees e
+WHERE NOT EXISTS (
+    SELECT 1 FROM Orders o WHERE o.SalesRepID = e.EmployeeID
+);
+
+-- CROSS JOIN: Every combination (Cartesian product)
+SELECT c.Color, s.Size
+FROM Colors c
+CROSS JOIN Sizes s;
+-- 3 colors x 4 sizes = 12 rows
+
+-- SELF JOIN: Join a table to itself
+SELECT e.FirstName AS Employee, m.FirstName AS Manager
+FROM Employees e
+LEFT JOIN Employees m ON e.ManagerID = m.EmployeeID;`,
+      facts:[
+        "Anti Join has NO dedicated keyword — use LEFT JOIN + IS NULL or NOT EXISTS",
+        "NOT EXISTS is safer than NOT IN when the subquery may return NULLs",
+        "CROSS JOIN is powerful for generating test data or date/product combinations",
+        "Self Join is essential for hierarchical data (org charts, bill of materials)",
+        "CROSS JOIN output rows = rows_in_A × rows_in_B — can explode in size",
+      ],
+      useCase:"Finding customers with no orders (anti-join), generating all product-color combos (cross), org chart queries (self)."
+    }]
+  },
+  {
+    id:"multi-joins", label:"3+ Table Joins", icon:"⬡", color:"#22d3ee",
+    sections:[{
+      title:"Joining Multiple Tables",
+      content:"Chain multiple JOINs to combine 3 or more tables in a single query.",
+      code:`-- 3-table join: Orders → Employees → Departments
+SELECT
+    o.OrderID,
+    o.OrderDate,
+    e.FirstName + ' ' + e.LastName AS SalesRep,
+    d.DeptName
+FROM Orders o
+INNER JOIN Employees e   ON o.SalesRepID = e.EmployeeID
+INNER JOIN Departments d ON e.DeptID      = d.DeptID
+WHERE o.OrderDate >= '2024-01-01';
+
+-- 4-table join: Orders → Customers → Products → Categories
+SELECT
+    o.OrderID,
+    c.CompanyName,
+    p.ProductName,
+    cat.CategoryName,
+    od.Quantity,
+    od.UnitPrice
+FROM Orders o
+JOIN Customers   c   ON o.CustomerID  = c.CustomerID
+JOIN OrderDetails od  ON o.OrderID     = od.OrderID
+JOIN Products    p   ON od.ProductID  = p.ProductID
+JOIN Categories  cat ON p.CategoryID  = cat.CategoryID;`,
+      facts:[
+        "SQL Server processes JOINs left to right but the optimizer may reorder them",
+        "Indent and align JOIN clauses for readability in complex queries",
+        "Each new JOIN can be INNER, LEFT, or any type independently",
+        "Avoid joining too many large tables without indexes on join columns",
+        "Use CTEs or subqueries to break very complex multi-joins into readable stages",
+      ],
+      useCase:"Generating invoices, sales dashboards, supply chain reports linking orders → products → suppliers → warehouses."
+    }]
+  },
+  {
+    id:"set-ops", label:"SET Operators", icon:"◈", color:"#fb7185",
+    sections:[{
+      title:"UNION, UNION ALL, EXCEPT, INTERSECT",
+      content:"SET operators combine result sets of two SELECT statements.",
+      code:`-- UNION: Combines & removes duplicates
+SELECT FirstName, LastName FROM CurrentEmployees
+UNION
+SELECT FirstName, LastName FROM FormerEmployees;
+
+-- UNION ALL: Keeps ALL rows (faster — no dedup)
+SELECT ProductID, SaleDate FROM Store_NY
+UNION ALL
+SELECT ProductID, SaleDate FROM Store_LA;
+
+-- EXCEPT: Rows in first NOT in second
+SELECT CustomerID FROM AllCustomers
+EXCEPT
+SELECT CustomerID FROM PaidCustomers;
+-- Returns customers who have NOT paid
+
+-- INTERSECT: Rows that appear in BOTH
+SELECT ProductID FROM OnlineStore
+INTERSECT
+SELECT ProductID FROM PhysicalStore;
+-- Products sold in BOTH channels`,
+      facts:[
+        "All queries in a SET operation must have the same number of columns",
+        "Column data types must be compatible (implicitly convertible)",
+        "Column names come from the FIRST SELECT — aliases in later SELECTs are ignored",
+        "UNION ALL is significantly faster than UNION — use only when you need deduplication",
+        "EXCEPT and INTERSECT eliminate duplicates automatically",
+        "ORDER BY can only appear once, at the very end of the full statement",
+      ],
+      useCase:"Merging regional sales tables (UNION ALL), finding overlapping customer lists (INTERSECT), identifying unpaid invoices (EXCEPT)."
+    }]
+  },
+  {
+    id:"string-funcs", label:"String Functions", icon:"◎", color:"#a78bfa",
+    sections:[{
+      title:"Core String Manipulation",
+      content:"SQL Server offers rich string functions for cleaning, transforming, and extracting text.",
+      code:`-- Length
+SELECT LEN('Hello World');           -- 11 (excludes trailing spaces)
+SELECT DATALENGTH('Hello');          -- 5 (bytes)
+
+-- Case
+SELECT UPPER('hello');  SELECT LOWER('HELLO');
+
+-- Trimming
+SELECT LTRIM('  hello');  SELECT RTRIM('hello  ');
+SELECT TRIM('  hello  '); -- SQL Server 2017+
+
+-- Substring
+SELECT SUBSTRING('SQL Server', 5, 6);  -- Server
+SELECT LEFT('SQL Server', 3);          -- SQL
+SELECT RIGHT('SQL Server', 6);         -- Server
+
+-- Find position
+SELECT CHARINDEX('Server', 'SQL Server');  -- 5
+
+-- Replace
+SELECT REPLACE('Hello World', 'World', 'SQL');
+
+-- Concatenate
+SELECT CONCAT('Hello', ' ', 'World');
+SELECT CONCAT_WS(', ', 'Alice', 'Bob', 'Carol');
+
+-- Padding & Repeat
+SELECT REPLICATE('ab', 3);           -- ababab
+SELECT RIGHT('0000' + CAST(42 AS VARCHAR), 4); -- 0042
+
+-- String Split (SQL Server 2016+)
+SELECT value FROM STRING_SPLIT('a,b,c,d', ',');`,
+      facts:[
+        "LEN() excludes trailing spaces; DATALENGTH() counts actual bytes including them",
+        "NVARCHAR stores Unicode (2 bytes/char); VARCHAR stores ASCII (1 byte/char)",
+        "CONCAT() silently ignores NULLs; + operator propagates NULL",
+        "CHARINDEX returns 0 if not found (not -1 like most languages)",
+        "STRING_SPLIT() returns rows, not an array — requires SQL Server 2016+",
+      ],
+      useCase:"Cleaning imported data (trim/replace), building full names (concat), parsing CSVs (string_split), formatting codes (replicate/right)."
+    }]
+  },
+  {
+    id:"number-funcs", label:"Number Functions", icon:"⬢", color:"#6ee7b7",
+    sections:[{
+      title:"ROUND, ABS, CEILING, FLOOR & More",
+      content:"SQL Server numeric functions for rounding, absolute values, and math operations.",
+      code:`-- ROUND(number, decimal_places)
+SELECT ROUND(3.14159, 2);    -- 3.14
+SELECT ROUND(3.145, 2);      -- 3.15
+SELECT ROUND(345.67, -2);    -- 300.00 (round to nearest 100)
+
+-- ABS: Absolute value
+SELECT ABS(-150);            -- 150
+
+-- CEILING: Round UP to nearest integer
+SELECT CEILING(4.1);         -- 5
+SELECT CEILING(-4.9);        -- -4
+
+-- FLOOR: Round DOWN to nearest integer
+SELECT FLOOR(4.9);           -- 4
+SELECT FLOOR(-4.1);          -- -5
+
+-- POWER and SQRT
+SELECT POWER(2, 10);         -- 1024
+SELECT SQRT(144);            -- 12.0
+
+-- MOD (Modulo)
+SELECT 17 % 5;               -- 2 (remainder)
+
+-- Practical: Rounding currency
+SELECT
+    ProductName,
+    ROUND(Price * 1.08, 2) AS PriceWithTax
+FROM Products;`,
+      facts:[
+        "ROUND uses banker's rounding — 0.5 rounds to the nearest even number in some cases",
+        "CEILING(-4.9) = -4, not -5 — it rounds toward positive infinity",
+        "FLOOR(-4.1) = -5, not -4 — it rounds toward negative infinity",
+        "Use DECIMAL/NUMERIC types for financial data, never FLOAT (floating point errors)",
+        "% is the modulo operator in SQL Server (not MOD() like in MySQL)",
+      ],
+      useCase:"Tax calculations (round), inventory counts (ceiling for orders), financial reporting (abs for variances), even distribution (modulo)."
+    }]
+  },
+  {
+    id:"date-parts", label:"DATEPART & DATENAME", icon:"◉", color:"#fbbf24",
+    sections:[{
+      title:"DATEPART, DATENAME, DATETRUNC, EOMONTH",
+      content:"Extract specific parts of a date/time value.",
+      code:`-- DATEPART: Returns integer
+SELECT DATEPART(year,    '2024-07-15');  -- 2024
+SELECT DATEPART(month,   '2024-07-15');  -- 7
+SELECT DATEPART(day,     '2024-07-15');  -- 15
+SELECT DATEPART(weekday, '2024-07-15');  -- 2 (Monday, Sun=1)
+SELECT DATEPART(quarter, '2024-07-15');  -- 3
+
+-- DATENAME: Returns string (name of the part)
+SELECT DATENAME(month,   '2024-07-15');  -- July
+SELECT DATENAME(weekday, '2024-07-15');  -- Monday
+
+-- DATETRUNC (SQL Server 2022+)
+SELECT DATETRUNC(month,   '2024-07-15');  -- 2024-07-01
+SELECT DATETRUNC(year,    '2024-07-15');  -- 2024-01-01
+SELECT DATETRUNC(quarter, '2024-07-15');  -- 2024-07-01
+
+-- EOMONTH: Last day of a given month
+SELECT EOMONTH('2024-02-01');       -- 2024-02-29 (leap year!)
+SELECT EOMONTH('2024-01-15', 1);    -- 2024-02-29 (1 month offset)
+
+-- Practical: Group sales by month
+SELECT
+    DATEPART(year,  OrderDate) AS SalesYear,
+    DATEPART(month, OrderDate) AS SalesMonth,
+    SUM(Amount)                AS TotalSales
+FROM Orders
+GROUP BY DATEPART(year, OrderDate), DATEPART(month, OrderDate)
+ORDER BY SalesYear, SalesMonth;`,
+      facts:[
+        "DATEPART returns an INT; DATENAME returns an NVARCHAR",
+        "DATETRUNC requires SQL Server 2022+ — use older workarounds on earlier versions",
+        "EOMONTH automatically handles leap years and varying month lengths",
+        "SET DATEFIRST affects DATEPART(weekday) — default is 7 (Sunday = 1)",
+        "EOMONTH with offset argument is a clean way to get first/last of any month",
+      ],
+      useCase:"Monthly/quarterly sales grouping, day-of-week analysis, month-end report boundaries, fiscal year calculations."
+    }]
+  },
+  {
+    id:"date-format", label:"FORMAT, CONVERT, CAST", icon:"◈", color:"#38bdf8",
+    sections:[{
+      title:"Date Formatting & Type Conversion",
+      content:"Three distinct tools for converting and formatting dates and data types.",
+      code:`-- CAST: Simple, standard SQL type conversion
+SELECT CAST('2024-07-15' AS DATE);
+SELECT CAST(3.99 AS INT);              -- 3 (truncates)
+SELECT CAST(42 AS VARCHAR(10));        -- '42'
+
+-- CONVERT: SQL Server-specific, style codes
+SELECT CONVERT(VARCHAR, GETDATE(), 101);  -- 07/15/2024 (US)
+SELECT CONVERT(VARCHAR, GETDATE(), 103);  -- 15/07/2024 (British)
+SELECT CONVERT(VARCHAR, GETDATE(), 112);  -- 20240715 (ISO, great for sorting)
+SELECT CONVERT(VARCHAR, GETDATE(), 120);  -- 2024-07-15 14:30:00 (ODBC)
+SELECT CONVERT(DATE, '15/07/2024', 103);  -- British → DATE
+
+-- FORMAT: .NET-style, culture-aware (flexible but slower)
+SELECT FORMAT(GETDATE(), 'yyyy-MM-dd');
+SELECT FORMAT(GETDATE(), 'dd MMMM yyyy');    -- 15 July 2024
+SELECT FORMAT(GETDATE(), 'MMMM dd, yyyy');   -- July 15, 2024
+SELECT FORMAT(GETDATE(), 'dddd');            -- Monday
+SELECT FORMAT(12345.678, 'N2');             -- 12,345.68
+SELECT FORMAT(0.85, 'P0');                  -- 85%`,
+      facts:[
+        "CAST is ANSI SQL standard — prefer it for portability and performance",
+        "CONVERT is SQL Server-specific but has the style parameter for date formatting",
+        "FORMAT is the most flexible but 10–50x slower than CONVERT — avoid in large queries",
+        "Style 112 (YYYYMMDD) is ideal for date columns used in sorting or file names",
+        "TRY_CAST and TRY_CONVERT return NULL on failure instead of throwing an error",
+      ],
+      useCase:"Displaying dates in regional formats (reports), converting imported text dates to DATE type, formatting numbers as currency/percent."
+    }]
+  },
+  {
+    id:"date-arith", label:"DATEADD & DATEDIFF", icon:"◎", color:"#4ade80",
+    sections:[{
+      title:"DATEADD, DATEDIFF, ISDATE",
+      content:"Arithmetic with dates — adding intervals and measuring differences.",
+      code:`-- DATEADD(interval, number, date)
+SELECT DATEADD(day,    7,  '2024-07-15');  -- 2024-07-22
+SELECT DATEADD(month,  3,  '2024-07-15');  -- 2024-10-15
+SELECT DATEADD(year,  -1,  '2024-07-15');  -- 2023-07-15
+SELECT DATEADD(hour,   6,  GETDATE());     -- 6 hours from now
+SELECT DATEADD(minute,-30, GETDATE());     -- 30 mins ago
+
+-- DATEDIFF(interval, start, end) — returns INT
+SELECT DATEDIFF(day,   '2024-01-01', '2024-07-15');  -- 196
+SELECT DATEDIFF(month, '2024-01-01', '2024-07-15');  -- 6
+SELECT DATEDIFF(hour,  '2024-07-15 08:00', '2024-07-15 17:30'); -- 9
+
+-- DATEDIFF_BIG: For large date ranges (2016+)
+SELECT DATEDIFF_BIG(second, '1970-01-01', GETDATE());
+
+-- ISDATE: Returns 1 if valid date, 0 if not
+SELECT ISDATE('2024-07-15');  -- 1
+SELECT ISDATE('not-a-date');  -- 0
+SELECT ISDATE('2024-02-30');  -- 0 (Feb 30 doesn't exist)
+
+-- Practical: Overdue invoices
+SELECT InvoiceID, DueDate,
+    DATEDIFF(day, DueDate, GETDATE()) AS DaysOverdue
+FROM Invoices
+WHERE DueDate < GETDATE() AND PaidDate IS NULL;
+
+-- Employees hired in last 90 days
+SELECT * FROM Employees
+WHERE HireDate >= DATEADD(day, -90, GETDATE());`,
+      facts:[
+        "DATEDIFF counts boundary crossings, not full intervals — DATEDIFF(year,'2023-12-31','2024-01-01') = 1",
+        "Negative numbers in DATEADD subtract dates — no separate DATESUBTRACT exists",
+        "DATEDIFF returns INT — use DATEDIFF_BIG for ranges exceeding ~68 years in seconds",
+        "ISDATE('2024-02-30') returns 0 — great for validating user input",
+        "GETDATE() returns current datetime; GETUTCDATE() returns UTC time",
+      ],
+      useCase:"Calculating invoice aging, finding records in rolling date windows, employee tenure calculations, subscription expiry logic."
+    }]
+  },
+  {
+    id:"nulls", label:"NULL Functions", icon:"⬡", color:"#f472b6",
+    sections:[{
+      title:"COALESCE, ISNULL, NULLIF, IS NULL",
+      content:"NULL handling is one of the most important and misunderstood concepts in SQL.",
+      code:`-- IS NULL / IS NOT NULL
+SELECT * FROM Employees WHERE ManagerID IS NULL;
+SELECT * FROM Employees WHERE ManagerID IS NOT NULL;
+
+-- ISNULL(expr, replacement): SQL Server specific, 2 args
+SELECT ISNULL(MiddleName, 'N/A')   FROM Employees;
+SELECT ISNULL(Salary, 0)            FROM Employees;
+
+-- COALESCE(a, b, c, ...): ANSI standard, multiple args
+SELECT COALESCE(Mobile, HomePhone, WorkPhone, 'No Contact')
+FROM Contacts;
+
+SELECT COALESCE(NULL, NULL, 'third', 'fourth');  -- 'third'
+
+-- NULLIF(a, b): Returns NULL if a = b
+SELECT NULLIF(Score, 0);
+SELECT NULLIF(Status, 'Unknown');
+
+-- Avoid divide-by-zero with NULLIF
+SELECT Revenue / NULLIF(Quantity, 0) AS UnitPrice
+FROM Sales;
+
+-- Combined usage — build full name safely
+SELECT
+    COALESCE(FirstName, '') + ' ' +
+    COALESCE(MiddleName + ' ', '') +
+    COALESCE(LastName, '') AS FullName
+FROM Employees;`,
+      facts:[
+        "NULL is not a value — it represents the absence of a value. NULL = NULL is always FALSE",
+        "Any arithmetic with NULL returns NULL: 100 + NULL = NULL",
+        "Use IS NULL / IS NOT NULL — never = NULL or != NULL",
+        "COALESCE is preferred over ISNULL: it's ANSI standard and accepts multiple arguments",
+        "ISNULL is slightly faster; COALESCE is more portable and flexible",
+        "NULLIF is the inverse of ISNULL — it creates NULLs rather than replacing them",
+      ],
+      useCase:"Default values in reports, safe division, contact fallback logic, building full name strings with optional middle name."
+    }]
+  },
+  {
+    id:"null-vs-empty", label:"NULL vs Empty vs Blank", icon:"◉", color:"#94a3b8",
+    sections:[{
+      title:"NULL vs Empty String vs Blank Space",
+      content:"Three distinct states that look similar but behave very differently.",
+      code:`-- Inserting all three types
+INSERT INTO Demo (Val) VALUES (NULL);   -- absence of value
+INSERT INTO Demo (Val) VALUES ('');     -- empty string (length 0)
+INSERT INTO Demo (Val) VALUES (' ');    -- blank space (length 1+)
+
+-- How to detect each
+SELECT
+    Val,
+    CASE
+        WHEN Val IS NULL            THEN 'NULL'
+        WHEN LEN(Val) = 0           THEN 'Empty String'
+        WHEN LEN(TRIM(Val)) = 0     THEN 'Blank/Whitespace'
+        ELSE                              'Has Value'
+    END AS ValueType
+FROM Demo;
+
+-- Count shows the difference
+SELECT
+    COUNT(*)    AS TotalRows,     -- counts ALL rows
+    COUNT(Val)  AS NonNullRows,   -- ignores NULLs
+    SUM(CASE WHEN Val = ''   THEN 1 ELSE 0 END) AS EmptyStrings,
+    SUM(CASE WHEN Val IS NULL THEN 1 ELSE 0 END) AS NullValues
+FROM Demo;
+
+-- Normalize all three to NULL (clean data)
+UPDATE Demo
+SET Val = NULL
+WHERE Val IS NULL OR TRIM(Val) = '';`,
+      facts:[
+        "NULL means unknown/missing — it's not zero, not empty, not false",
+        "Empty string ('') has LEN = 0 and is a known value",
+        "Blank space (' ') has LEN ≥ 1 — LEN trims trailing spaces, DATALENGTH does not",
+        "COUNT(*) counts all rows; COUNT(column) skips NULLs",
+        "Imported data from Excel/CSV often mixes all three — always audit before analysis",
+        "In a VARCHAR column, NULL and '' are stored differently and filter differently",
+      ],
+      useCase:"Data quality audits, cleaning imported datasets, distinguishing 'not provided' (NULL) from 'explicitly left empty' ('') in forms."
+    }]
+  },
+  {
+    id:"case-when", label:"CASE WHEN", icon:"◈", color:"#fb923c",
+    sections:[{
+      title:"CASE WHEN Statement",
+      content:"SQL's if-else logic — works in SELECT, WHERE, ORDER BY, and GROUP BY.",
+      code:`-- Simple CASE (equality checks)
+SELECT EmployeeID,
+    CASE DeptID
+        WHEN 1 THEN 'Engineering'
+        WHEN 2 THEN 'Sales'
+        WHEN 3 THEN 'HR'
+        ELSE        'Other'
+    END AS Department
+FROM Employees;
+
+-- Searched CASE (range/complex conditions)
+SELECT OrderID, Amount,
+    CASE
+        WHEN Amount >= 10000 THEN 'Platinum'
+        WHEN Amount >= 5000  THEN 'Gold'
+        WHEN Amount >= 1000  THEN 'Silver'
+        ELSE                      'Bronze'
+    END AS OrderTier
+FROM Orders;
+
+-- CASE in aggregate (pivot-like pattern)
+SELECT
+    SUM(CASE WHEN Gender = 'M' THEN 1 ELSE 0 END) AS MaleCount,
+    SUM(CASE WHEN Gender = 'F' THEN 1 ELSE 0 END) AS FemaleCount,
+    AVG(CASE WHEN DeptID = 1 THEN Salary END)      AS AvgITSalary
+FROM Employees;
+
+-- CASE in ORDER BY — NULLs last
+SELECT FirstName, Salary FROM Employees
+ORDER BY
+    CASE WHEN Salary IS NULL THEN 1 ELSE 0 END,
+    Salary DESC;`,
+      facts:[
+        "CASE returns the FIRST matching WHEN — order your conditions from most to least specific",
+        "CASE is an expression, not a statement — it returns a single value",
+        "ELSE is optional — if omitted and no WHEN matches, NULL is returned",
+        "CASE in SUM() is the classic way to build pivot-style summary tables",
+        "IIF(condition, true_val, false_val) is a shorthand for simple two-branch CASE",
+        "You can nest CASE expressions, but keep it readable — CTEs are better for complex logic",
+      ],
+      useCase:"Categorizing data (tiers, segments), conditional aggregation (pivot-style reports), dynamic sorting, label generation in SELECT."
+    }]
+  },
+  {
+    id:"aggregate", label:"Aggregate Functions", icon:"⬢", color:"#818cf8",
+    sections:[{
+      title:"COUNT, SUM, AVG, MAX, MIN",
+      content:"Aggregate functions collapse many rows into a single summary value, typically used with GROUP BY.",
+      code:`-- COUNT
+SELECT COUNT(*)               FROM Employees;  -- all rows
+SELECT COUNT(ManagerID)       FROM Employees;  -- non-NULL only
+SELECT COUNT(DISTINCT DeptID) FROM Employees;  -- unique depts
+
+-- SUM / AVG
+SELECT SUM(Salary)      FROM Employees;
+SELECT AVG(CAST(Salary AS DECIMAL(10,2))) FROM Employees;
+
+-- MAX / MIN
+SELECT MAX(Salary), MIN(Salary)   FROM Employees;
+SELECT MAX(HireDate) AS MostRecentHire FROM Employees;
+
+-- GROUP BY with multiple aggregates
+SELECT
+    DeptID,
+    COUNT(*)    AS HeadCount,
+    SUM(Salary) AS TotalPayroll,
+    AVG(Salary) AS AvgSalary,
+    MAX(Salary) AS TopSalary,
+    MIN(Salary) AS LowestSalary
+FROM Employees
+GROUP BY DeptID;
+
+-- HAVING: Filter after aggregation (not WHERE)
+SELECT DeptID, AVG(Salary) AS AvgSalary
+FROM Employees
+GROUP BY DeptID
+HAVING AVG(Salary) > 60000;
+
+-- Combined: WHERE first, HAVING after
+SELECT DeptID, COUNT(*) AS Count
+FROM Employees
+WHERE HireDate >= '2020-01-01'
+GROUP BY DeptID
+HAVING COUNT(*) >= 5;`,
+      facts:[
+        "COUNT(*) includes NULLs; COUNT(column) excludes NULLs — this is a critical difference",
+        "AVG ignores NULLs — AVG of (10, NULL, 20) = 15, not 10",
+        "AVG of INT / INT returns INT — cast to DECIMAL for accurate results",
+        "HAVING filters after aggregation; WHERE filters before — they are not interchangeable",
+        "You can use aggregate functions in HAVING without selecting them",
+        "COUNT(DISTINCT col) can be slow on large datasets — consider approximate counts",
+      ],
+      useCase:"Payroll summaries, department headcounts, sales totals by region, finding highest/lowest performing products, filtering small groups."
+    }]
+  },
+];
+
+// ── Syntax highlighter ──
+function highlight(code) {
+  const esc = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const lines = esc.split('\n');
+  return lines.map(line => {
+    const cm = line.match(/^(\s*)(--.*)$/);
+    if (cm) {
+      return `<div><span style="color:#e6edf3">${cm[1]}</span><span style="color:#8b949e;font-style:italic">${cm[2]}</span></div>`;
+    }
+    let l = line
+      .replace(/('(?:[^']|'')*')/g,'<span style="color:#a5d6ff">$1</span>')
+      .replace(/\b(SELECT|FROM|WHERE|JOIN|INNER|LEFT|RIGHT|FULL|OUTER|ON|GROUP BY|ORDER BY|HAVING|INSERT|UPDATE|DELETE|INTO|VALUES|SET|CREATE|ALTER|DROP|TRUNCATE|TABLE|AND|OR|NOT|IN|BETWEEN|LIKE|IS|NULL|CASE|WHEN|THEN|ELSE|END|AS|DISTINCT|TOP|UNION|ALL|EXCEPT|INTERSECT|BY|CROSS|SELF|WITH|IF|EXISTS)\b/g,'<span style="color:#ff7b72;font-weight:600">$1</span>')
+      .replace(/\b(COUNT|SUM|AVG|MAX|MIN|CAST|CONVERT|FORMAT|DATEADD|DATEDIFF|DATEPART|DATENAME|DATETRUNC|EOMONTH|GETDATE|GETUTCDATE|ISNULL|COALESCE|NULLIF|ISDATE|LEN|UPPER|LOWER|TRIM|LTRIM|RTRIM|SUBSTRING|LEFT|RIGHT|CHARINDEX|REPLACE|CONCAT|CONCAT_WS|REPLICATE|REVERSE|STRING_SPLIT|ROUND|ABS|CEILING|FLOOR|POWER|SQRT|PI|DATEDIFF_BIG|IDENTITY|REFERENCES|DEFAULT|TRY_CAST|TRY_CONVERT|IIF|DATALENGTH)\b/g,'<span style="color:#d2a8ff">$1</span>')
+      .replace(/\b(\d+(?:\.\d+)?)\b/g,'<span style="color:#79c0ff">$1</span>');
+    return `<div>${l||'&nbsp;'}</div>`;
+  }).join('');
+}
+
+// ── Render ──
+function render(id) {
+  const t = topics.find(x => x.id === id);
+  if (!t) return;
+
+  // Update active state
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    const isActive = b.dataset.id === id;
+    b.classList.toggle('active', isActive);
+    if (isActive) {
+      b.style.background = t.color + '18';
+      b.style.color = t.color;
+      b.style.borderLeftColor = t.color;
+    } else {
+      b.style.background = '';
+      b.style.color = '';
+      b.style.borderLeftColor = 'transparent';
+    }
+  });
+
+  // Mobile topbar title
+  document.getElementById('topbar-title').textContent = t.label;
+
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    <div class="topic-header" style="border-bottom:1px solid ${t.color}30">
+      <div class="topic-icon-box" style="background:${t.color}20;border:1.5px solid ${t.color}50;color:${t.color}">${t.icon}</div>
+      <div>
+        <div class="meta">SQL Server</div>
+        <h1 style="color:${t.color}">${t.label}</h1>
+      </div>
+    </div>
+    ${t.sections.map(s => `
+      <div class="section">
+        <div class="section-title">${s.title}</div>
+        <p class="section-desc">${s.content}</p>
+        <div class="code-block">${highlight(s.code)}</div>
+        <div class="use-case" style="background:${t.color}0d;border:1px solid ${t.color}25">
+          <span class="emoji">🎯</span>
+          <div>
+            <span class="uc-label" style="color:${t.color}">Use Cases</span>
+            <span class="uc-text">${s.useCase}</span>
+          </div>
+        </div>
+        <div class="facts-header">⚡ Noticeable Facts</div>
+        ${s.facts.map(f => `
+          <div class="fact-badge">
+            <span class="bolt">⚡</span>
+            <span class="ftxt">${f}</span>
+          </div>
+        `).join('')}
+      </div>
+    `).join('')}
+  `;
+  main.scrollTop = 0;
+}
+
+// ── Build nav ──
+const navList = document.getElementById('nav-list');
+topics.forEach(t => {
+  const btn = document.createElement('button');
+  btn.className = 'nav-btn';
+  btn.dataset.id = t.id;
+  btn.innerHTML = `<span class="icon">${t.icon}</span><span class="lbl">${t.label}</span>`;
+  btn.onclick = () => {
+    render(t.id);
+    closeSidebar();
+  };
+  navList.appendChild(btn);
+});
+
+// ── Mobile sidebar ──
+const sidebar  = document.getElementById('sidebar');
+const overlay  = document.getElementById('overlay');
+const menuBtn  = document.getElementById('menuBtn');
+
+function openSidebar()  { sidebar.classList.add('open'); overlay.classList.add('open'); }
+function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('open'); }
+
+menuBtn.addEventListener('click', openSidebar);
+overlay.addEventListener('click', closeSidebar);
+
+// ── Init ──
+render('select');
+</script>
+</body>
+</html>

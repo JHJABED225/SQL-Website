@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SQL CASE WHEN Expression — Complete Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2230;
+    --border: #30363d;
+    --accent: #f0a500;
+    --accent2: #3b82f6;
+    --accent3: #10b981;
+    --accent4: #ef4444;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --text-dim: #6e7681;
+    --code-bg: #0d1117;
+    --warning: #f97316;
+    --tip: #a78bfa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', Georgia, serif;
+    font-size: 16px;
+    line-height: 1.75;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1a2035 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 60px 40px 50px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(240,165,0,.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 50%, rgba(59,130,246,.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  header .badge {
+    display: inline-block;
+    background: rgba(240,165,0,.15);
+    border: 1px solid rgba(240,165,0,.4);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .1em;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -.02em;
+    margin-bottom: 12px;
+  }
+  header h1 span { color: var(--accent); }
+  header p.sub {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    max-width: 560px;
+    margin: 0 auto 24px;
+    font-style: italic;
+  }
+  header .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: .05em;
+  }
+
+  /* ── LAYOUT ── */
+  .wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 50px 32px 80px;
+  }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 50px;
+  }
+  .toc h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 5px 0; }
+  .toc a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    transition: color .2s;
+  }
+  .toc a:hover { color: var(--accent); }
+
+  /* ── SECTIONS ── */
+  section { margin-bottom: 56px; }
+
+  h2.section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #fff;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  h2.section-title .num {
+    background: var(--accent);
+    color: #000;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 2px 9px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  h3.sub-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent2);
+    margin: 28px 0 12px;
+  }
+
+  p { margin-bottom: 14px; color: var(--text); }
+  p:last-child { margin-bottom: 0; }
+
+  ul, ol {
+    padding-left: 22px;
+    margin-bottom: 14px;
+  }
+  li { margin: 4px 0; color: var(--text); }
+
+  strong { color: #fff; font-weight: 600; }
+  em { color: var(--accent); font-style: italic; }
+
+  code.inline {
+    background: rgba(240,165,0,.12);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .85em;
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(240,165,0,.25);
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-wrap {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 16px 0 24px;
+  }
+  .code-header {
+    background: var(--surface2);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-header .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  .code-header .dot.r { background: #ef4444; }
+  .code-header .dot.y { background: #f59e0b; }
+  .code-header .dot.g { background: #10b981; }
+  .code-header .lang {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: .05em;
+  }
+  pre {
+    padding: 20px 22px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #cdd9e5;
+  }
+  .kw  { color: #ff7b72; }
+  .fn  { color: #d2a8ff; }
+  .str { color: #a5d6ff; }
+  .num { color: #79c0ff; }
+  .cmt { color: #8b949e; font-style: italic; }
+  .op  { color: var(--accent); }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 18px 0;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .callout .icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+  .callout .body { flex: 1; }
+  .callout .body strong {
+    display: block;
+    font-family: 'Syne', sans-serif;
+    font-size: .85rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .callout .body p { margin: 0; font-size: .95rem; }
+
+  .callout.tip    { background: rgba(167,139,250,.1); border: 1px solid rgba(167,139,250,.3); }
+  .callout.tip .icon { color: var(--tip); }
+  .callout.tip .body strong { color: var(--tip); }
+
+  .callout.warn   { background: rgba(249,115,22,.1); border: 1px solid rgba(249,115,22,.3); }
+  .callout.warn .icon { color: var(--warning); }
+  .callout.warn .body strong { color: var(--warning); }
+
+  .callout.gem    { background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.3); }
+  .callout.gem .icon { color: var(--accent3); }
+  .callout.gem .body strong { color: var(--accent3); }
+
+  .callout.danger { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); }
+  .callout.danger .icon { color: var(--accent4); }
+  .callout.danger .body strong { color: var(--accent4); }
+
+  .callout.info   { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.3); }
+  .callout.info .icon { color: var(--accent2); }
+  .callout.info .body strong { color: var(--accent2); }
+
+  /* ── TASK BOX ── */
+  .task-box {
+    background: linear-gradient(135deg, rgba(240,165,0,.08), rgba(240,165,0,.03));
+    border: 1px solid rgba(240,165,0,.35);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin: 20px 0;
+  }
+  .task-box .task-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .task-box p { margin: 0; font-size: .95rem; }
+
+  /* ── PRACTICE TASKS ── */
+  .practice-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 30px;
+    margin-top: 18px;
+  }
+  .practice-section h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent3);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .practice-item {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .practice-item .pnum {
+    background: var(--accent3);
+    color: #000;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .practice-item p { margin: 0; font-size: .93rem; color: var(--text-muted); }
+  .practice-item p strong { color: var(--text); }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; margin: 18px 0 24px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  thead tr { background: var(--surface2); }
+  th {
+    text-align: left;
+    padding: 11px 16px;
+    color: var(--accent);
+    font-size: 12px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--border);
+  }
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: 'Lora', serif;
+    font-size: 14px;
+  }
+  td:first-child { color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+  tbody tr:hover { background: rgba(255,255,255,.02); }
+
+  .yes  { color: var(--accent3) !important; font-family: 'JetBrains Mono', monospace; }
+  .no   { color: var(--accent4) !important; font-family: 'JetBrains Mono', monospace; }
+  .good { color: var(--accent3) !important; }
+  .bad  { color: var(--accent4) !important; }
+
+  /* ── SYNTAX BLOCK ── */
+  .syntax-block {
+    background: var(--surface);
+    border: 1px solid rgba(59,130,246,.3);
+    border-left: 4px solid var(--accent2);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin: 14px 0 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: #cdd9e5;
+    line-height: 1.8;
+  }
+
+  /* ── DIVIDER ── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 40px 20px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .04em;
+  }
+
+  /* ── QUICK SYNTAX REFERENCE GRID ── */
+  .type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin: 18px 0;
+  }
+  .type-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .type-card h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    color: var(--accent2);
+    margin-bottom: 10px;
+  }
+  .type-card p { font-size: .88rem; color: var(--text-muted); margin: 0; }
+
+  /* ── BADGE ROW ── */
+  .badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0;
+  }
+  .badge-item {
+    background: rgba(59,130,246,.12);
+    border: 1px solid rgba(59,130,246,.3);
+    color: var(--accent2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 3px 12px;
+    border-radius: 20px;
+  }
+
+  /* ── KEY FACTS GRID ── */
+  .facts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 18px 0;
+  }
+  .fact-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .fact-card .fact-icon { font-size: 1.5rem; margin-bottom: 6px; }
+  .fact-card .fact-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); letter-spacing: .06em; text-transform: uppercase; }
+  .fact-card .fact-val { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: #fff; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════ HEADER ══════════════════════ -->
+<header>
+  <div class="badge">SQL · T-SQL · Reference Guide</div>
+  <h1>SQL <span>CASE WHEN</span> Expression</h1>
+  <p class="sub">A complete, production-level guide to conditional logic in SQL — from basics to advanced internal behavior.</p>
+  <div class="meta">Author: MD JABERUL HOSSEN JABED &nbsp;·&nbsp; Topic: SQL Conditional Expressions</div>
+</header>
+
+<div class="wrapper">
+
+  <!-- ══════ TABLE OF CONTENTS ══════ -->
+  <nav class="toc">
+    <h2>📋 Table of Contents</h2>
+    <ol>
+      <li><a href="#intro">Introduction to CASE WHEN</a></li>
+      <li><a href="#types">Types of CASE Expressions</a></li>
+      <li><a href="#simple">Simple CASE Expression</a></li>
+      <li><a href="#searched">Searched CASE Expression</a></li>
+      <li><a href="#nested">Nested CASE Expression</a></li>
+      <li><a href="#usecases">CASE Expression Use Cases</a></li>
+      <li><a href="#technical">Technical Facts & Internal Behavior</a></li>
+      <li><a href="#update">CASE in UPDATE Statements</a></li>
+      <li><a href="#window">CASE with Window Functions</a></li>
+      <li><a href="#iif">CASE vs IIF</a></li>
+      <li><a href="#portability">Cross-Database Portability</a></li>
+      <li><a href="#bestpractices">Best Practices</a></li>
+      <li><a href="#mistakes">Common Mistakes</a></li>
+      <li><a href="#production">Real Production Scenario</a></li>
+      <li><a href="#practice">Practice Tasks</a></li>
+      <li><a href="#final">Final Thoughts</a></li>
+    </ol>
+  </nav>
+
+  <!-- ══════ INTRO ══════ -->
+  <section id="intro">
+    <h2 class="section-title"><span class="num">01</span> Introduction to CASE WHEN</h2>
+
+    <p>The <code class="inline">CASE</code> expression in SQL is used to implement <strong>conditional logic</strong> inside SQL queries. It behaves similarly to <code class="inline">IF...ELSE</code> logic in programming languages.</p>
+
+    <div class="callout info">
+      <div class="icon">ℹ️</div>
+      <div class="body">
+        <strong>Key Definition</strong>
+        <p><code class="inline">CASE</code> is an <strong>expression</strong>, not a control-of-flow statement. This means it returns a value and can appear anywhere a value is expected in a query.</p>
+      </div>
+    </div>
+
+    <p>It can be used in:</p>
+    <div class="badge-row">
+      <span class="badge-item">SELECT</span>
+      <span class="badge-item">WHERE</span>
+      <span class="badge-item">ORDER BY</span>
+      <span class="badge-item">GROUP BY</span>
+      <span class="badge-item">HAVING</span>
+      <span class="badge-item">UPDATE</span>
+      <span class="badge-item">DELETE</span>
+      <span class="badge-item">JOIN</span>
+      <span class="badge-item">Aggregate Functions</span>
+    </div>
+
+    <div class="facts-grid">
+      <div class="fact-card">
+        <div class="fact-icon">📄</div>
+        <div class="fact-label">ANSI Standard</div>
+        <div class="fact-val">SQL-92</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-icon">🔢</div>
+        <div class="fact-label">Types</div>
+        <div class="fact-val">Simple & Searched</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-icon">⚡</div>
+        <div class="fact-label">Evaluation</div>
+        <div class="fact-val">Sequential / Short-circuit</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-icon">🌐</div>
+        <div class="fact-label">Portability</div>
+        <div class="fact-val">All Major DBs</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ TYPES ══════ -->
+  <section id="types">
+    <h2 class="section-title"><span class="num">02</span> Types of CASE Expressions</h2>
+    <div class="type-grid">
+      <div class="type-card">
+        <h4>🔵 Simple CASE</h4>
+        <p>Compares one expression against multiple specific values. Equality checks only. Best for straightforward value mapping.</p>
+      </div>
+      <div class="type-card">
+        <h4>🟢 Searched CASE</h4>
+        <p>Most flexible form. Evaluates boolean conditions independently. Supports ranges, comparisons, NULLs, and complex logic.</p>
+      </div>
+      <div class="type-card">
+        <h4>🟡 Nested CASE</h4>
+        <p>A CASE expression placed inside another CASE. Used for multi-level conditional branching. Use sparingly for readability.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ SIMPLE CASE ══════ -->
+  <section id="simple">
+    <h2 class="section-title"><span class="num">03</span> Simple CASE Expression</h2>
+    <p>The Simple CASE compares a single input expression against a list of values, returning the result for the first match.</p>
+
+    <h3 class="sub-title">Syntax</h3>
+    <div class="syntax-block">
+<span class="kw">CASE</span> input_expression<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">WHEN</span> value1 <span class="kw">THEN</span> result1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">WHEN</span> value2 <span class="kw">THEN</span> result2<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">ELSE</span> default_result<br>
+<span class="kw">END</span>
+    </div>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task</div>
+      <p>Assign department names to employees based on their department code.</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span> employee_name, department_code,
+    <span class="kw">CASE</span> department_code
+        <span class="kw">WHEN</span> <span class="num">1</span> <span class="kw">THEN</span> <span class="str">'HR'</span>
+        <span class="kw">WHEN</span> <span class="num">2</span> <span class="kw">THEN</span> <span class="str">'Finance'</span>
+        <span class="kw">WHEN</span> <span class="num">3</span> <span class="kw">THEN</span> <span class="str">'IT'</span>
+        <span class="kw">ELSE</span> <span class="str">'Unknown'</span>
+    <span class="kw">END</span> <span class="kw">AS</span> department_name
+<span class="kw">FROM</span> sales.employees;</pre>
+    </div>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <div class="body">
+        <strong>Limitation</strong>
+        <p>Simple CASE only checks for <strong>equality (=)</strong>. You <em>cannot</em> write <code class="inline">WHEN Salary &gt; 50000</code> inside a Simple CASE. Use a Searched CASE for range or boolean conditions.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ SEARCHED CASE ══════ -->
+  <section id="searched">
+    <h2 class="section-title"><span class="num">04</span> Searched CASE Expression</h2>
+    <p>The most commonly used form. Allows any <strong>boolean condition</strong>, including ranges, NULLs, subqueries, and combined predicates.</p>
+
+    <h3 class="sub-title">Syntax</h3>
+    <div class="syntax-block">
+<span class="kw">CASE</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">WHEN</span> condition1 <span class="kw">THEN</span> result1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">WHEN</span> condition2 <span class="kw">THEN</span> result2<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">ELSE</span> default_result<br>
+<span class="kw">END</span>
+    </div>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task</div>
+      <p>Assign a salary grade to each employee based on their salary range.</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    EmployeeName, Salary,
+    <span class="kw">CASE</span>
+        <span class="kw">WHEN</span> Salary <span class="op">&gt;=</span> <span class="num">100000</span> <span class="kw">THEN</span> <span class="str">'Executive'</span>
+        <span class="kw">WHEN</span> Salary <span class="op">&gt;=</span> <span class="num">70000</span>  <span class="kw">THEN</span> <span class="str">'Senior'</span>
+        <span class="kw">WHEN</span> Salary <span class="op">&gt;=</span> <span class="num">40000</span>  <span class="kw">THEN</span> <span class="str">'Mid-Level'</span>
+        <span class="kw">ELSE</span> <span class="str">'Junior'</span>
+    <span class="kw">END</span> <span class="kw">AS</span> SalaryGrade
+<span class="kw">FROM</span> Employees;</pre>
+    </div>
+
+    <h3 class="sub-title">How SQL Evaluates Conditions</h3>
+    <p>Conditions are checked <strong>sequentially</strong> — the engine evaluates from top to bottom and stops at the <em>first TRUE condition</em>. Order matters critically.</p>
+
+    <div class="callout danger">
+      <div class="icon">❌</div>
+      <div class="body">
+        <strong>Wrong Ordering — Unreachable Logic</strong>
+        <p>Placing a broader condition first makes the specific one unreachable:</p>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Bad Order</span>
+      </div>
+      <pre><span class="cmt">-- ❌ WRONG: second WHEN is unreachable</span>
+<span class="kw">WHEN</span> Salary <span class="op">&gt;=</span> <span class="num">40000</span>  <span class="kw">THEN</span> <span class="str">'Mid-Level'</span>  <span class="cmt">-- catches everything ≥ 40k first</span>
+<span class="kw">WHEN</span> Salary <span class="op">&gt;=</span> <span class="num">100000</span> <span class="kw">THEN</span> <span class="str">'Executive'</span>  <span class="cmt">-- never reached!</span></pre>
+    </div>
+
+    <div class="callout tip">
+      <div class="icon">💡</div>
+      <div class="body">
+        <strong>Rule of Thumb</strong>
+        <p>Always order conditions from <strong>most specific (highest value)</strong> to least specific (lowest value) when using range conditions with <code class="inline">&gt;=</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ NESTED CASE ══════ -->
+  <section id="nested">
+    <h2 class="section-title"><span class="num">05</span> Nested CASE Expression</h2>
+    <p>A <strong>CASE inside another CASE</strong>. Used for multi-level business logic where conditions have sub-conditions.</p>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task</div>
+      <p>Assign a bonus percentage based on the employee's region and sales amount.</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Nested CASE</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    EmployeeID, Region, SalesAmount,
+    <span class="kw">CASE</span>
+        <span class="kw">WHEN</span> Region <span class="op">=</span> <span class="str">'North'</span> <span class="kw">THEN</span>
+            <span class="kw">CASE</span>
+                <span class="kw">WHEN</span> SalesAmount <span class="op">&gt;=</span> <span class="num">100000</span> <span class="kw">THEN</span> <span class="str">'15% Bonus'</span>
+                <span class="kw">ELSE</span> <span class="str">'10% Bonus'</span>
+            <span class="kw">END</span>
+        <span class="kw">WHEN</span> Region <span class="op">=</span> <span class="str">'South'</span> <span class="kw">THEN</span>
+            <span class="kw">CASE</span>
+                <span class="kw">WHEN</span> SalesAmount <span class="op">&gt;=</span> <span class="num">80000</span> <span class="kw">THEN</span> <span class="str">'12% Bonus'</span>
+                <span class="kw">ELSE</span> <span class="str">'8% Bonus'</span>
+            <span class="kw">END</span>
+        <span class="kw">ELSE</span> <span class="str">'No Bonus'</span>
+    <span class="kw">END</span> <span class="kw">AS</span> BonusPolicy
+<span class="kw">FROM</span> Sales;</pre>
+    </div>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <div class="body">
+        <strong>Avoid Deep Nesting</strong>
+        <p>Deep nesting reduces readability and maintainability. When logic gets complex, prefer: <strong>CTEs</strong>, <strong>lookup tables</strong>, <strong>computed columns</strong>, or <strong>business rule tables</strong>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ USE CASES ══════ -->
+  <section id="usecases">
+    <h2 class="section-title"><span class="num">06</span> CASE Expression Use Cases</h2>
+
+    <!-- Conditional Aggregation -->
+    <h3 class="sub-title">6.1 Conditional Aggregation (Pivot-like Behavior)</h3>
+    <p>One of the most powerful use cases. CASE inside aggregate functions lets you pivot row data into columns.</p>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task</div>
+      <p>Calculate total sales per region as separate columns in one query.</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Conditional Aggregation</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    <span class="fn">SUM</span>(<span class="kw">CASE WHEN</span> Region <span class="op">=</span> <span class="str">'North'</span> <span class="kw">THEN</span> SalesAmount <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span>) <span class="kw">AS</span> NorthSales,
+    <span class="fn">SUM</span>(<span class="kw">CASE WHEN</span> Region <span class="op">=</span> <span class="str">'South'</span> <span class="kw">THEN</span> SalesAmount <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span>) <span class="kw">AS</span> SouthSales,
+    <span class="fn">SUM</span>(<span class="kw">CASE WHEN</span> Region <span class="op">=</span> <span class="str">'East'</span>  <span class="kw">THEN</span> SalesAmount <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span>) <span class="kw">AS</span> EastSales
+<span class="kw">FROM</span> Sales;</pre>
+    </div>
+
+    <p><strong>Real-World Use Cases:</strong> Dashboard metrics, KPI reports, financial summaries, cross-tab reports, pivot replacement.</p>
+
+    <h3 class="sub-title">Advanced: Monthly Sales Status</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    EmployeeID,
+    <span class="fn">COUNT</span>(<span class="kw">CASE WHEN</span> SalesAmount <span class="op">&gt;=</span> <span class="num">100000</span> <span class="kw">THEN</span> <span class="num">1</span> <span class="kw">END</span>) <span class="kw">AS</span> HighSalesCount,
+    <span class="fn">SUM</span>(<span class="kw">CASE WHEN</span> SalesAmount <span class="op">&gt;=</span> <span class="num">100000</span> <span class="kw">THEN</span> SalesAmount <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span>) <span class="kw">AS</span> HighSalesRevenue
+<span class="kw">FROM</span> Sales
+<span class="kw">GROUP BY</span> EmployeeID;</pre>
+    </div>
+
+    <div class="callout gem">
+      <div class="icon">💎</div>
+      <div class="body">
+        <strong>Hidden Gem</strong>
+        <p><code class="inline">COUNT(CASE WHEN condition THEN 1 END)</code> works because <code class="inline">COUNT()</code> ignores NULLs — unmatched rows return NULL implicitly, so they are excluded from the count automatically.</p>
+      </div>
+    </div>
+
+    <!-- Data Cleaning -->
+    <h3 class="sub-title">6.2 Data Cleaning and Transformation (ETL)</h3>
+    <p>CASE is heavily used in ETL pipelines and reporting layers to standardize inconsistent raw data.</p>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task</div>
+      <p>Normalize inconsistent gender values from raw source data.</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Normalize Gender</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    EmployeeName,
+    <span class="kw">CASE</span>
+        <span class="kw">WHEN</span> Gender <span class="kw">IN</span> (<span class="str">'M'</span>, <span class="str">'Male'</span>, <span class="str">'male'</span>)     <span class="kw">THEN</span> <span class="str">'Male'</span>
+        <span class="kw">WHEN</span> Gender <span class="kw">IN</span> (<span class="str">'F'</span>, <span class="str">'Female'</span>, <span class="str">'female'</span>) <span class="kw">THEN</span> <span class="str">'Female'</span>
+        <span class="kw">ELSE</span> <span class="str">'Unknown'</span>
+    <span class="kw">END</span> <span class="kw">AS</span> CleanGender
+<span class="kw">FROM</span> EmployeeRawData;</pre>
+    </div>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task</div>
+      <p>Handle NULL and blank phone numbers gracefully.</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — NULL & Blank Handling</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    <span class="kw">CASE</span>
+        <span class="kw">WHEN</span> PhoneNumber <span class="kw">IS NULL</span>                         <span class="kw">THEN</span> <span class="str">'Missing'</span>
+        <span class="kw">WHEN</span> <span class="fn">LTRIM</span>(<span class="fn">RTRIM</span>(PhoneNumber)) <span class="op">=</span> <span class="str">''</span>            <span class="kw">THEN</span> <span class="str">'Blank'</span>
+        <span class="kw">ELSE</span> PhoneNumber
+    <span class="kw">END</span> <span class="kw">AS</span> CleanPhone
+<span class="kw">FROM</span> Customers;</pre>
+    </div>
+
+    <div class="callout tip">
+      <div class="icon">💡</div>
+      <div class="body">
+        <strong>ETL Pro Tip</strong>
+        <p>Incoming data may contain: NULLs, empty strings, spaces, invalid category values. CASE helps standardize data before loading into the warehouse. For repeated transformation logic, create a <strong>computed column</strong>, <strong>view</strong>, or <strong>staging layer</strong> instead of repeating CASE everywhere.</p>
+      </div>
+    </div>
+
+    <!-- Dynamic ORDER BY -->
+    <h3 class="sub-title">6.3 Dynamic ORDER BY Clauses</h3>
+    <p>Used in parameter-driven sorting, such as stored procedures or reporting applications.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Dynamic Sort</span>
+      </div>
+      <pre><span class="kw">DECLARE</span> @SortBy <span class="fn">VARCHAR</span>(<span class="num">20</span>) <span class="op">=</span> <span class="str">'Salary'</span>;
+
+<span class="kw">SELECT</span> <span class="op">*</span>
+<span class="kw">FROM</span> Employees
+<span class="kw">ORDER BY</span>
+    <span class="kw">CASE WHEN</span> @SortBy <span class="op">=</span> <span class="str">'Salary'</span> <span class="kw">THEN</span> Salary <span class="kw">END</span>,
+    <span class="kw">CASE WHEN</span> @SortBy <span class="op">=</span> <span class="str">'Name'</span>   <span class="kw">THEN</span> EmployeeName <span class="kw">END</span>;</pre>
+    </div>
+
+    <p><strong>Use Cases:</strong> Reporting applications, admin panels, search systems, stored procedures.</p>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <div class="body">
+        <strong>Gotcha: Mixed Data Types</strong>
+        <p>Mixing <code class="inline">Salary</code> (numeric) and <code class="inline">EmployeeName</code> (string) in the same CASE branch can cause implicit conversion errors. Better alternative: <strong>Dynamic SQL</strong> is often cleaner and faster for complex sorting scenarios.</p>
+      </div>
+    </div>
+
+    <!-- Divide by Zero -->
+    <h3 class="sub-title">6.4 Handling Divide-by-Zero Errors</h3>
+    <p>A very common production issue. An unsafe division will crash your query when a denominator is zero.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Safe Division</span>
+      </div>
+      <pre><span class="cmt">-- ❌ Unsafe — fails if Quantity = 0</span>
+<span class="kw">SELECT</span> SalesAmount <span class="op">/</span> Quantity <span class="kw">FROM</span> Sales;
+
+<span class="cmt">-- ✅ Safe with CASE</span>
+<span class="kw">SELECT</span>
+    <span class="kw">CASE</span>
+        <span class="kw">WHEN</span> Quantity <span class="op">=</span> <span class="num">0</span> <span class="kw">THEN</span> <span class="kw">NULL</span>
+        <span class="kw">ELSE</span> SalesAmount <span class="op">/</span> Quantity
+    <span class="kw">END</span> <span class="kw">AS</span> AvgPrice
+<span class="kw">FROM</span> Sales;
+
+<span class="cmt">-- ✅ Even cleaner with NULLIF</span>
+<span class="kw">SELECT</span> SalesAmount <span class="op">/</span> <span class="fn">NULLIF</span>(Quantity, <span class="num">0</span>) <span class="kw">FROM</span> Sales;</pre>
+    </div>
+
+    <div class="callout gem">
+      <div class="icon">💎</div>
+      <div class="body">
+        <strong>Hidden Gem</strong>
+        <p><code class="inline">NULLIF(x, 0)</code> converts zero into <code class="inline">NULL</code>. Division by NULL returns NULL instead of an error. This is cleaner and more readable than a full CASE expression.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ TECHNICAL ══════ -->
+  <section id="technical">
+    <h2 class="section-title"><span class="num">07</span> Technical Facts & Internal Behavior</h2>
+
+    <h3 class="sub-title">7.1 Short-Circuit Evaluation in T-SQL</h3>
+    <p>SQL Server <em>often</em> stops evaluating after the first TRUE condition is found.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Short-Circuit Example</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    <span class="kw">CASE</span>
+        <span class="kw">WHEN</span> <span class="num">1</span> <span class="op">=</span> <span class="num">1</span>     <span class="kw">THEN</span> <span class="str">'Safe'</span>   <span class="cmt">-- TRUE → returns here</span>
+        <span class="kw">WHEN</span> <span class="num">1</span><span class="op">/</span><span class="num">0</span> <span class="op">=</span> <span class="num">1</span> <span class="kw">THEN</span> <span class="str">'Error'</span>  <span class="cmt">-- never evaluated</span>
+    <span class="kw">END</span>;
+<span class="cmt">-- Returns: 'Safe' (no divide-by-zero error)</span></pre>
+    </div>
+
+    <div class="callout danger">
+      <div class="icon">🚨</div>
+      <div class="body">
+        <strong>Dangerous Assumption</strong>
+        <p>SQL Server does <strong>NOT</strong> guarantee full short-circuit behavior in all optimizer scenarios. Expressions may still be evaluated — especially with <strong>aggregates</strong>, <strong>scalar functions</strong>, <strong>computed expressions</strong>, and <strong>parallel execution</strong>. Use <code class="inline">NULLIF()</code>, <code class="inline">TRY_CAST()</code>, <code class="inline">TRY_CONVERT()</code> for safer error prevention.</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">7.2 Data Type Precedence in CASE</h3>
+    <p>All THEN/ELSE branches must resolve to <strong>one final data type</strong>. SQL Server applies data type precedence rules automatically.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Type Mismatch</span>
+      </div>
+      <pre><span class="cmt">-- ❌ FAILS — Salary (numeric) vs 'Low' (string)</span>
+<span class="kw">SELECT</span>
+    <span class="kw">CASE</span>
+        <span class="kw">WHEN</span> Salary <span class="op">&gt;</span> <span class="num">50000</span> <span class="kw">THEN</span> Salary
+        <span class="kw">ELSE</span> <span class="str">'Low'</span>
+    <span class="kw">END</span>
+<span class="kw">FROM</span> Employees;
+
+<span class="cmt">-- ✅ CORRECT — explicit CAST</span>
+<span class="kw">SELECT</span>
+    <span class="kw">CASE</span>
+        <span class="kw">WHEN</span> Salary <span class="op">&gt;</span> <span class="num">50000</span> <span class="kw">THEN</span> <span class="fn">CAST</span>(Salary <span class="kw">AS</span> <span class="fn">VARCHAR</span>(<span class="num">20</span>))
+        <span class="kw">ELSE</span> <span class="str">'Low'</span>
+    <span class="kw">END</span>
+<span class="kw">FROM</span> Employees;</pre>
+    </div>
+
+    <p><strong>Common Precedence Order</strong> (higher wins):</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Higher Precedence</th><th>Lower Precedence</th><th>Rule</th></tr></thead>
+        <tbody>
+          <tr><td>INT</td><td>VARCHAR</td><td>INT wins → conversion error if VARCHAR can't be cast</td></tr>
+          <tr><td>DATETIME</td><td>VARCHAR</td><td>DATETIME wins</td></tr>
+          <tr><td>DECIMAL</td><td>INT</td><td>DECIMAL wins (widening)</td></tr>
+          <tr><td>FLOAT</td><td>DECIMAL</td><td>FLOAT wins</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout gem">
+      <div class="icon">💎</div>
+      <div class="body">
+        <strong>Best Practice</strong>
+        <p>Always <strong>explicitly CAST</strong> CASE outputs when mixing data types. This improves readability, predictability, and cross-database portability.</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">7.3 Performance Implications in WHERE Clause</h3>
+    <p>CASE inside WHERE can <strong>hurt index usage</strong>, causing full table scans instead of efficient seeks.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Performance</span>
+      </div>
+      <pre><span class="cmt">-- ❌ BAD — wraps indexed column, forces scan</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">WHERE</span>
+    <span class="kw">CASE</span>
+        <span class="kw">WHEN</span> DepartmentCode <span class="op">=</span> <span class="num">1</span> <span class="kw">THEN</span> Salary
+        <span class="kw">ELSE</span> <span class="num">0</span>
+    <span class="kw">END</span> <span class="op">&gt;</span> <span class="num">50000</span>;
+
+<span class="cmt">-- ✅ BETTER — sargable, index-friendly</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">WHERE</span> (DepartmentCode <span class="op">=</span> <span class="num">1</span> <span class="kw">AND</span> Salary <span class="op">&gt;</span> <span class="num">50000</span>);</pre>
+    </div>
+
+    <div class="callout tip">
+      <div class="icon">💡</div>
+      <div class="body">
+        <strong>Key Principle: Sargability</strong>
+        <p>Avoid wrapping indexed columns inside any expression — including CASE, ISNULL, COALESCE, CAST, or functions — in WHERE/JOIN conditions. CASE is usually safe in SELECT, ORDER BY, and aggregations.</p>
+      </div>
+    </div>
+
+    <!-- Missing section: NULL behavior -->
+    <h3 class="sub-title">7.4 NULL Behavior in CASE</h3>
+    <p>This is a commonly overlooked but important detail.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — NULL Behavior</span>
+      </div>
+      <pre><span class="cmt">-- CASE does NOT match NULL with = or &lt;&gt;</span>
+<span class="kw">SELECT</span>
+    <span class="kw">CASE</span> column_val
+        <span class="kw">WHEN</span> <span class="kw">NULL</span> <span class="kw">THEN</span> <span class="str">'Is Null'</span>   <span class="cmt">-- Never matches!</span>
+        <span class="kw">ELSE</span> <span class="str">'Not Null'</span>
+    <span class="kw">END</span>
+<span class="kw">FROM</span> MyTable;
+
+<span class="cmt">-- ✅ Correct way to handle NULL in CASE</span>
+<span class="kw">SELECT</span>
+    <span class="kw">CASE</span>
+        <span class="kw">WHEN</span> column_val <span class="kw">IS NULL</span> <span class="kw">THEN</span> <span class="str">'Is Null'</span>
+        <span class="kw">ELSE</span> <span class="str">'Not Null'</span>
+    <span class="kw">END</span>
+<span class="kw">FROM</span> MyTable;</pre>
+    </div>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <div class="body">
+        <strong>NULL Trap</strong>
+        <p>In a Simple CASE, <code class="inline">WHEN NULL</code> will never match because NULL = NULL is not TRUE in SQL — it evaluates to UNKNOWN. Always use a <strong>Searched CASE</strong> with <code class="inline">IS NULL</code> to handle NULL values.</p>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="icon">ℹ️</div>
+      <div class="body">
+        <strong>Missing ELSE = NULL</strong>
+        <p>If no condition is matched and there is no <code class="inline">ELSE</code> clause, CASE returns <strong>NULL</strong> by default — not an error. Always include ELSE to make behavior explicit and avoid silent NULLs in your results.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ UPDATE ══════ -->
+  <section id="update">
+    <h2 class="section-title"><span class="num">08</span> CASE in UPDATE Statements</h2>
+    <p>CASE can drive bulk conditional updates — updating different rows differently in a single statement.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Conditional UPDATE</span>
+      </div>
+      <pre><span class="kw">UPDATE</span> Employees
+<span class="kw">SET</span> Salary <span class="op">=</span>
+    <span class="kw">CASE</span>
+        <span class="kw">WHEN</span> DepartmentCode <span class="op">=</span> <span class="num">1</span> <span class="kw">THEN</span> Salary <span class="op">*</span> <span class="num">1.10</span>  <span class="cmt">-- HR: 10% raise</span>
+        <span class="kw">WHEN</span> DepartmentCode <span class="op">=</span> <span class="num">2</span> <span class="kw">THEN</span> Salary <span class="op">*</span> <span class="num">1.05</span>  <span class="cmt">-- Finance: 5% raise</span>
+        <span class="kw">ELSE</span> Salary                                   <span class="cmt">-- No change</span>
+    <span class="kw">END</span>;</pre>
+    </div>
+
+    <p><strong>Use Cases:</strong> Bulk updates, data migration, salary revision, tiered price adjustments.</p>
+
+    <div class="callout tip">
+      <div class="icon">💡</div>
+      <div class="body">
+        <strong>Always include ELSE in UPDATE</strong>
+        <p>Without ELSE, the column would be set to NULL for rows that don't match any condition. Always add <code class="inline">ELSE column_name</code> to keep unchanged values intact.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ WINDOW FUNCTIONS ══════ -->
+  <section id="window">
+    <h2 class="section-title"><span class="num">09</span> CASE with Window Functions</h2>
+    <p>CASE can be combined with window functions to perform conditional analytics across partitions without GROUP BY.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — CASE + Window Function</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    EmployeeID,
+    Salary,
+    <span class="cmt">-- Average salary only among high earners, shown on every row</span>
+    <span class="fn">AVG</span>(
+        <span class="kw">CASE</span>
+            <span class="kw">WHEN</span> Salary <span class="op">&gt;</span> <span class="num">50000</span> <span class="kw">THEN</span> Salary
+        <span class="kw">END</span>
+    ) <span class="kw">OVER</span> () <span class="kw">AS</span> AvgHighSalary,
+    <span class="cmt">-- Running rank within department for high earners only</span>
+    <span class="fn">RANK</span>() <span class="kw">OVER</span> (
+        <span class="kw">PARTITION BY</span> DepartmentCode
+        <span class="kw">ORDER BY</span> <span class="kw">CASE WHEN</span> Salary <span class="op">&gt;</span> <span class="num">50000</span> <span class="kw">THEN</span> Salary <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span> <span class="kw">DESC</span>
+    ) <span class="kw">AS</span> HighSalaryRank
+<span class="kw">FROM</span> Employees;</pre>
+    </div>
+  </section>
+
+  <!-- ══════ IIF ══════ -->
+  <section id="iif">
+    <h2 class="section-title"><span class="num">10</span> CASE vs IIF in SQL Server</h2>
+    <p><code class="inline">IIF</code> is a shorthand available in SQL Server 2012+ that compiles to a Simple CASE internally.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — IIF Example</span>
+      </div>
+      <pre><span class="cmt">-- IIF: quick for simple binary logic</span>
+<span class="kw">SELECT</span> <span class="fn">IIF</span>(Salary <span class="op">&gt;</span> <span class="num">50000</span>, <span class="str">'High'</span>, <span class="str">'Low'</span>) <span class="kw">FROM</span> Employees;
+
+<span class="cmt">-- Equivalent CASE expression</span>
+<span class="kw">SELECT</span>
+    <span class="kw">CASE WHEN</span> Salary <span class="op">&gt;</span> <span class="num">50000</span> <span class="kw">THEN</span> <span class="str">'High'</span> <span class="kw">ELSE</span> <span class="str">'Low'</span> <span class="kw">END</span>
+<span class="kw">FROM</span> Employees;</pre>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Feature</th><th>CASE</th><th>IIF</th></tr></thead>
+        <tbody>
+          <tr><td>ANSI Standard</td><td class="yes">✔ Yes</td><td class="no">✘ No</td></tr>
+          <tr><td>Readability</td><td class="good">Better for complex logic</td><td class="good">Better for simple binary</td></tr>
+          <tr><td>Multiple Conditions</td><td class="yes">✔ Yes</td><td class="no">✘ Only 2 outcomes</td></tr>
+          <tr><td>Nesting</td><td class="good">Easier</td><td class="bad">Harder</td></tr>
+          <tr><td>Portability</td><td class="yes">High (all databases)</td><td class="bad">Low (SQL Server only)</td></tr>
+          <tr><td>Available Since</td><td>SQL-92</td><td>SQL Server 2012</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info">
+      <div class="icon">ℹ️</div>
+      <div class="body">
+        <strong>Recommendation</strong>
+        <p>Use <strong>CASE</strong> for professional production SQL. It is ANSI-compliant, portable across all databases, and clearly expresses complex logic. Use IIF only for very simple one-off binary outputs in quick scripts.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ PORTABILITY ══════ -->
+  <section id="portability">
+    <h2 class="section-title"><span class="num">11</span> Cross-Database Portability</h2>
+
+    <h3 class="sub-title">11.1 SQL Server (T-SQL)</h3>
+    <p>Supports Simple CASE, Searched CASE, and Nested CASE. Fully ANSI-compliant.</p>
+
+    <h3 class="sub-title">11.2 PostgreSQL</h3>
+    <p>Syntax is nearly identical to SQL Server. PostgreSQL advantages include stronger type handling, better expression flexibility, and cleaner query planner behavior.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">PostgreSQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    <span class="kw">CASE</span>
+        <span class="kw">WHEN</span> salary <span class="op">&gt;</span> <span class="num">50000</span> <span class="kw">THEN</span> <span class="str">'High'</span>
+        <span class="kw">ELSE</span> <span class="str">'Low'</span>
+    <span class="kw">END</span>
+<span class="kw">FROM</span> employees;</pre>
+    </div>
+
+    <h3 class="sub-title">11.3 MySQL</h3>
+    <p>Supports CASE. However, MySQL performs <strong>more implicit type conversion</strong>, which can produce unexpected or silently incorrect results.</p>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <div class="body">
+        <strong>MySQL Gotcha</strong>
+        <p>In MySQL, mixing types like <code class="inline">THEN 100</code> and <code class="inline">ELSE 'ABC'</code> may auto-convert silently, hiding bugs. Always test CASE results explicitly in MySQL.</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">11.4 Oracle — DECODE vs CASE</h3>
+    <p>Older Oracle code uses the proprietary <code class="inline">DECODE</code> function. Modern Oracle supports standard CASE.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">Oracle — DECODE (Legacy)</span>
+      </div>
+      <pre><span class="cmt">-- Legacy DECODE — equality only, less readable</span>
+<span class="fn">DECODE</span>(DepartmentCode,
+       <span class="num">1</span>, <span class="str">'HR'</span>,
+       <span class="num">2</span>, <span class="str">'Finance'</span>,
+       <span class="str">'Unknown'</span>)</pre>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Feature</th><th>DECODE (Oracle)</th><th>CASE (ANSI)</th></tr></thead>
+        <tbody>
+          <tr><td>Equality checks</td><td class="yes">✔</td><td class="yes">✔</td></tr>
+          <tr><td>Range / Boolean conditions</td><td class="no">✘</td><td class="yes">✔</td></tr>
+          <tr><td>Cross-database portability</td><td class="bad">Oracle only</td><td class="good">All databases</td></tr>
+          <tr><td>Readability</td><td class="bad">Harder</td><td class="good">Better</td></tr>
+          <tr><td>Modern recommendation</td><td class="no">Avoid</td><td class="yes">Preferred</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════ BEST PRACTICES ══════ -->
+  <section id="bestpractices">
+    <h2 class="section-title"><span class="num">12</span> Best Practices</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Practice</th><th>Why It Matters</th></tr></thead>
+        <tbody>
+          <tr><td>✔ Use Searched CASE for flexibility</td><td>Handles ranges, NULLs, boolean logic</td></tr>
+          <tr><td>✔ Keep conditions ordered logically</td><td>Prevents unreachable logic branches</td></tr>
+          <tr><td>✔ Always include ELSE clause</td><td>Avoids silent NULLs in unexpected rows</td></tr>
+          <tr><td>✔ Explicitly CAST mixed data types</td><td>Prevents conversion errors and improves portability</td></tr>
+          <tr><td>✔ Use NULLIF for divide-by-zero</td><td>Cleaner than full CASE, same safety</td></tr>
+          <tr><td>✔ Avoid CASE in indexed WHERE conditions</td><td>Preserves sargability and index usage</td></tr>
+          <tr><td>✔ Prefer lookup tables over huge nested CASE</td><td>Easier to maintain and update</td></tr>
+          <tr><td>✔ Use IS NULL, not = NULL in Searched CASE</td><td>NULL = NULL is UNKNOWN, not TRUE</td></tr>
+          <tr><td>✔ Use TRY_CAST / TRY_CONVERT for safe casting</td><td>Prevents runtime conversion errors</td></tr>
+          <tr><td>✔ Prefer CASE over IIF for portability</td><td>ANSI standard, works on all databases</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════ MISTAKES ══════ -->
+  <section id="mistakes">
+    <h2 class="section-title"><span class="num">13</span> Common Mistakes</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Mistake</th><th>Problem</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr><td>Wrong condition order</td><td>Unreachable logic branches</td><td>Order from most specific to least specific</td></tr>
+          <tr><td>Mixed data types</td><td>Implicit conversion errors</td><td>Use explicit CAST() in each branch</td></tr>
+          <tr><td>Missing ELSE</td><td>Returns NULL unexpectedly</td><td>Always add ELSE with a default value</td></tr>
+          <tr><td>CASE in WHERE clause</td><td>Index scan, poor performance</td><td>Rewrite as standard AND/OR predicates</td></tr>
+          <tr><td>Excessive nesting</td><td>Hard to read, maintain, debug</td><td>Use CTEs, lookup tables, or computed columns</td></tr>
+          <tr><td>WHEN NULL in Simple CASE</td><td>Never matches (NULL ≠ NULL)</td><td>Use Searched CASE with IS NULL</td></tr>
+          <tr><td>Relying on short-circuit</td><td>Not guaranteed by optimizer</td><td>Use NULLIF / TRY_CONVERT instead</td></tr>
+          <tr><td>Using IIF for complex logic</td><td>Not portable, harder to maintain</td><td>Use CASE for anything beyond simple binary</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════ PRODUCTION ══════ -->
+  <section id="production">
+    <h2 class="section-title"><span class="num">14</span> Real Production Scenario</h2>
+    <p><strong>Business Requirement:</strong> Generate a sales performance tier report grouping employees into Platinum, Gold, Silver, and Bronze categories based on their total sales.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Sales Tier Report</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    EmployeeID,
+    <span class="fn">SUM</span>(SalesAmount) <span class="kw">AS</span> TotalSales,
+    <span class="kw">CASE</span>
+        <span class="kw">WHEN</span> <span class="fn">SUM</span>(SalesAmount) <span class="op">&gt;=</span> <span class="num">500000</span> <span class="kw">THEN</span> <span class="str">'Platinum'</span>
+        <span class="kw">WHEN</span> <span class="fn">SUM</span>(SalesAmount) <span class="op">&gt;=</span> <span class="num">250000</span> <span class="kw">THEN</span> <span class="str">'Gold'</span>
+        <span class="kw">WHEN</span> <span class="fn">SUM</span>(SalesAmount) <span class="op">&gt;=</span> <span class="num">100000</span> <span class="kw">THEN</span> <span class="str">'Silver'</span>
+        <span class="kw">ELSE</span> <span class="str">'Bronze'</span>
+    <span class="kw">END</span> <span class="kw">AS</span> SalesTier
+<span class="kw">FROM</span> Sales
+<span class="kw">GROUP BY</span> EmployeeID;</pre>
+    </div>
+
+    <div class="callout gem">
+      <div class="icon">💎</div>
+      <div class="body">
+        <strong>Why This Is Powerful</strong>
+        <p>This single query combines <strong>aggregation</strong>, <strong>classification</strong>, <strong>reporting logic</strong>, and <strong>business rules</strong> — replacing what would otherwise require multiple queries, temp tables, or application-side logic.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ PRACTICE TASKS ══════ -->
+  <section id="practice">
+    <h2 class="section-title"><span class="num">15</span> Practice Tasks</h2>
+    <p>Work through these tasks to solidify your understanding. Progress from basic to advanced.</p>
+
+    <div class="practice-section">
+      <h4>🟢 Beginner Level</h4>
+
+      <div class="practice-item">
+        <div class="pnum">1</div>
+        <p>Write a query using <strong>Simple CASE</strong> to display product category names based on a numeric <code class="inline">CategoryID</code> column. Map: 1 → 'Electronics', 2 → 'Clothing', 3 → 'Food', others → 'Misc'.</p>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">2</div>
+        <p>Write a <strong>Searched CASE</strong> to label orders as 'Small' (qty &lt; 10), 'Medium' (10–50), or 'Large' (&gt; 50) based on <code class="inline">OrderQuantity</code>.</p>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">3</div>
+        <p>Write a query that checks whether a <code class="inline">PhoneNumber</code> column is NULL, blank, or valid — returning a descriptive label for each case using CASE.</p>
+      </div>
+    </div>
+
+    <div class="practice-section" style="margin-top:14px;">
+      <h4>🟡 Intermediate Level</h4>
+
+      <div class="practice-item">
+        <div class="pnum">4</div>
+        <p>Use <strong>conditional aggregation</strong> to pivot a Sales table into columns: <code class="inline">Q1_Sales</code>, <code class="inline">Q2_Sales</code>, <code class="inline">Q3_Sales</code>, <code class="inline">Q4_Sales</code> — grouped by <code class="inline">EmployeeID</code>.</p>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">5</div>
+        <p>Write a safe <strong>division query</strong> that calculates <code class="inline">Revenue / Units</code>, returning NULL when Units is 0. Write it using both CASE and NULLIF.</p>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">6</div>
+        <p>Write a <strong>bulk UPDATE</strong> query that increases salary by 15% for Engineering, 10% for Marketing, and 5% for all other departments using CASE in a SET clause.</p>
+      </div>
+    </div>
+
+    <div class="practice-section" style="margin-top:14px;">
+      <h4>🔴 Advanced Level</h4>
+
+      <div class="practice-item">
+        <div class="pnum">7</div>
+        <p>Write a stored procedure with a <code class="inline">@SortColumn</code> parameter. Use CASE inside ORDER BY to dynamically sort by 'Name', 'Salary', or 'HireDate' based on the input value.</p>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">8</div>
+        <p>Using a <strong>Nested CASE</strong>, assign both a performance label and a bonus percentage based on: Region (North/South/East) AND SalesAmount thresholds. Keep conditions correct and ordered.</p>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">9</div>
+        <p>Write a query combining <strong>CASE with a Window Function</strong>: for each employee, show their salary and the average salary of only 'High' earners (Salary &gt; 70,000) partitioned by department.</p>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">10</div>
+        <p><strong>Data cleaning challenge:</strong> A raw import table has Gender as 'M', 'Male', 'male', 'm', 'F', 'Female', 'female', 'f', 'MALE', 'FEMALE'. Write a single CASE statement to normalize all values to 'Male', 'Female', or 'Unknown'.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ FINAL ══════ -->
+  <section id="final">
+    <h2 class="section-title"><span class="num">16</span> Final Thoughts</h2>
+
+    <p>The <strong>CASE expression</strong> is one of the most important and versatile tools in SQL. Mastering it enables you to write powerful, production-grade queries that handle real-world complexity.</p>
+
+    <p>Mastering CASE unlocks:</p>
+    <ul>
+      <li>Advanced reporting and KPI dashboards</li>
+      <li>ETL transformation and data cleaning</li>
+      <li>Dynamic business rules inside queries</li>
+      <li>Safer calculations with NULL and zero handling</li>
+      <li>Conditional aggregation replacing pivot tables</li>
+      <li>Flexible, parameter-driven query design</li>
+    </ul>
+
+    <div class="callout info">
+      <div class="icon">🎯</div>
+      <div class="body">
+        <strong>For Senior-Level SQL Development</strong>
+        <p>Understanding the <strong>optimizer behavior</strong>, <strong>data type precedence</strong>, <strong>sargability</strong>, and <strong>performance implications</strong> of CASE is just as important as learning the syntax itself. Great SQL engineers write not just correct queries, but efficient and maintainable ones.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  SQL CASE WHEN — Complete Reference &nbsp;·&nbsp; Author: MD Jaberul Hossen Jabed &nbsp;·&nbsp; Enhanced Edition
+</footer>
+
+</body>
+</html>

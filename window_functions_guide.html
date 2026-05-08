@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Advanced SQL Window Functions — Deep Dive Masterclass</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2230;
+    --border: #30363d;
+    --accent: #f0a500;
+    --accent2: #3b82f6;
+    --accent3: #10b981;
+    --accent4: #ef4444;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --text-dim: #6e7681;
+    --code-bg: #0d1117;
+    --warning: #f97316;
+    --tip: #a78bfa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', Georgia, serif;
+    font-size: 16px;
+    line-height: 1.75;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1a2035 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 60px 40px 50px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(240,165,0,.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 50%, rgba(59,130,246,.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  header .badge {
+    display: inline-block;
+    background: rgba(240,165,0,.15);
+    border: 1px solid rgba(240,165,0,.4);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .1em;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -.02em;
+    margin-bottom: 12px;
+  }
+  header h1 span { color: var(--accent); }
+  header p.sub {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto 24px;
+    font-style: italic;
+  }
+  header .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: .05em;
+  }
+
+  /* ── LAYOUT ── */
+  .wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 50px 32px 80px;
+  }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 50px;
+  }
+  .toc h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 5px 0; }
+  .toc a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    transition: color .2s;
+  }
+  .toc a:hover { color: var(--accent); }
+
+  /* ── SECTIONS ── */
+  section { margin-bottom: 56px; }
+
+  h2.section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #fff;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  h2.section-title .num {
+    background: var(--accent);
+    color: #000;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 2px 9px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  h3.sub-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent2);
+    margin: 28px 0 12px;
+  }
+
+  h4.mini-title {
+    font-family: 'Syne', sans-serif;
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--tip);
+    margin: 20px 0 8px;
+  }
+
+  p { margin-bottom: 14px; color: var(--text); }
+  p:last-child { margin-bottom: 0; }
+
+  ul, ol {
+    padding-left: 22px;
+    margin-bottom: 14px;
+  }
+  li { margin: 4px 0; color: var(--text); }
+
+  strong { color: #fff; font-weight: 600; }
+  em { color: var(--accent); font-style: italic; }
+
+  code.inline {
+    background: rgba(240,165,0,.12);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .85em;
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(240,165,0,.25);
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-wrap {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 16px 0 24px;
+  }
+  .code-header {
+    background: var(--surface2);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-header .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  .code-header .dot.r { background: #ef4444; }
+  .code-header .dot.y { background: #f59e0b; }
+  .code-header .dot.g { background: #10b981; }
+  .code-header .lang {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: .05em;
+  }
+  pre {
+    padding: 20px 22px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #cdd9e5;
+  }
+  .kw  { color: #ff7b72; }
+  .fn  { color: #d2a8ff; }
+  .str { color: #a5d6ff; }
+  .num { color: #79c0ff; }
+  .cmt { color: #8b949e; font-style: italic; }
+  .op  { color: var(--accent); }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 18px 0;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .callout .icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+  .callout .body { flex: 1; }
+  .callout .body strong {
+    display: block;
+    font-family: 'Syne', sans-serif;
+    font-size: .85rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .callout .body p { margin: 0; font-size: .95rem; }
+
+  .callout.tip    { background: rgba(167,139,250,.1); border: 1px solid rgba(167,139,250,.3); }
+  .callout.tip .icon { color: var(--tip); }
+  .callout.tip .body strong { color: var(--tip); }
+
+  .callout.warn   { background: rgba(249,115,22,.1); border: 1px solid rgba(249,115,22,.3); }
+  .callout.warn .icon { color: var(--warning); }
+  .callout.warn .body strong { color: var(--warning); }
+
+  .callout.gem    { background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.3); }
+  .callout.gem .icon { color: var(--accent3); }
+  .callout.gem .body strong { color: var(--accent3); }
+
+  .callout.danger { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); }
+  .callout.danger .icon { color: var(--accent4); }
+  .callout.danger .body strong { color: var(--accent4); }
+
+  .callout.info   { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.3); }
+  .callout.info .icon { color: var(--accent2); }
+  .callout.info .body strong { color: var(--accent2); }
+
+  /* ── TASK BOX ── */
+  .task-box {
+    background: linear-gradient(135deg, rgba(240,165,0,.08), rgba(240,165,0,.03));
+    border: 1px solid rgba(240,165,0,.35);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin: 20px 0;
+  }
+  .task-box .task-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .task-box p { margin: 0; font-size: .95rem; }
+
+  /* ── PRACTICE TASKS ── */
+  .practice-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 30px;
+    margin-top: 18px;
+  }
+  .practice-section h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent3);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .practice-item {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .practice-item .pnum {
+    background: var(--accent3);
+    color: #000;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .practice-item.adv .pnum { background: var(--accent4); }
+  .practice-item.med .pnum { background: var(--accent); }
+  .practice-item p { margin: 0; font-size: .93rem; color: var(--text-muted); }
+  .practice-item p strong { color: var(--text); }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; margin: 18px 0 24px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  thead tr { background: var(--surface2); }
+  th {
+    text-align: left;
+    padding: 11px 16px;
+    color: var(--accent);
+    font-size: 12px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--border);
+  }
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: 'Lora', serif;
+    font-size: 14px;
+  }
+  td:first-child { color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+  tbody tr:hover { background: rgba(255,255,255,.02); }
+
+  .yes  { color: var(--accent3) !important; font-family: 'JetBrains Mono', monospace; }
+  .no   { color: var(--accent4) !important; font-family: 'JetBrains Mono', monospace; }
+  .good { color: var(--accent3) !important; }
+  .bad  { color: var(--accent4) !important; }
+
+  /* ── SYNTAX BLOCK ── */
+  .syntax-block {
+    background: var(--surface);
+    border: 1px solid rgba(59,130,246,.3);
+    border-left: 4px solid var(--accent2);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin: 14px 0 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: #cdd9e5;
+    line-height: 1.8;
+  }
+
+  /* ── DIVIDER ── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 40px 20px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .04em;
+  }
+
+  /* ── TYPE GRID ── */
+  .type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin: 18px 0;
+  }
+  .type-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .type-card h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    color: var(--accent2);
+    margin-bottom: 10px;
+  }
+  .type-card ul { padding-left: 16px; margin: 0; }
+  .type-card li { font-size: .88rem; color: var(--text-muted); margin: 3px 0; }
+
+  /* ── FUNCTION CARD ── */
+  .fn-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 16px 0 24px;
+  }
+  .fn-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent2);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .fn-card .fn-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .fn-card p { font-size: .83rem; color: var(--text-muted); margin: 0; }
+
+  /* ── CHALLENGE BOX ── */
+  .challenge-box {
+    background: linear-gradient(135deg, rgba(59,130,246,.08), rgba(59,130,246,.02));
+    border: 1px solid rgba(59,130,246,.3);
+    border-left: 4px solid var(--accent2);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin: 20px 0;
+  }
+  .challenge-box .ch-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--accent2);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .challenge-box h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  .challenge-box p { margin: 0 0 8px; font-size: .93rem; }
+  .challenge-box ul { margin: 0; padding-left: 18px; }
+  .challenge-box li { font-size: .88rem; color: var(--text-muted); }
+
+  /* ── BEST PRACTICE CHECKLIST ── */
+  .checklist {
+    list-style: none;
+    padding: 0;
+    margin: 14px 0;
+  }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(48,54,61,.5);
+    font-size: .93rem;
+    color: var(--text-muted);
+  }
+  .checklist li::before {
+    content: '✔';
+    color: var(--accent3);
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .checklist li strong { color: var(--text); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    header { padding: 40px 20px 36px; }
+    .wrapper { padding: 32px 16px 60px; }
+    .toc { padding: 20px 18px; }
+    pre { font-size: 12px; padding: 14px 14px; }
+    h2.section-title { font-size: 1.25rem; }
+    .fn-grid { grid-template-columns: 1fr 1fr; }
+    .type-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">SQL · ANALYTICS · MASTERCLASS</div>
+  <h1>Advanced SQL <span>Window Functions</span></h1>
+  <p class="sub">A complete deep-dive reference covering every function, frame clause, business scenario, performance strategy, and common pitfall.</p>
+  <div class="meta">13 Sections &nbsp;·&nbsp; 8 Functions &nbsp;·&nbsp; 15 Practice Tasks &nbsp;·&nbsp; Enterprise-Grade</div>
+</header>
+
+<div class="wrapper">
+
+  <!-- TOC -->
+  <nav class="toc">
+    <h2>📋 Table of Contents</h2>
+    <ol>
+      <li><a href="#intro">Introduction to Window Functions</a></li>
+      <li><a href="#over">Understanding the OVER() Clause</a></li>
+      <li><a href="#aggregate">Aggregate Window Functions — SUM, AVG, MIN, MAX, COUNT</a></li>
+      <li><a href="#ranking">Ranking Functions — ROW_NUMBER, RANK, DENSE_RANK, NTILE</a></li>
+      <li><a href="#value">Value Functions — LAG, LEAD, FIRST_VALUE, LAST_VALUE</a></li>
+      <li><a href="#frames">Frame Clauses — ROWS vs RANGE</a></li>
+      <li><a href="#scenarios">Advanced Business Scenarios</a></li>
+      <li><a href="#performance">Performance Engineering</a></li>
+      <li><a href="#factmyth">Fact vs Myth</a></li>
+      <li><a href="#pitfalls">Common Pitfalls</a></li>
+      <li><a href="#practice">Interview-Level Practice Tasks</a></li>
+      <li><a href="#challenges">Advanced Challenge Problems</a></li>
+      <li><a href="#bestpractices">Final Best Practices</a></li>
+    </ol>
+  </nav>
+
+  <!-- ══════ 1. INTRODUCTION ══════ -->
+  <section id="intro">
+    <h2 class="section-title"><span class="num">01</span> Introduction to Window Functions</h2>
+
+    <p>Window Functions are one of the most powerful analytical capabilities in SQL. They allow calculations across sets of table rows that are somehow related to the current row — without collapsing the result set like <code class="inline">GROUP BY</code> does.</p>
+
+    <div class="callout info">
+      <div class="icon">ℹ️</div>
+      <div class="body">
+        <strong>Key Distinction</strong>
+        <p><strong>GROUP BY</strong> collapses rows into summary groups. <strong>Window Functions</strong> preserve every row while computing across related records — giving you both detail and analytics in one query.</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">Where Window Functions Excel</h3>
+    <div class="type-grid">
+      <div class="type-card">
+        <h4>📊 Analytics</h4>
+        <ul>
+          <li>Time-series analytics</li>
+          <li>Trend monitoring</li>
+          <li>KPI tracking</li>
+          <li>Cohort analysis</li>
+        </ul>
+      </div>
+      <div class="type-card">
+        <h4>💰 Finance</h4>
+        <ul>
+          <li>Financial reporting</li>
+          <li>Burn-rate tracking</li>
+          <li>Investor reporting</li>
+          <li>Revenue trajectory</li>
+        </ul>
+      </div>
+      <div class="type-card">
+        <h4>👥 Customer</h4>
+        <ul>
+          <li>Customer retention analysis</li>
+          <li>Fraud detection</li>
+          <li>Ranking and segmentation</li>
+          <li>Operational dashboards</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout gem">
+      <div class="icon">💎</div>
+      <div class="body">
+        <strong>Noticeable Fact</strong>
+        <p>Window Functions were introduced in SQL:2003 standard and are now supported by all major databases: PostgreSQL, SQL Server, MySQL 8+, Oracle, BigQuery, Snowflake, Redshift, and SQLite 3.25+. If you're on MySQL 5.x or earlier, you must upgrade to use them.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ 2. OVER() ══════ -->
+  <section id="over">
+    <h2 class="section-title"><span class="num">02</span> Understanding the OVER() Clause</h2>
+
+    <p>Every Window Function requires the <code class="inline">OVER()</code> clause. It defines the window — the set of rows the function will act upon for each output row.</p>
+
+    <h3 class="sub-title">Basic Structure</h3>
+    <div class="syntax-block">
+FUNCTION_NAME(expression)<br>
+OVER (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;PARTITION BY column_name<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ORDER BY column_name [ASC|DESC]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;frame_clause<br>
+)
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Component</th><th>Purpose</th><th>Optional?</th></tr></thead>
+        <tbody>
+          <tr><td>PARTITION BY</td><td>Splits data into logical groups (like GROUP BY but without collapsing)</td><td class="good">Yes</td></tr>
+          <tr><td>ORDER BY</td><td>Defines the row sequence within each partition</td><td class="good">Yes — required for ranking/value functions</td></tr>
+          <tr><td>Frame Clause</td><td>Defines which rows around the current row participate in the calculation</td><td class="good">Yes</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <div class="body">
+        <strong>Critical Behavior: Empty OVER()</strong>
+        <p>An empty <code class="inline">OVER()</code> with no clauses means the window spans the <strong>entire result set</strong>. Every row sees the same calculation. For running totals or rankings, you must include <code class="inline">ORDER BY</code> inside the window.</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">Example Dataset</h3>
+    <p>All examples in this guide use the following enterprise SaaS subscription table:</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Dataset Schema</span>
+      </div>
+      <pre><span class="kw">CREATE TABLE</span> subscription_metrics (
+    customer_id       <span class="fn">INT</span>,
+    subscription_month <span class="fn">DATE</span>,
+    monthly_revenue   <span class="fn">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>),
+    active_users      <span class="fn">INT</span>,
+    churn_flag        <span class="fn">INT</span>,       <span class="cmt">-- 1 = churned, 0 = active</span>
+    region            <span class="fn">VARCHAR</span>(<span class="num">50</span>)
+);</pre>
+    </div>
+  </section>
+
+  <!-- ══════ 3. AGGREGATE ══════ -->
+  <section id="aggregate">
+    <h2 class="section-title"><span class="num">03</span> Aggregate Window Functions</h2>
+
+    <p>Standard aggregate functions — <code class="inline">SUM</code>, <code class="inline">AVG</code>, <code class="inline">MIN</code>, <code class="inline">MAX</code>, <code class="inline">COUNT</code> — become window functions when paired with <code class="inline">OVER()</code>. They calculate without collapsing rows.</p>
+
+    <!-- SUM -->
+    <h3 class="sub-title">SUM() — Cumulative Running Total</h3>
+    <p><strong>Business Case:</strong> A CFO wants cumulative Monthly Recurring Revenue (MRR) growth over time without collapsing monthly records.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Cumulative MRR</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    subscription_month,
+    monthly_revenue,
+    <span class="fn">SUM</span>(monthly_revenue) <span class="kw">OVER</span> (
+        <span class="kw">ORDER BY</span> subscription_month
+        <span class="kw">ROWS BETWEEN</span> <span class="kw">UNBOUNDED PRECEDING AND CURRENT ROW</span>
+    ) <span class="kw">AS</span> cumulative_mrr
+<span class="kw">FROM</span> subscription_metrics;</pre>
+    </div>
+    <p><strong>Mechanics:</strong> <code class="inline">ORDER BY</code> creates chronological sequence. <code class="inline">UNBOUNDED PRECEDING</code> starts from the first row. <code class="inline">CURRENT ROW</code> ends at the current record — classic running total pattern.</p>
+    <p><strong>Business Use:</strong> Revenue trajectory analysis, forecasting, investor reporting, burn-rate tracking.</p>
+    <div class="callout danger">
+      <div class="icon">🚨</div>
+      <div class="body">
+        <strong>Pitfall — Missing ORDER BY</strong>
+        <p>Without <code class="inline">ORDER BY</code>, <code class="inline">SUM() OVER ()</code> returns the grand total on every row — no running calculation happens at all. Always define <code class="inline">ORDER BY</code> for cumulative logic.</p>
+      </div>
+    </div>
+
+    <!-- AVG -->
+    <h3 class="sub-title">AVG() — Rolling Average</h3>
+    <p><strong>Business Case:</strong> A customer success team wants a rolling 3-month average of active users to smooth seasonal fluctuations.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Rolling 3-Month Average</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    customer_id,
+    subscription_month,
+    active_users,
+    <span class="fn">AVG</span>(active_users) <span class="kw">OVER</span> (
+        <span class="kw">PARTITION BY</span> customer_id
+        <span class="kw">ORDER BY</span> subscription_month
+        <span class="kw">ROWS BETWEEN</span> <span class="num">2</span> <span class="kw">PRECEDING AND CURRENT ROW</span>
+    ) <span class="kw">AS</span> rolling_3_month_avg
+<span class="kw">FROM</span> subscription_metrics;</pre>
+    </div>
+    <p>For each customer, this averages the current month and the previous 2 months dynamically.</p>
+    <p><strong>Business Use:</strong> Product adoption tracking, user engagement smoothing, predictive churn analysis.</p>
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <div class="body">
+        <strong>Pitfall — NULL &amp; Sparse Data</strong>
+        <p><code class="inline">AVG</code> silently ignores NULL values — this can make early-period averages misleading when data is sparse. Missing months distort rolling averages. Always validate row counts in windows with <code class="inline">COUNT(*) OVER (...)</code> alongside.</p>
+      </div>
+    </div>
+
+    <!-- MIN / MAX -->
+    <h3 class="sub-title">MIN() and MAX() — Regional Extremes</h3>
+    <p><strong>Business Case:</strong> Operations wants to identify highest and lowest monthly engagement for each region.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Regional Min/Max</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    region,
+    subscription_month,
+    active_users,
+    <span class="fn">MIN</span>(active_users) <span class="kw">OVER</span> (<span class="kw">PARTITION BY</span> region) <span class="kw">AS</span> region_min_users,
+    <span class="fn">MAX</span>(active_users) <span class="kw">OVER</span> (<span class="kw">PARTITION BY</span> region) <span class="kw">AS</span> region_max_users
+<span class="kw">FROM</span> subscription_metrics;</pre>
+    </div>
+    <p><strong>Business Value:</strong> Identifies regional instability, infrastructure pressure points, and adoption anomalies across time.</p>
+
+    <div class="callout tip">
+      <div class="icon">💡</div>
+      <div class="body">
+        <strong>Noticeable Fact</strong>
+        <p>When no <code class="inline">ORDER BY</code> is used inside <code class="inline">OVER()</code>, <code class="inline">MIN/MAX</code> calculate across the entire partition — giving you the partition-wide min/max on every row. Adding <code class="inline">ORDER BY</code> changes this to a running min/max up to the current row.</p>
+      </div>
+    </div>
+
+    <!-- COUNT -->
+    <h3 class="sub-title">COUNT() — Activity Frequency</h3>
+    <p><strong>Business Case:</strong> Retention analysts want customer activity frequency without collapsing row-level details.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Active Month Count</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    customer_id,
+    subscription_month,
+    <span class="fn">COUNT</span>(*) <span class="kw">OVER</span> (
+        <span class="kw">PARTITION BY</span> customer_id
+    ) <span class="kw">AS</span> active_month_count
+<span class="kw">FROM</span> subscription_metrics;</pre>
+    </div>
+    <p><strong>Business Use:</strong> Loyalty scoring, retention segmentation, lifetime value modeling.</p>
+    <div class="callout info">
+      <div class="icon">ℹ️</div>
+      <div class="body">
+        <strong>COUNT(*) vs COUNT(column)</strong>
+        <p><code class="inline">COUNT(*)</code> counts all rows including those with NULLs. <code class="inline">COUNT(column)</code> skips NULLs. This distinction matters greatly in window contexts where NULL gaps in data can skew counts.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ 4. RANKING ══════ -->
+  <section id="ranking">
+    <h2 class="section-title"><span class="num">04</span> Ranking Functions</h2>
+
+    <div class="fn-grid">
+      <div class="fn-card">
+        <div class="fn-name">ROW_NUMBER()</div>
+        <p>Unique sequential integer — no ties ever</p>
+      </div>
+      <div class="fn-card">
+        <div class="fn-name">RANK()</div>
+        <p>Ties get same rank, next rank skips</p>
+      </div>
+      <div class="fn-card">
+        <div class="fn-name">DENSE_RANK()</div>
+        <p>Ties get same rank, no gaps after ties</p>
+      </div>
+      <div class="fn-card">
+        <div class="fn-name">NTILE(n)</div>
+        <p>Distributes rows into n equal buckets</p>
+      </div>
+    </div>
+
+    <!-- ROW_NUMBER -->
+    <h3 class="sub-title">ROW_NUMBER() — Unique Sequential Numbering</h3>
+    <p><strong>Business Case:</strong> An e-commerce company wants only the latest record per customer (deduplication pattern).</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Latest Record Per Customer</span>
+      </div>
+      <pre><span class="kw">SELECT</span> *
+<span class="kw">FROM</span> (
+    <span class="kw">SELECT</span>
+        customer_id,
+        subscription_month,
+        monthly_revenue,
+        <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span> (
+            <span class="kw">PARTITION BY</span> customer_id
+            <span class="kw">ORDER BY</span> subscription_month <span class="kw">DESC</span>
+        ) <span class="kw">AS</span> rn
+    <span class="kw">FROM</span> subscription_metrics
+) t
+<span class="kw">WHERE</span> rn <span class="op">=</span> <span class="num">1</span>;</pre>
+    </div>
+    <p><code class="inline">ROW_NUMBER()</code> never creates ties — every row gets a unique number. Used for: latest transaction retrieval, deduplication, slowly changing dimensions, CDC pipelines.</p>
+    <div class="callout danger">
+      <div class="icon">🚨</div>
+      <div class="body">
+        <strong>Non-Determinism Warning</strong>
+        <p>If the <code class="inline">ORDER BY</code> inside the window has ties, ROW_NUMBER produces <strong>non-deterministic</strong> results — the same query may return different rows on different runs. Always add a unique tiebreaker (like <code class="inline">customer_id</code>) to guarantee stable results.</p>
+      </div>
+    </div>
+
+    <!-- RANK -->
+    <h3 class="sub-title">RANK() — Rankings with Gap After Ties</h3>
+    <p><strong>Business Case:</strong> A sales director wants a regional leaderboard that correctly reflects tied revenues.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Regional Revenue Rank</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    region,
+    customer_id,
+    monthly_revenue,
+    <span class="fn">RANK</span>() <span class="kw">OVER</span> (
+        <span class="kw">PARTITION BY</span> region
+        <span class="kw">ORDER BY</span> monthly_revenue <span class="kw">DESC</span>
+    ) <span class="kw">AS</span> revenue_rank
+<span class="kw">FROM</span> subscription_metrics;</pre>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Revenue</th><th>RANK()</th><th>Explanation</th></tr></thead>
+        <tbody>
+          <tr><td>1000</td><td class="yes">1</td><td>Tied — both get rank 1</td></tr>
+          <tr><td>1000</td><td class="yes">1</td><td>Tied — both get rank 1</td></tr>
+          <tr><td>900</td><td class="no">3</td><td>Rank 2 is skipped — gap after tie</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- DENSE_RANK -->
+    <h3 class="sub-title">DENSE_RANK() — Rankings without Gaps</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Dense Revenue Rank</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    region,
+    customer_id,
+    monthly_revenue,
+    <span class="fn">DENSE_RANK</span>() <span class="kw">OVER</span> (
+        <span class="kw">PARTITION BY</span> region
+        <span class="kw">ORDER BY</span> monthly_revenue <span class="kw">DESC</span>
+    ) <span class="kw">AS</span> dense_rank_num
+<span class="kw">FROM</span> subscription_metrics;</pre>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Revenue</th><th>DENSE_RANK()</th><th>vs RANK()</th></tr></thead>
+        <tbody>
+          <tr><td>1000</td><td class="yes">1</td><td class="yes">1</td></tr>
+          <tr><td>1000</td><td class="yes">1</td><td class="yes">1</td></tr>
+          <tr><td>900</td><td class="yes">2</td><td class="no">3 (gap)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>Business Use:</strong> Tier systems, loyalty segmentation, compensation bands — any case where gaps in ranks would be confusing to stakeholders.</p>
+
+    <!-- NTILE -->
+    <h3 class="sub-title">NTILE(n) — Percentile Bucketing</h3>
+    <p><strong>Business Case:</strong> Marketing team wants customers in quartiles based on revenue for targeted campaigns.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Customer Revenue Quartiles</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    customer_id,
+    monthly_revenue,
+    <span class="fn">NTILE</span>(<span class="num">4</span>) <span class="kw">OVER</span> (
+        <span class="kw">ORDER BY</span> monthly_revenue <span class="kw">DESC</span>
+    ) <span class="kw">AS</span> revenue_quartile
+<span class="kw">FROM</span> subscription_metrics;</pre>
+    </div>
+    <p><strong>Business Value:</strong> Customer segmentation (Top 25% = Quartile 1), credit risk bands, campaign prioritization.</p>
+    <div class="callout tip">
+      <div class="icon">💡</div>
+      <div class="body">
+        <strong>Noticeable Fact — Uneven Distribution</strong>
+        <p>When the total row count isn't perfectly divisible by <em>n</em>, <code class="inline">NTILE</code> places extra rows in the first buckets. For example, 10 rows with <code class="inline">NTILE(3)</code> produces buckets of size 4, 3, 3 — not 3, 3, 4. Always account for this in downstream logic.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ 5. VALUE FUNCTIONS ══════ -->
+  <section id="value">
+    <h2 class="section-title"><span class="num">05</span> Value Functions</h2>
+
+    <p>Value functions access data from <strong>other rows</strong> relative to the current row — without a self-join. They are essential for comparison, trend, and gap analysis.</p>
+
+    <!-- LAG -->
+    <h3 class="sub-title">LAG() — Look Back at Previous Rows</h3>
+    <p><strong>Business Case:</strong> Finance team wants Month-over-Month revenue growth percentage.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — MoM Growth %</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    customer_id,
+    subscription_month,
+    monthly_revenue,
+    <span class="fn">LAG</span>(monthly_revenue) <span class="kw">OVER</span> (
+        <span class="kw">PARTITION BY</span> customer_id
+        <span class="kw">ORDER BY</span> subscription_month
+    ) <span class="kw">AS</span> previous_month_revenue,
+    <span class="fn">ROUND</span>(
+        (
+            monthly_revenue <span class="op">-</span> <span class="fn">LAG</span>(monthly_revenue) <span class="kw">OVER</span> (
+                <span class="kw">PARTITION BY</span> customer_id <span class="kw">ORDER BY</span> subscription_month
+            )
+        )
+        <span class="op">/</span>
+        <span class="fn">NULLIF</span>(
+            <span class="fn">LAG</span>(monthly_revenue) <span class="kw">OVER</span> (
+                <span class="kw">PARTITION BY</span> customer_id <span class="kw">ORDER BY</span> subscription_month
+            ), <span class="num">0</span>
+        ) <span class="op">*</span> <span class="num">100</span>, <span class="num">2</span>
+    ) <span class="kw">AS</span> mom_growth_pct
+<span class="kw">FROM</span> subscription_metrics;</pre>
+    </div>
+    <p><strong>Syntax:</strong> <code class="inline">LAG(expr, offset, default)</code> — offset defaults to 1 (previous row); default value returned when no row exists (defaults to NULL).</p>
+    <div class="callout danger">
+      <div class="icon">🚨</div>
+      <div class="body">
+        <strong>Always Use NULLIF for Division</strong>
+        <p>The first row in each partition has no previous value, so LAG returns NULL. Dividing by NULL or zero causes errors. Always wrap the denominator with <code class="inline">NULLIF(value, 0)</code> to safely return NULL instead of an error.</p>
+      </div>
+    </div>
+
+    <!-- LEAD -->
+    <h3 class="sub-title">LEAD() — Look Forward at Future Rows</h3>
+    <p><strong>Business Case:</strong> A retention team wants to detect inactivity gaps between subscription periods.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Next Active Month</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    customer_id,
+    subscription_month,
+    <span class="fn">LEAD</span>(subscription_month) <span class="kw">OVER</span> (
+        <span class="kw">PARTITION BY</span> customer_id
+        <span class="kw">ORDER BY</span> subscription_month
+    ) <span class="kw">AS</span> next_active_month,
+    <span class="fn">DATEDIFF</span>(
+        <span class="fn">LEAD</span>(subscription_month) <span class="kw">OVER</span> (
+            <span class="kw">PARTITION BY</span> customer_id <span class="kw">ORDER BY</span> subscription_month
+        ),
+        subscription_month
+    ) <span class="kw">AS</span> days_until_next_activity
+<span class="kw">FROM</span> subscription_metrics;</pre>
+    </div>
+    <p><strong>Business Value:</strong> Churn prediction, subscription lapse analysis, customer lifecycle modeling. The last row in each partition returns NULL for LEAD — handle this in BI tools.</p>
+
+    <!-- FIRST_VALUE -->
+    <h3 class="sub-title">FIRST_VALUE() — Baseline Reference</h3>
+    <p><strong>Business Case:</strong> A product team wants to compare current performance against each customer's initial revenue.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Revenue vs Baseline</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    customer_id,
+    subscription_month,
+    monthly_revenue,
+    <span class="fn">FIRST_VALUE</span>(monthly_revenue) <span class="kw">OVER</span> (
+        <span class="kw">PARTITION BY</span> customer_id
+        <span class="kw">ORDER BY</span> subscription_month
+        <span class="kw">ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</span>
+    ) <span class="kw">AS</span> initial_revenue,
+    monthly_revenue <span class="op">-</span> <span class="fn">FIRST_VALUE</span>(monthly_revenue) <span class="kw">OVER</span> (
+        <span class="kw">PARTITION BY</span> customer_id
+        <span class="kw">ORDER BY</span> subscription_month
+        <span class="kw">ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</span>
+    ) <span class="kw">AS</span> growth_since_start
+<span class="kw">FROM</span> subscription_metrics;</pre>
+    </div>
+    <p><strong>Use Cases:</strong> Baseline tracking, growth benchmarking, cohort comparison.</p>
+
+    <!-- LAST_VALUE -->
+    <h3 class="sub-title">LAST_VALUE() — Terminal Reference</h3>
+    <div class="callout danger">
+      <div class="icon">🚨</div>
+      <div class="body">
+        <strong>Most Common Mistake in Analytics</strong>
+        <p><code class="inline">LAST_VALUE()</code> without an explicit frame defaults to <code class="inline">RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code> — so it returns the <strong>current row's value</strong>, not the last row in the partition. You must override the frame.</p>
+      </div>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Correct LAST_VALUE with Explicit Frame</span>
+      </div>
+      <pre><span class="cmt">-- ❌ WRONG — returns current row value, not last</span>
+<span class="fn">LAST_VALUE</span>(monthly_revenue) <span class="kw">OVER</span> (
+    <span class="kw">PARTITION BY</span> customer_id
+    <span class="kw">ORDER BY</span> subscription_month
+)
+
+<span class="cmt">-- ✅ CORRECT — extend frame to end of partition</span>
+<span class="kw">SELECT</span>
+    customer_id,
+    subscription_month,
+    monthly_revenue,
+    <span class="fn">LAST_VALUE</span>(monthly_revenue) <span class="kw">OVER</span> (
+        <span class="kw">PARTITION BY</span> customer_id
+        <span class="kw">ORDER BY</span> subscription_month
+        <span class="kw">ROWS BETWEEN UNBOUNDED PRECEDING</span>
+             <span class="kw">AND UNBOUNDED FOLLOWING</span>
+    ) <span class="kw">AS</span> final_revenue
+<span class="kw">FROM</span> subscription_metrics;</pre>
+    </div>
+  </section>
+
+  <!-- ══════ 6. FRAME CLAUSES ══════ -->
+  <section id="frames">
+    <h2 class="section-title"><span class="num">06</span> Frame Clauses — ROWS vs RANGE</h2>
+
+    <p>Frame clauses are the most misunderstood part of window functions. They define <strong>which rows participate</strong> in the calculation relative to the current row.</p>
+
+    <h3 class="sub-title">ROWS — Physical Row Positions</h3>
+    <p><code class="inline">ROWS</code> counts actual physical row positions. It is precise, predictable, and recommended for most use cases.</p>
+    <div class="syntax-block">
+ROWS BETWEEN 2 PRECEDING AND CURRENT ROW<br>
+<span style="color:var(--text-muted)">→ Current row + previous 2 physical rows</span>
+    </div>
+
+    <h3 class="sub-title">RANGE — Logical Value Ranges</h3>
+    <p><code class="inline">RANGE</code> groups rows that share the same <code class="inline">ORDER BY</code> value, treating them as a logical unit. Useful for date-based ranges.</p>
+    <div class="syntax-block">
+RANGE BETWEEN INTERVAL '30' DAY PRECEDING AND CURRENT ROW<br>
+<span style="color:var(--text-muted)">→ All rows within the last 30-day value range</span>
+    </div>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <div class="body">
+        <strong>Key Difference — Equal Values Behave Differently</strong>
+        <p>When rows share the same <code class="inline">ORDER BY</code> value: <code class="inline">ROWS</code> treats them as separate physical rows. <code class="inline">RANGE</code> includes all of them together in the same window boundary — which can dramatically change aggregation results.</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">Frame Boundaries Reference</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Keyword</th><th>Meaning</th><th>Common Use</th></tr></thead>
+        <tbody>
+          <tr><td>UNBOUNDED PRECEDING</td><td>First row of the partition</td><td>Running totals, cumulative stats</td></tr>
+          <tr><td>n PRECEDING</td><td>n rows before current row</td><td>Rolling windows (e.g., 3-month avg)</td></tr>
+          <tr><td>CURRENT ROW</td><td>The current row being processed</td><td>Include current in window</td></tr>
+          <tr><td>n FOLLOWING</td><td>n rows after current row</td><td>Forward-looking analytics</td></tr>
+          <tr><td>UNBOUNDED FOLLOWING</td><td>Last row of the partition</td><td>Required for correct LAST_VALUE()</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">Default Frame Behavior</h3>
+    <div class="callout danger">
+      <div class="icon">🚨</div>
+      <div class="body">
+        <strong>Database Default Frames Differ</strong>
+        <p>When you include <code class="inline">ORDER BY</code> but no frame clause, the default is <code class="inline">RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>. When there is <strong>no ORDER BY</strong>, the default is <code class="inline">RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</code> (full partition). Always define frames explicitly to avoid unexpected results.</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">FOLLOWING — Forward-Looking Analytics</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Forward 3-Row Window</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    subscription_month,
+    monthly_revenue,
+    <span class="fn">AVG</span>(monthly_revenue) <span class="kw">OVER</span> (
+        <span class="kw">ORDER BY</span> subscription_month
+        <span class="kw">ROWS BETWEEN CURRENT ROW AND</span> <span class="num">3</span> <span class="kw">FOLLOWING</span>
+    ) <span class="kw">AS</span> next_3_month_avg
+<span class="kw">FROM</span> subscription_metrics;</pre>
+    </div>
+    <p><strong>Business Use:</strong> Demand forecasting, future trend smoothing, predictive maintenance.</p>
+  </section>
+
+  <!-- ══════ 7. SCENARIOS ══════ -->
+  <section id="scenarios">
+    <h2 class="section-title"><span class="num">07</span> Advanced Business Scenarios</h2>
+
+    <!-- Scenario 1 -->
+    <h3 class="sub-title">Scenario 1 — Customer Retention Gap Analysis</h3>
+    <p><strong>Objective:</strong> Find inactivity gaps larger than 60 days to identify at-risk customers.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Retention Gap Detection</span>
+      </div>
+      <pre><span class="kw">WITH</span> activity <span class="kw">AS</span> (
+    <span class="kw">SELECT</span>
+        customer_id,
+        subscription_month,
+        <span class="fn">LAG</span>(subscription_month) <span class="kw">OVER</span> (
+            <span class="kw">PARTITION BY</span> customer_id
+            <span class="kw">ORDER BY</span> subscription_month
+        ) <span class="kw">AS</span> previous_activity
+    <span class="kw">FROM</span> subscription_metrics
+)
+<span class="kw">SELECT</span>
+    customer_id,
+    subscription_month,
+    <span class="fn">DATEDIFF</span>(day, previous_activity, subscription_month) <span class="kw">AS</span> inactivity_gap
+<span class="kw">FROM</span> activity
+<span class="kw">WHERE</span> <span class="fn">DATEDIFF</span>(day, previous_activity, subscription_month) <span class="op">&gt;</span> <span class="num">60</span>;</pre>
+    </div>
+    <p><strong>Business Value:</strong> Identifies potential churn, re-engagement targets, and customer risk profiles.</p>
+
+    <!-- Scenario 2 -->
+    <h3 class="sub-title">Scenario 2 — Revenue Spike Detection</h3>
+    <p><strong>Objective:</strong> Flag customers whose revenue more than doubled in a single month — potential fraud or upsell signal.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Revenue Spike Flag</span>
+      </div>
+      <pre><span class="kw">WITH</span> revenue_change <span class="kw">AS</span> (
+    <span class="kw">SELECT</span>
+        customer_id,
+        subscription_month,
+        monthly_revenue,
+        <span class="fn">LAG</span>(monthly_revenue) <span class="kw">OVER</span> (
+            <span class="kw">PARTITION BY</span> customer_id
+            <span class="kw">ORDER BY</span> subscription_month
+        ) <span class="kw">AS</span> prev_revenue
+    <span class="kw">FROM</span> subscription_metrics
+)
+<span class="kw">SELECT</span> *
+<span class="kw">FROM</span> revenue_change
+<span class="kw">WHERE</span> monthly_revenue <span class="op">&gt;</span> prev_revenue <span class="op">*</span> <span class="num">2</span>;</pre>
+    </div>
+    <p><strong>Business Use:</strong> Fraud detection, abnormal usage analysis, upsell opportunity identification.</p>
+
+    <!-- Scenario 3 -->
+    <h3 class="sub-title">Scenario 3 — Rolling Churn Probability</h3>
+    <p><strong>Objective:</strong> Calculate rolling 6-month average churn rate as an early-warning risk score per customer.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Rolling Churn Score</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    customer_id,
+    subscription_month,
+    churn_flag,
+    <span class="fn">AVG</span>(churn_flag) <span class="kw">OVER</span> (
+        <span class="kw">PARTITION BY</span> customer_id
+        <span class="kw">ORDER BY</span> subscription_month
+        <span class="kw">ROWS BETWEEN</span> <span class="num">5</span> <span class="kw">PRECEDING AND CURRENT ROW</span>
+    ) <span class="kw">AS</span> rolling_churn_probability
+<span class="kw">FROM</span> subscription_metrics;</pre>
+    </div>
+    <p><strong>Business Impact:</strong> Enables risk scoring (0.0–1.0), early customer intervention, and retention campaign automation.</p>
+
+    <!-- Scenario 4 — Added -->
+    <h3 class="sub-title">Scenario 4 — Top-N Per Group (Missing from Source)</h3>
+    <p><strong>Objective:</strong> Find the top 2 highest-revenue customers per region — a common pattern in dashboards and reports.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Top 2 Per Region</span>
+      </div>
+      <pre><span class="kw">SELECT</span> *
+<span class="kw">FROM</span> (
+    <span class="kw">SELECT</span>
+        region,
+        customer_id,
+        monthly_revenue,
+        <span class="fn">DENSE_RANK</span>() <span class="kw">OVER</span> (
+            <span class="kw">PARTITION BY</span> region
+            <span class="kw">ORDER BY</span> monthly_revenue <span class="kw">DESC</span>
+        ) <span class="kw">AS</span> rnk
+    <span class="kw">FROM</span> subscription_metrics
+) ranked
+<span class="kw">WHERE</span> rnk <span class="op">&lt;=</span> <span class="num">2</span>;</pre>
+    </div>
+    <p><strong>Why DENSE_RANK instead of ROW_NUMBER here?</strong> If two customers tie for 2nd place, <code class="inline">DENSE_RANK</code> includes both. <code class="inline">ROW_NUMBER</code> would arbitrarily exclude one.</p>
+
+    <!-- Scenario 5 — Added -->
+    <h3 class="sub-title">Scenario 5 — Year-over-Year Comparison</h3>
+    <p><strong>Objective:</strong> Compare this year's monthly revenue to the same month last year.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — YoY Revenue Comparison</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    customer_id,
+    subscription_month,
+    monthly_revenue,
+    <span class="fn">LAG</span>(monthly_revenue, <span class="num">12</span>) <span class="kw">OVER</span> (
+        <span class="kw">PARTITION BY</span> customer_id
+        <span class="kw">ORDER BY</span> subscription_month
+    ) <span class="kw">AS</span> same_month_last_year,
+    <span class="fn">ROUND</span>(
+        (monthly_revenue <span class="op">-</span> <span class="fn">LAG</span>(monthly_revenue, <span class="num">12</span>) <span class="kw">OVER</span> (
+            <span class="kw">PARTITION BY</span> customer_id <span class="kw">ORDER BY</span> subscription_month
+        )) <span class="op">/</span> <span class="fn">NULLIF</span>(<span class="fn">LAG</span>(monthly_revenue, <span class="num">12</span>) <span class="kw">OVER</span> (
+            <span class="kw">PARTITION BY</span> customer_id <span class="kw">ORDER BY</span> subscription_month
+        ), <span class="num">0</span>) <span class="op">*</span> <span class="num">100</span>, <span class="num">2</span>
+    ) <span class="kw">AS</span> yoy_growth_pct
+<span class="kw">FROM</span> subscription_metrics;</pre>
+    </div>
+    <p>The <code class="inline">LAG(expr, 12)</code> offset of 12 looks back exactly 12 rows (months) in the partition — a clean Year-over-Year pattern without date arithmetic.</p>
+  </section>
+
+  <!-- ══════ 8. PERFORMANCE ══════ -->
+  <section id="performance">
+    <h2 class="section-title"><span class="num">08</span> Performance Engineering</h2>
+
+    <p>Window functions are powerful but can be expensive. Understanding their cost model helps you write queries that scale.</p>
+
+    <h3 class="sub-title">Sorting Cost</h3>
+    <p>Window functions depend heavily on sorting. The main cost drivers are: <code class="inline">ORDER BY</code> inside the window, <code class="inline">PARTITION BY</code> grouping, and large memory spills to disk when data doesn't fit in working memory.</p>
+
+    <h3 class="sub-title">Recommended Index Strategy</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Composite Index for Window Functions</span>
+      </div>
+      <pre><span class="cmt">-- Index PARTITION BY column first, ORDER BY column second</span>
+<span class="kw">CREATE INDEX</span> idx_customer_month
+<span class="kw">ON</span> subscription_metrics(customer_id, subscription_month);
+
+<span class="cmt">-- For region-based partitioning</span>
+<span class="kw">CREATE INDEX</span> idx_region_month
+<span class="kw">ON</span> subscription_metrics(region, subscription_month);</pre>
+    </div>
+    <p>This index optimizes partition grouping, sequential ordering within partitions, and reduces tempdb/work_mem spill.</p>
+
+    <div class="callout tip">
+      <div class="icon">💡</div>
+      <div class="body">
+        <strong>Noticeable Fact — Partition Granularity</strong>
+        <p>Finer-grained partitions (smaller groups) are cheaper than large ones. A window partitioned by <code class="inline">customer_id</code> (millions of tiny groups) is often faster than one partitioned by <code class="inline">region</code> (a few very large groups), because the sort work is spread across smaller chunks.</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">Avoid Repeated Window Computation</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Efficient CTE Pattern</span>
+      </div>
+      <pre><span class="cmt">-- ❌ BAD — repeats same window function 3x</span>
+<span class="kw">SELECT</span>
+    <span class="fn">LAG</span>(revenue) <span class="kw">OVER</span> (...),
+    <span class="fn">LAG</span>(revenue) <span class="kw">OVER</span> (...),
+    <span class="fn">LAG</span>(revenue) <span class="kw">OVER</span> (...)
+<span class="kw">FROM</span> t;
+
+<span class="cmt">-- ✅ GOOD — compute once, reference many times</span>
+<span class="kw">WITH</span> base <span class="kw">AS</span> (
+    <span class="kw">SELECT</span>
+        customer_id,
+        monthly_revenue,
+        <span class="fn">LAG</span>(monthly_revenue) <span class="kw">OVER</span> (
+            <span class="kw">PARTITION BY</span> customer_id
+            <span class="kw">ORDER BY</span> subscription_month
+        ) <span class="kw">AS</span> prev_revenue
+    <span class="kw">FROM</span> subscription_metrics
+)
+<span class="kw">SELECT</span>
+    customer_id,
+    monthly_revenue,
+    prev_revenue,
+    monthly_revenue <span class="op">-</span> prev_revenue <span class="kw">AS</span> delta,
+    monthly_revenue <span class="op">/</span> <span class="fn">NULLIF</span>(prev_revenue, <span class="num">0</span>) <span class="op">*</span> <span class="num">100</span> <span class="kw">AS</span> growth_pct
+<span class="kw">FROM</span> base;</pre>
+    </div>
+
+    <h3 class="sub-title">Memory Spill Symptoms</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Symptom</th><th>Likely Cause</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr><td>Slow execution time</td><td>Large sort operation, no index</td><td>Add composite index on PARTITION+ORDER columns</td></tr>
+          <tr><td>TempDB / work_mem growth</td><td>Partition too large for memory</td><td>Filter earlier, reduce partition scope</td></tr>
+          <tr><td>High disk I/O</td><td>Sort spill to disk</td><td>Increase work_mem / query memory grant</td></tr>
+          <tr><td>Repeated window def</td><td>Optimizer evaluates each separately</td><td>Use CTE to compute window once</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info">
+      <div class="icon">ℹ️</div>
+      <div class="body">
+        <strong>Noticeable Fact — Named Windows (WINDOW clause)</strong>
+        <p>PostgreSQL and some other databases support a <code class="inline">WINDOW</code> clause that lets you name a window definition and reuse it across multiple functions — cleaner than repeating the full <code class="inline">OVER()</code> definition. Example: <code class="inline">WINDOW w AS (PARTITION BY customer_id ORDER BY subscription_month)</code> then <code class="inline">SUM(revenue) OVER w</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ 9. FACT VS MYTH ══════ -->
+  <section id="factmyth">
+    <h2 class="section-title"><span class="num">09</span> Fact vs Myth</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Myth</th><th>Reality</th></tr></thead>
+        <tbody>
+          <tr><td>Window functions are always slow</td><td class="good">Proper indexing and partitioning makes them highly efficient</td></tr>
+          <tr><td>ROW_NUMBER() guarantees deterministic output</td><td class="bad">Only if ORDER BY inside the window is fully deterministic (no ties)</td></tr>
+          <tr><td>RANGE and ROWS are interchangeable</td><td class="bad">They behave fundamentally differently on tied ORDER BY values</td></tr>
+          <tr><td>PARTITION BY creates physical table partitions</td><td class="bad">It only creates logical analytic partitions in memory — no storage change</td></tr>
+          <tr><td>LAST_VALUE() returns the final row automatically</td><td class="bad">Requires explicit ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</td></tr>
+          <tr><td>Window functions replace GROUP BY entirely</td><td class="bad">Both solve different problems — GROUP BY summarizes; windows preserve detail</td></tr>
+          <tr><td>Window functions can appear in WHERE clauses</td><td class="bad">Window functions cannot be used in WHERE or HAVING — use a CTE or subquery wrapper</td></tr>
+          <tr><td>AVG() window function includes NULL values</td><td class="bad">AVG (and most aggregates) silently ignore NULLs — can distort averages on sparse data</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════ 10. PITFALLS ══════ -->
+  <section id="pitfalls">
+    <h2 class="section-title"><span class="num">10</span> Common Pitfalls</h2>
+
+    <h3 class="sub-title">1. Non-Deterministic Ranking</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Deterministic vs Non-Deterministic</span>
+      </div>
+      <pre><span class="cmt">-- ❌ Non-deterministic when revenue has ties</span>
+<span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span> (<span class="kw">ORDER BY</span> monthly_revenue)
+
+<span class="cmt">-- ✅ Deterministic — add unique tiebreaker</span>
+<span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span> (
+    <span class="kw">ORDER BY</span> monthly_revenue, customer_id
+)</pre>
+    </div>
+
+    <h3 class="sub-title">2. Incorrect LAST_VALUE() Frame</h3>
+    <p>Always define the frame explicitly as <code class="inline">ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</code>. Without it, LAST_VALUE returns the current row's value.</p>
+
+    <h3 class="sub-title">3. NULL Handling by Function</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Function</th><th>NULL Behavior</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td>SUM()</td><td class="good">Ignores NULL</td><td>Safe for totals</td></tr>
+          <tr><td>AVG()</td><td class="bad">Ignores NULL — can distort</td><td>Validate row count alongside</td></tr>
+          <tr><td>COUNT(*)</td><td class="good">Counts ALL rows</td><td>Includes NULL rows</td></tr>
+          <tr><td>COUNT(column)</td><td class="bad">Ignores NULL rows</td><td>May give lower count than expected</td></tr>
+          <tr><td>LAG / LEAD</td><td class="bad">Returns NULL for missing row</td><td>Use ISNULL / COALESCE as default</td></tr>
+          <tr><td>FIRST_VALUE / LAST_VALUE</td><td class="bad">Returns NULL if first/last row is NULL</td><td>Filter NULLs before windowing</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">4. Window Functions in WHERE Clause</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Wrapping in Subquery/CTE</span>
+      </div>
+      <pre><span class="cmt">-- ❌ INVALID — window functions not allowed in WHERE</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> subscription_metrics
+<span class="kw">WHERE</span> <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span> (...) <span class="op">=</span> <span class="num">1</span>;  <span class="cmt">-- ERROR</span>
+
+<span class="cmt">-- ✅ CORRECT — wrap in CTE or subquery</span>
+<span class="kw">WITH</span> ranked <span class="kw">AS</span> (
+    <span class="kw">SELECT</span> *, <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span> (...) <span class="kw">AS</span> rn
+    <span class="kw">FROM</span> subscription_metrics
+)
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> ranked <span class="kw">WHERE</span> rn <span class="op">=</span> <span class="num">1</span>;</pre>
+    </div>
+
+    <h3 class="sub-title">5. Memory Spills from Large Partitions</h3>
+    <p>Large unsorted partitions may spill into temp storage, causing slow execution, TempDB growth, and disk I/O spikes. Always index on <code class="inline">PARTITION BY</code> and <code class="inline">ORDER BY</code> columns together.</p>
+  </section>
+
+  <!-- ══════ 11. PRACTICE TASKS ══════ -->
+  <section id="practice">
+    <h2 class="section-title"><span class="num">11</span> Interview-Level Practice Tasks</h2>
+    <p>Work through these tasks to solidify your understanding. Progress from foundational to interview-ready.</p>
+
+    <div class="practice-section">
+      <h4>🟢 Foundational</h4>
+
+      <div class="practice-item">
+        <div class="pnum">1</div>
+        <p>Find the <strong>top 3 customers per region</strong> by rolling 6-month revenue using a window function and CTE pattern.</p>
+      </div>
+      <div class="practice-item">
+        <div class="pnum">2</div>
+        <p>Identify customers whose <strong>revenue declined for 3 consecutive months</strong> using LAG() and conditional logic.</p>
+      </div>
+      <div class="practice-item">
+        <div class="pnum">3</div>
+        <p><strong>Detect duplicate transactions</strong> using ROW_NUMBER() partitioned by transaction amount and customer, then delete duplicates keeping only rn=1.</p>
+      </div>
+    </div>
+
+    <div class="practice-section" style="margin-top:14px;">
+      <h4>🟡 Intermediate</h4>
+
+      <div class="practice-item med">
+        <div class="pnum">4</div>
+        <p>Create <strong>percentile bands</strong> for customer lifetime value using NTILE(10) — produce decile labels from "Top 10%" to "Bottom 10%".</p>
+      </div>
+      <div class="practice-item med">
+        <div class="pnum">5</div>
+        <p>Find the <strong>first month where cumulative revenue crossed $1,000,000</strong> for each customer using SUM() with a window frame and a filter.</p>
+      </div>
+      <div class="practice-item med">
+        <div class="pnum">6</div>
+        <p>Calculate a <strong>moving average excluding the current month</strong> (i.e., average of only the previous 3 rows) using <code class="inline">ROWS BETWEEN 3 PRECEDING AND 1 PRECEDING</code>.</p>
+      </div>
+      <div class="practice-item med">
+        <div class="pnum">7</div>
+        <p>Find the <strong>median revenue per region</strong> using NTILE(2) or PERCENTILE_CONT — compare both approaches and explain the difference.</p>
+      </div>
+    </div>
+
+    <div class="practice-section" style="margin-top:14px;">
+      <h4>🔴 Advanced</h4>
+
+      <div class="practice-item adv">
+        <div class="pnum">8</div>
+        <p>Calculate the <strong>customer reactivation rate</strong> after churn: identify churned customers who returned within 90 days using LAG() + LEAD() combined.</p>
+      </div>
+      <div class="practice-item adv">
+        <div class="pnum">9</div>
+        <p>Write a query to <strong>compute a running revenue percentile rank</strong> for each customer within their region, recalculating after every new month is added.</p>
+      </div>
+      <div class="practice-item adv">
+        <div class="pnum">10</div>
+        <p>Using a <strong>Window Function + CASE WHEN</strong> combination: label each month as "Growth", "Decline", or "Stable" based on whether revenue is above, below, or within 5% of the rolling 3-month average.</p>
+      </div>
+      <div class="practice-item adv">
+        <div class="pnum">11</div>
+        <p><strong>Gap and Island problem:</strong> Find consecutive active months per customer (islands) and calculate the length of each active streak and each inactive gap.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ 12. CHALLENGES ══════ -->
+  <section id="challenges">
+    <h2 class="section-title"><span class="num">12</span> Advanced Challenge Problems</h2>
+
+    <div class="challenge-box">
+      <div class="ch-label">Challenge 01</div>
+      <h4>Consecutive Growth Streaks</h4>
+      <p>Determine the longest consecutive positive MoM revenue growth streak per customer. Output: customer_id, streak_start, streak_end, streak_length.</p>
+      <ul>
+        <li>LAG() to detect month-over-month direction</li>
+        <li>CASE WHEN for growth flag</li>
+        <li>Running group technique using ROW_NUMBER() difference</li>
+        <li>COUNT() + GROUP BY on the group identifier</li>
+      </ul>
+    </div>
+
+    <div class="challenge-box">
+      <div class="ch-label">Challenge 02</div>
+      <h4>Dynamic Cohort Ranking</h4>
+      <p>Rank customer cohorts (grouped by their first subscription month) by their retention rate at 12 months. Include cohorts with zero retention as rank = last.</p>
+      <ul>
+        <li>FIRST_VALUE() to extract cohort start month</li>
+        <li>Aggregated windows across cohort groups</li>
+        <li>DENSE_RANK() on final retention score</li>
+        <li>COALESCE for handling zero-retention cohorts</li>
+      </ul>
+    </div>
+
+    <div class="challenge-box">
+      <div class="ch-label">Challenge 03</div>
+      <h4>Revenue Volatility Index</h4>
+      <p>Measure month-to-month revenue volatility per customer using rolling standard deviation over a 6-month window. Classify customers as "Stable", "Volatile", or "Highly Volatile".</p>
+      <ul>
+        <li>STDDEV() or VAR() window function (PostgreSQL/BigQuery)</li>
+        <li>Frame: ROWS BETWEEN 5 PRECEDING AND CURRENT ROW</li>
+        <li>CASE WHEN for volatility classification</li>
+        <li>NTILE for relative ranking of volatility scores</li>
+      </ul>
+    </div>
+
+    <div class="challenge-box">
+      <div class="ch-label">Challenge 04 — Added</div>
+      <h4>Session Analysis (Event Stream)</h4>
+      <p>Given a user events table with timestamps, identify user sessions (define a session as activity where gaps between events are under 30 minutes). Count events per session and rank sessions by length.</p>
+      <ul>
+        <li>LAG() on event timestamp to detect gap</li>
+        <li>Running sum of session-start flags (gap &gt; 30 min = new session)</li>
+        <li>COUNT() + SUM() window functions per session group</li>
+        <li>DENSE_RANK() on session duration</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ══════ 13. BEST PRACTICES ══════ -->
+  <section id="bestpractices">
+    <h2 class="section-title"><span class="num">13</span> Final Best Practices</h2>
+
+    <h3 class="sub-title">Best Practice Checklist</h3>
+    <ul class="checklist">
+      <li><strong>Use deterministic ORDER BY</strong> — always include a unique tiebreaker column to guarantee stable, reproducible results</li>
+      <li><strong>Define explicit frame clauses</strong> — never rely on database default frames; always write ROWS/RANGE BETWEEN explicitly</li>
+      <li><strong>Handle NULL safely</strong> — use COALESCE, NULLIF, ISNULL, or default values in LAG/LEAD to avoid propagating NULLs</li>
+      <li><strong>Optimize partition columns</strong> — create composite indexes on (PARTITION_COL, ORDER_COL) for every major window query</li>
+      <li><strong>Reduce repeated window computations</strong> — compute a window function once in a CTE, then reference it multiple times</li>
+      <li><strong>Filter before windowing</strong> — apply WHERE clauses before window functions to reduce partition sizes and improve performance</li>
+      <li><strong>Test on large datasets</strong> — window functions can behave very differently in terms of performance at scale</li>
+      <li><strong>Monitor execution plans</strong> — look for Sort, Window Spool, or Lazy Spool operators that indicate expensive operations</li>
+      <li><strong>Never use window functions in WHERE/HAVING</strong> — always wrap in a subquery or CTE first</li>
+      <li><strong>Use NAMED WINDOWS where supported</strong> — reduces repetition in queries with multiple window functions sharing the same definition</li>
+    </ul>
+
+    <h3 class="sub-title">Function Decision Guide</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Requirement</th><th>Recommended Function</th><th>Key Note</th></tr></thead>
+        <tbody>
+          <tr><td>Sequential unique numbering</td><td>ROW_NUMBER()</td><td>Add unique tiebreaker to ORDER BY</td></tr>
+          <tr><td>Ranking with tied values (gaps OK)</td><td>RANK()</td><td>Skips ranks after ties</td></tr>
+          <tr><td>Ranking without gaps after ties</td><td>DENSE_RANK()</td><td>Preferred for tier/band systems</td></tr>
+          <tr><td>Percentile grouping / buckets</td><td>NTILE(n)</td><td>Uneven distribution when rows not divisible by n</td></tr>
+          <tr><td>Compare to previous row</td><td>LAG()</td><td>Wrap denominator with NULLIF(val, 0)</td></tr>
+          <tr><td>Compare to next row</td><td>LEAD()</td><td>Last row returns NULL by default</td></tr>
+          <tr><td>Running total or cumulative sum</td><td>SUM() + ROWS frame</td><td>Always use ROWS over RANGE for precision</td></tr>
+          <tr><td>Rolling average</td><td>AVG() + ROWS frame</td><td>Define n PRECEDING explicitly</td></tr>
+          <tr><td>Baseline / first value per group</td><td>FIRST_VALUE()</td><td>Include explicit frame for safety</td></tr>
+          <tr><td>Terminal / last value per group</td><td>LAST_VALUE()</td><td>Requires UNBOUNDED FOLLOWING in frame</td></tr>
+          <tr><td>Partition-wide min or max</td><td>MIN() / MAX() OVER(PARTITION BY)</td><td>Omit ORDER BY for full-partition result</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout gem">
+      <div class="icon">💎</div>
+      <div class="body">
+        <strong>Key Takeaway</strong>
+        <p>Window Functions are the backbone of modern analytical SQL. Mastering them unlocks enterprise reporting, predictive analytics, KPI engineering, financial intelligence, retention modeling, fraud analytics, and operational optimization. They are one of the most important skills separating basic SQL users from advanced data professionals.</p>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="icon">🎯</div>
+      <div class="body">
+        <strong>For Senior-Level SQL Development</strong>
+        <p>Understanding <strong>execution plan behavior</strong>, <strong>memory grant sizing</strong>, <strong>index sargability</strong>, and <strong>frame clause precision</strong> is just as important as knowing the function syntax. Great data engineers write not just correct queries, but efficient, maintainable, and deterministic ones that scale to billions of rows.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  SQL Window Functions — Complete Masterclass &nbsp;·&nbsp; Advanced Analytics Reference &nbsp;·&nbsp; Enhanced Edition
+</footer>
+
+</body>
+</html>

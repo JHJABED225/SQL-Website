@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SQL NULL Handling — Complete Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2230;
+    --border: #30363d;
+    --accent: #f0a500;
+    --accent2: #3b82f6;
+    --accent3: #10b981;
+    --accent4: #ef4444;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --text-dim: #6e7681;
+    --code-bg: #0d1117;
+    --warning: #f97316;
+    --tip: #a78bfa;
+    --null-color: #ef4444;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', Georgia, serif;
+    font-size: 16px;
+    line-height: 1.75;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1a2035 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 60px 40px 50px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(240,165,0,.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 50%, rgba(59,130,246,.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  header .badge {
+    display: inline-block;
+    background: rgba(240,165,0,.15);
+    border: 1px solid rgba(240,165,0,.4);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .1em;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -.02em;
+    margin-bottom: 12px;
+  }
+  header h1 span { color: var(--accent); }
+  header p.sub {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto 24px;
+    font-style: italic;
+  }
+  header .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: .05em;
+  }
+
+  /* ── LAYOUT ── */
+  .wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 50px 32px 80px;
+  }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 50px;
+  }
+  .toc h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 5px 0; }
+  .toc a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    transition: color .2s;
+  }
+  .toc a:hover { color: var(--accent); }
+
+  /* ── SECTIONS ── */
+  section { margin-bottom: 56px; }
+
+  h2.section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #fff;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  h2.section-title .num {
+    background: var(--accent);
+    color: #000;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 2px 9px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  h3.sub-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent2);
+    margin: 28px 0 12px;
+  }
+
+  h4.mini-title {
+    font-family: 'Syne', sans-serif;
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--tip);
+    margin: 20px 0 8px;
+  }
+
+  p { margin-bottom: 14px; color: var(--text); }
+  p:last-child { margin-bottom: 0; }
+
+  ul, ol {
+    padding-left: 22px;
+    margin-bottom: 14px;
+  }
+  li { margin: 4px 0; color: var(--text); }
+
+  strong { color: #fff; font-weight: 600; }
+  em { color: var(--accent); font-style: italic; }
+
+  code.inline {
+    background: rgba(240,165,0,.12);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .85em;
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(240,165,0,.25);
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-wrap {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 16px 0 24px;
+  }
+  .code-header {
+    background: var(--surface2);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-header .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  .code-header .dot.r { background: #ef4444; }
+  .code-header .dot.y { background: #f59e0b; }
+  .code-header .dot.g { background: #10b981; }
+  .code-header .lang {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: .05em;
+  }
+  pre {
+    padding: 20px 22px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #cdd9e5;
+  }
+  .kw  { color: #ff7b72; }
+  .fn  { color: #d2a8ff; }
+  .str { color: #a5d6ff; }
+  .num { color: #79c0ff; }
+  .cmt { color: #8b949e; font-style: italic; }
+  .op  { color: var(--accent); }
+  .nl  { color: #ef4444; font-weight: 600; }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 18px 0;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .callout .icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+  .callout .body { flex: 1; }
+  .callout .body strong {
+    display: block;
+    font-family: 'Syne', sans-serif;
+    font-size: .85rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .callout .body p { margin: 0; font-size: .95rem; }
+
+  .callout.tip    { background: rgba(167,139,250,.1); border: 1px solid rgba(167,139,250,.3); }
+  .callout.tip .icon { color: var(--tip); }
+  .callout.tip .body strong { color: var(--tip); }
+
+  .callout.warn   { background: rgba(249,115,22,.1); border: 1px solid rgba(249,115,22,.3); }
+  .callout.warn .icon { color: var(--warning); }
+  .callout.warn .body strong { color: var(--warning); }
+
+  .callout.gem    { background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.3); }
+  .callout.gem .icon { color: var(--accent3); }
+  .callout.gem .body strong { color: var(--accent3); }
+
+  .callout.danger { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); }
+  .callout.danger .icon { color: var(--accent4); }
+  .callout.danger .body strong { color: var(--accent4); }
+
+  .callout.info   { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.3); }
+  .callout.info .icon { color: var(--accent2); }
+  .callout.info .body strong { color: var(--accent2); }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; margin: 18px 0 24px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  thead tr { background: var(--surface2); }
+  th {
+    text-align: left;
+    padding: 11px 16px;
+    color: var(--accent);
+    font-size: 12px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--border);
+  }
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: 'Lora', serif;
+    font-size: 14px;
+    vertical-align: top;
+  }
+  td:first-child { color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+  tbody tr:hover { background: rgba(255,255,255,.02); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* ── BADGES ── */
+  .badge-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    margin: 1px 2px;
+  }
+  .badge-green  { background: rgba(16,185,129,.15); color: var(--accent3); border: 1px solid rgba(16,185,129,.3); }
+  .badge-yellow { background: rgba(240,165,0,.15); color: var(--accent); border: 1px solid rgba(240,165,0,.3); }
+  .badge-red    { background: rgba(239,68,68,.15); color: var(--accent4); border: 1px solid rgba(239,68,68,.3); }
+  .badge-blue   { background: rgba(59,130,246,.15); color: var(--accent2); border: 1px solid rgba(59,130,246,.3); }
+
+  /* ── SYNTAX BLOCK ── */
+  .syntax-block {
+    background: var(--surface);
+    border: 1px solid rgba(59,130,246,.3);
+    border-left: 4px solid var(--accent2);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin: 14px 0 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: #cdd9e5;
+    line-height: 1.8;
+  }
+
+  /* ── TYPE GRID ── */
+  .type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 18px 0;
+  }
+  .type-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .type-card h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    color: var(--accent2);
+    margin-bottom: 10px;
+  }
+  .type-card ul { padding-left: 16px; margin: 0; }
+  .type-card li { font-size: .88rem; color: var(--text-muted); margin: 3px 0; }
+
+  /* ── BEHAVIOR GRID ── */
+  .beh-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 16px 0 20px;
+  }
+  .beh-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .beh-card-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .beh-card-label.row   { color: var(--accent); }
+  .beh-card-label.col   { color: var(--accent3); }
+  .beh-card-label.sort  { color: var(--accent2); }
+  .beh-card-label.comp  { color: var(--tip); }
+  .beh-card p { font-size: .88rem; color: var(--text-muted); margin: 0; }
+  .beh-card p strong { color: var(--text); }
+
+  /* ── DECISION TREE ── */
+  .dtree {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 28px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    margin: 16px 0;
+    line-height: 2;
+    overflow-x: auto;
+  }
+  .dt-q   { color: var(--accent); font-weight: 600; }
+  .dt-y   { color: var(--accent3); }
+  .dt-n   { color: var(--accent4); }
+  .dt-ans { color: #fff; font-weight: 600; }
+  .dt-cm  { color: var(--text-dim); font-style: italic; }
+  .dt-indent1 { padding-left: 1.5rem; }
+  .dt-indent2 { padding-left: 3rem; }
+  .dt-indent3 { padding-left: 4.5rem; }
+
+  /* ── FACTS GRID ── */
+  .facts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+    margin-top: 16px;
+  }
+  .fact-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .fact-icon { font-size: 1.3rem; margin-bottom: 8px; }
+  .fact-card p { font-size: .88rem; color: var(--text-muted); margin: 0; }
+  .fact-card p strong { color: var(--accent); }
+
+  /* ── PRACTICE TASKS ── */
+  .practice-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 30px;
+    margin-top: 18px;
+  }
+  .practice-item {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .practice-item .pnum {
+    background: var(--accent3);
+    color: #000;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .practice-item .pinner { flex: 1; }
+  .practice-item .task-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 4px;
+  }
+  .practice-item .task-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    color: #fff;
+    font-size: .93rem;
+    margin-bottom: 6px;
+  }
+  .practice-item .task-desc { font-size: .88rem; color: var(--text-muted); margin-bottom: 8px; }
+  .practice-item .task-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .78rem;
+    color: var(--accent);
+    background: rgba(240,165,0,.08);
+    border: 1px solid rgba(240,165,0,.2);
+    padding: 4px 10px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+
+  /* ── CHECKLIST ── */
+  .checklist {
+    list-style: none;
+    padding: 0;
+    margin: 14px 0;
+  }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(48,54,61,.5);
+    font-size: .93rem;
+    color: var(--text-muted);
+  }
+  .checklist li::before {
+    content: '▸';
+    color: var(--accent);
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .checklist li strong { color: var(--text); }
+
+  /* ── DIVIDER ── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 40px 20px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .04em;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    header { padding: 40px 20px 36px; }
+    .wrapper { padding: 32px 16px 60px; }
+    .toc { padding: 20px 18px; }
+    pre { font-size: 12px; padding: 14px 14px; }
+    h2.section-title { font-size: 1.25rem; }
+    .beh-grid { grid-template-columns: 1fr; }
+    .type-grid { grid-template-columns: 1fr; }
+    .facts-grid { grid-template-columns: 1fr; }
+    .dtree { font-size: 11.5px; padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">SQL · NULL HANDLING · COMPLETE GUIDE</div>
+  <h1>SQL <span>NULL</span> Handling</h1>
+  <p class="sub">A complete reference covering NULL behavior, identification, replacement, creation, decision trees, notable facts, and practice tasks.</p>
+  <div class="meta">Courtesy: MD Jaberul Hossen Jabed &nbsp;·&nbsp; 11 Sections &nbsp;·&nbsp; All NULL Functions Covered &nbsp;·&nbsp; Complete Edition</div>
+</header>
+
+<div class="wrapper">
+
+  <!-- TOC -->
+  <nav class="toc">
+    <h2>📋 Table of Contents</h2>
+    <ol>
+      <li><a href="#s1">What is NULL?</a></li>
+      <li><a href="#s2">NULL Behavior</a></li>
+      <li><a href="#s3">NULL Functions Overview</a></li>
+      <li><a href="#s4">IS NULL / IS NOT NULL — Identify</a></li>
+      <li><a href="#s5">ISNULL — Fill / Replace NULL</a></li>
+      <li><a href="#s6">COALESCE — Fill / Replace (Multi-Value)</a></li>
+      <li><a href="#s7">ISNULL vs COALESCE — Full Comparison</a></li>
+      <li><a href="#s8">NULLIF — Create NULL</a></li>
+      <li><a href="#s9">NULL Function Decision Tree</a></li>
+      <li><a href="#s10">Notable Facts About NULL</a></li>
+      <li><a href="#s11">Practice Tasks</a></li>
+    </ol>
+  </nav>
+
+  <!-- ══════ 1. WHAT IS NULL ══════ -->
+  <section id="s1">
+    <h2 class="section-title"><span class="num">01</span> What is NULL?</h2>
+
+    <p><strong>NULL</strong> represents the <em>absence of a value</em> — it means the data is <strong>unknown</strong>, <strong>missing</strong>, or <strong>not applicable</strong>. It is not a data category itself.</p>
+
+    <div class="callout danger">
+      <div class="icon">⚠️</div>
+      <div class="body">
+        <strong>Critical</strong>
+        <p>NULL is <strong>not</strong> the same as zero (<code class="inline">0</code>), an empty string (<code class="inline">''</code>), or <code class="inline">false</code>. It means "we don't know what the value is."</p>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <div class="body">
+        <strong>Common Mistake</strong>
+        <p>You <strong>cannot</strong> use <code class="inline">= NULL</code> or <code class="inline">&lt;&gt; NULL</code> to find or exclude NULLs. This always returns no results. Always use <code class="inline">IS NULL</code> or <code class="inline">IS NOT NULL</code>.</p>
+      </div>
+    </div>
+
+    <p>NULL leads to misleading outcomes if not handled properly — especially in comparisons, calculations, and JOIN conditions.</p>
+  </section>
+
+  <!-- ══════ 2. NULL BEHAVIOR ══════ -->
+  <section id="s2">
+    <h2 class="section-title"><span class="num">02</span> NULL Behavior</h2>
+
+    <div class="beh-grid">
+      <div class="beh-card">
+        <div class="beh-card-label row">Row Level (Arithmetic)</div>
+        <p>Adding or concatenating any value with a NULL cell returns <span style="color:var(--null-color);font-weight:600">NULL</span>. Example: <code class="inline">100 + NULL = NULL</code></p>
+      </div>
+      <div class="beh-card">
+        <div class="beh-card-label col">Column Level (Aggregations)</div>
+        <p>Functions like <code class="inline">SUM()</code>, <code class="inline">AVG()</code>, <code class="inline">COUNT(col)</code> <strong>silently ignore</strong> NULL rows. Only <code class="inline">COUNT(*)</code> counts them.</p>
+      </div>
+      <div class="beh-card">
+        <div class="beh-card-label sort">ORDER BY — Sorting</div>
+        <p><strong>ASC:</strong> NULLs appear at the <em>top</em> (treated as lowest).<br><strong>DESC:</strong> NULLs appear at the <em>bottom</em> (treated as lowest).</p>
+      </div>
+      <div class="beh-card">
+        <div class="beh-card-label comp">Comparisons</div>
+        <p>Any comparison with NULL (<code class="inline">=</code>, <code class="inline">&lt;</code>, <code class="inline">&gt;</code>) returns <strong>UNKNOWN</strong>, not TRUE or FALSE. This is the "three-valued logic" of SQL.</p>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="icon">ℹ️</div>
+      <div class="body">
+        <strong>Three-Valued Logic</strong>
+        <p>SQL uses TRUE, FALSE, and UNKNOWN. A WHERE clause only returns rows where the condition is TRUE — rows evaluating to UNKNOWN (due to NULL) are <strong>excluded</strong>.</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">NULL in JOINs</h3>
+    <p>When a JOIN condition involves a column containing NULLs, those rows are <strong>excluded</strong> from the result — because <code class="inline">NULL = NULL</code> evaluates to UNKNOWN, not TRUE.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="cmt">-- NULL in join key = row excluded from output</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> orders o
+<span class="kw">JOIN</span> customers c <span class="kw">ON</span> o.customer_id = c.customer_id
+<span class="cmt">-- Any row where customer_id is NULL on either side is dropped</span></pre>
+    </div>
+
+    <h3 class="sub-title">NULL in GROUP BY</h3>
+    <p>GROUP BY treats all NULLs as belonging to the <strong>same group</strong>. So multiple NULL values in a grouping column are grouped together into one row.</p>
+  </section>
+
+  <!-- ══════ 3. OVERVIEW ══════ -->
+  <section id="s3">
+    <h2 class="section-title"><span class="num">03</span> NULL Functions Overview</h2>
+
+    <p>There are three fundamental operations when dealing with NULLs:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Operation</th><th>Function(s)</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Identify NULL</td>
+            <td><span class="badge-tag badge-blue">IS NULL</span> <span class="badge-tag badge-blue">IS NOT NULL</span></td>
+            <td>Filter rows based on presence or absence of NULL</td>
+          </tr>
+          <tr>
+            <td>Fill / Replace NULL</td>
+            <td><span class="badge-tag badge-yellow">ISNULL</span> <span class="badge-tag badge-green">COALESCE</span></td>
+            <td>Substitute NULL with a meaningful default value</td>
+          </tr>
+          <tr>
+            <td>Create NULL</td>
+            <td><span class="badge-tag badge-red">NULLIF</span></td>
+            <td>Return NULL when two expressions are equal</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════ 4. IS NULL / IS NOT NULL ══════ -->
+  <section id="s4">
+    <h2 class="section-title"><span class="num">04</span> IS NULL / IS NOT NULL — Identify</h2>
+
+    <p>Used in a <code class="inline">WHERE</code> clause to filter records based on the presence or absence of NULL values.</p>
+
+    <h3 class="sub-title">Syntax</h3>
+    <div class="syntax-block">
+      column_name IS NULL<br>
+      column_name IS NOT NULL
+    </div>
+
+    <h3 class="sub-title">IS NULL — Find Missing Data</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="cmt">-- Find all customers who have not provided an email</span>
+<span class="kw">SELECT</span> CustomerID, CustomerName
+<span class="kw">FROM</span> sales.Customers
+<span class="kw">WHERE</span> Email <span class="kw">IS NULL</span>;</pre>
+    </div>
+
+    <h3 class="sub-title">IS NOT NULL — Find Present Data</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="cmt">-- Find all customers who have provided a phone number</span>
+<span class="kw">SELECT</span> CustomerID, CustomerName, Phone
+<span class="kw">FROM</span> sales.Customers
+<span class="kw">WHERE</span> Phone <span class="kw">IS NOT NULL</span>;</pre>
+    </div>
+
+    <h3 class="sub-title">Finding Customers with No Orders (LEFT JOIN + IS NULL)</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="cmt">-- List all customers who have never placed an order</span>
+<span class="kw">SELECT</span> C.*
+<span class="kw">FROM</span> sales.Customers <span class="kw">AS</span> C
+<span class="kw">LEFT JOIN</span> sales.Orders <span class="kw">AS</span> O
+  <span class="kw">ON</span> C.CustomerID = O.CustomerID
+<span class="kw">WHERE</span> O.CustomerID <span class="kw">IS NULL</span>;
+<span class="cmt">-- LEFT JOIN keeps all customers; WHERE IS NULL filters to those with no match</span></pre>
+    </div>
+
+    <div class="callout tip">
+      <div class="icon">💡</div>
+      <div class="body">
+        <strong>Tip</strong>
+        <p>The pattern <strong>LEFT JOIN + WHERE … IS NULL</strong> is one of the most common and useful techniques in SQL to find records that <em>don't exist</em> in another table.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ 5. ISNULL ══════ -->
+  <section id="s5">
+    <h2 class="section-title"><span class="num">05</span> ISNULL — Fill / Replace NULL</h2>
+
+    <p><code class="inline">ISNULL</code> is a SQL Server function that replaces a NULL value with a meaningful alternative.</p>
+
+    <h3 class="sub-title">Syntax</h3>
+    <div class="syntax-block">ISNULL( column_to_check, replacement_value )</div>
+
+    <h3 class="sub-title">How it Works</h3>
+    <ul>
+      <li>If <code class="inline">column_to_check</code> is <span style="color:var(--null-color);font-weight:600">NULL</span> → returns <code class="inline">replacement_value</code></li>
+      <li>If <code class="inline">column_to_check</code> is <strong>not NULL</strong> → returns the original value unchanged</li>
+      <li>Exactly <strong>2 arguments</strong>, no more, no less</li>
+    </ul>
+
+    <h3 class="sub-title">Example — Replace NULL address</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="cmt">-- Replace NULL order address with shipping address</span>
+<span class="kw">SELECT</span>
+    OrderID,
+    <span class="fn">ISNULL</span>(OrderAddress, ShippingAddress) <span class="kw">AS</span> FinalAddress
+<span class="kw">FROM</span> sales.Orders;</pre>
+    </div>
+
+    <h3 class="sub-title">Example — ISNULL in JOIN conditions</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="cmt">-- Prevent NULL-caused row exclusion in a JOIN</span>
+<span class="kw">SELECT</span> *
+<span class="kw">FROM</span> sales.OrdersA <span class="kw">AS</span> a
+<span class="kw">JOIN</span> sales.OrdersB <span class="kw">AS</span> b
+  <span class="kw">ON</span> <span class="fn">ISNULL</span>(a.Type, <span class="str">''</span>) = <span class="fn">ISNULL</span>(b.Type, <span class="str">''</span>);
+<span class="cmt">-- NULLs in Type are treated as '' (empty string), so they match each other</span></pre>
+    </div>
+
+    <h3 class="sub-title">Limitations</h3>
+    <ul>
+      <li>Limited to exactly <strong>2 arguments</strong> only</li>
+      <li>SQL Server specific — Oracle uses <code class="inline">NVL()</code>, MySQL uses <code class="inline">IFNULL()</code></li>
+      <li>The replacement value must be compatible in data type with the original column</li>
+    </ul>
+  </section>
+
+  <!-- ══════ 6. COALESCE ══════ -->
+  <section id="s6">
+    <h2 class="section-title"><span class="num">06</span> COALESCE — Fill / Replace (Multi-Value)</h2>
+
+    <p><code class="inline">COALESCE</code> is a standard SQL function that evaluates a list of expressions and returns the <strong>first non-NULL value</strong> it finds.</p>
+
+    <h3 class="sub-title">Syntax</h3>
+    <div class="syntax-block">COALESCE( expr1, expr2, expr3, … )</div>
+
+    <h3 class="sub-title">How it Works</h3>
+    <ul>
+      <li>Checks expressions <strong>left to right</strong></li>
+      <li>Returns the <strong>first non-NULL</strong> value found</li>
+      <li>If <strong>all</strong> expressions are NULL → returns NULL</li>
+      <li>Accepts <strong>unlimited</strong> arguments</li>
+    </ul>
+
+    <h3 class="sub-title">Example — Priority contact method</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="cmt">-- Return the first available contact: mobile → email → phone → 'No Contact'</span>
+<span class="kw">SELECT</span>
+    CustomerID,
+    <span class="fn">COALESCE</span>(MobileNumber, Email, PhoneNumber, <span class="str">'No Contact Available'</span>) <span class="kw">AS</span> PrimaryContact
+<span class="kw">FROM</span> sales.Customers;</pre>
+    </div>
+
+    <h3 class="sub-title">Example — Fallback display name</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="cmt">-- Use nickname if available, else full name, else 'Unknown'</span>
+<span class="kw">SELECT</span>
+    EmployeeID,
+    <span class="fn">COALESCE</span>(Nickname, FirstName + <span class="str">' '</span> + LastName, <span class="str">'Unknown'</span>) <span class="kw">AS</span> DisplayName
+<span class="kw">FROM</span> HR.Employees;</pre>
+    </div>
+
+    <h3 class="sub-title">Example — Null-safe JOIN</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="cmt">-- Same as ISNULL example but using COALESCE (cross-platform)</span>
+<span class="kw">SELECT</span> *
+<span class="kw">FROM</span> sales.OrdersA <span class="kw">AS</span> a
+<span class="kw">JOIN</span> sales.OrdersB <span class="kw">AS</span> b
+  <span class="kw">ON</span> <span class="fn">COALESCE</span>(a.Type, <span class="str">''</span>) = <span class="fn">COALESCE</span>(b.Type, <span class="str">''</span>);</pre>
+    </div>
+
+    <h3 class="sub-title">Example — Custom NULL sort (NULLs last)</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="cmt">-- Sort customers low-to-high score; NULL scores appear LAST</span>
+<span class="kw">SELECT</span> CustomerID, Score
+<span class="kw">FROM</span> sales.Customers
+<span class="kw">ORDER BY</span>
+    <span class="kw">CASE WHEN</span> Score <span class="kw">IS NULL THEN</span> 1 <span class="kw">ELSE</span> 0 <span class="kw">END</span>,  <span class="cmt">-- push NULLs to bottom</span>
+    Score <span class="kw">ASC</span>;                                     <span class="cmt">-- then sort normally</span></pre>
+    </div>
+
+    <div class="callout tip">
+      <div class="icon">💡</div>
+      <div class="body">
+        <strong>Pro Tip</strong>
+        <p>Always end your <code class="inline">COALESCE</code> list with a hard-coded string like <code class="inline">'N/A'</code> or <code class="inline">'Unknown'</code> as the final fallback. This guarantees the column will never display NULL to end users.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ 7. ISNULL VS COALESCE ══════ -->
+  <section id="s7">
+    <h2 class="section-title"><span class="num">07</span> ISNULL vs COALESCE — Full Comparison</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Criteria</th><th>ISNULL</th><th>COALESCE</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Arguments</td>
+            <td>Exactly <strong>2</strong> only</td>
+            <td><strong>2 or more</strong> (unlimited)</td>
+          </tr>
+          <tr>
+            <td>Performance</td>
+            <td><span class="badge-tag badge-green">Faster</span> — single evaluation</td>
+            <td><span class="badge-tag badge-yellow">Slower</span> — evaluates each arg in order</td>
+          </tr>
+          <tr>
+            <td>SQL Standard</td>
+            <td><span class="badge-tag badge-red">Non-standard</span> — SQL Server only</td>
+            <td><span class="badge-tag badge-green">ANSI Standard</span> — all major DBs</td>
+          </tr>
+          <tr>
+            <td>Equivalent in Oracle</td>
+            <td><code class="inline">NVL(col, val)</code></td>
+            <td><code class="inline">COALESCE(col, val1, …)</code></td>
+          </tr>
+          <tr>
+            <td>Equivalent in MySQL</td>
+            <td><code class="inline">IFNULL(col, val)</code></td>
+            <td><code class="inline">COALESCE(col, val1, …)</code></td>
+          </tr>
+          <tr>
+            <td>Data Type Resolution</td>
+            <td>Uses the data type of the <strong>first argument</strong></td>
+            <td>Uses the <strong>highest precedence</strong> data type among all args</td>
+          </tr>
+          <tr>
+            <td>Best Used When</td>
+            <td>Simple single replacement in SQL Server for performance</td>
+            <td>Multiple fallback values, cross-platform, or complex logic</td>
+          </tr>
+          <tr>
+            <td>Returns NULL if all NULL?</td>
+            <td>Yes, if replacement is also NULL</td>
+            <td>Yes, if all expressions are NULL</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info">
+      <div class="icon">ℹ️</div>
+      <div class="body">
+        <strong>Recommendation</strong>
+        <p><strong>Prefer COALESCE</strong> in most scenarios — it is portable, flexible, and expressly designed for multi-value NULL handling. Use ISNULL only in SQL Server when you need the small performance edge in a tight query.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ 8. NULLIF ══════ -->
+  <section id="s8">
+    <h2 class="section-title"><span class="num">08</span> NULLIF — Create NULL</h2>
+
+    <p><code class="inline">NULLIF</code> returns <span style="color:var(--null-color);font-weight:600">NULL</span> if two expressions are <strong>equal</strong>; otherwise it returns the first expression.</p>
+
+    <h3 class="sub-title">Syntax</h3>
+    <div class="syntax-block">NULLIF( expression1, expression2 )</div>
+
+    <h3 class="sub-title">How it Works</h3>
+    <ul>
+      <li>If <code class="inline">expression1 = expression2</code> → returns <span style="color:var(--null-color);font-weight:600">NULL</span></li>
+      <li>If they are different → returns <code class="inline">expression1</code> unchanged</li>
+      <li>Equivalent to: <code class="inline">CASE WHEN expr1 = expr2 THEN NULL ELSE expr1 END</code></li>
+    </ul>
+
+    <h3 class="sub-title">Key Use Case — Avoiding Division by Zero</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="cmt">-- Calculate sales price per unit (avoid division by zero)</span>
+<span class="kw">SELECT</span>
+    OrderID,
+    Sales,
+    Quantity,
+    Sales / <span class="fn">NULLIF</span>(Quantity, 0) <span class="kw">AS</span> SalesPrice
+<span class="kw">FROM</span> sales.Orders;
+<span class="cmt">-- If Quantity = 0, NULLIF returns NULL → NULL / anything = NULL (no error)</span></pre>
+    </div>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <div class="body">
+        <strong>Without NULLIF</strong>
+        <p>Dividing by zero in SQL Server throws a <strong>runtime error</strong>: "Divide by zero error encountered." Always protect division operations with <code class="inline">NULLIF(denominator, 0)</code>.</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">Use Case — Replace Sentinel Values with NULL</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="cmt">-- Old system stored 'N/A' as a placeholder string</span>
+<span class="cmt">-- Convert 'N/A' → NULL for clean data</span>
+<span class="kw">SELECT</span>
+    CustomerID,
+    <span class="fn">NULLIF</span>(Region, <span class="str">'N/A'</span>) <span class="kw">AS</span> CleanRegion
+<span class="kw">FROM</span> sales.Customers;</pre>
+    </div>
+
+    <h3 class="sub-title">Combining NULLIF + COALESCE</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="cmt">-- Convert 0 to NULL, then replace NULL with a default of 1</span>
+<span class="kw">SELECT</span>
+    OrderID,
+    <span class="fn">COALESCE</span>(<span class="fn">NULLIF</span>(Quantity, 0), 1) <span class="kw">AS</span> SafeQuantity
+<span class="kw">FROM</span> sales.Orders;</pre>
+    </div>
+  </section>
+
+  <!-- ══════ 9. DECISION TREE ══════ -->
+  <section id="s9">
+    <h2 class="section-title"><span class="num">09</span> NULL Function Decision Tree</h2>
+
+    <p>Use this tree to decide which NULL function to reach for:</p>
+
+    <div class="dtree">
+<span class="dt-q">What do you want to do with NULL?</span>
+
+<div class="dt-indent1"><span class="dt-y">├── Find or filter rows that have NULL</span></div>
+<div class="dt-indent2"><span class="dt-ans">→ Use IS NULL or IS NOT NULL in WHERE clause</span></div>
+
+<div class="dt-indent1"><span class="dt-y">├── Replace NULL with a default value</span></div>
+<div class="dt-indent2"><span class="dt-q">How many fallback values do you need?</span></div>
+<div class="dt-indent3"><span class="dt-y">├── Only one fallback → <span class="dt-ans">ISNULL(col, default)</span></span></div>
+<div class="dt-indent3"><span class="dt-n">└── Two or more fallbacks → <span class="dt-ans">COALESCE(col, fallback1, fallback2, …)</span></span></div>
+
+<div class="dt-indent1"><span class="dt-n">└── Turn a specific value INTO NULL</span></div>
+<div class="dt-indent2"><span class="dt-ans">→ Use NULLIF(expression, value_to_nullify)</span></div>
+<div class="dt-indent2"><span class="dt-cm">-- Especially useful to prevent division by zero</span></div>
+    </div>
+  </section>
+
+  <!-- ══════ 10. NOTABLE FACTS ══════ -->
+  <section id="s10">
+    <h2 class="section-title"><span class="num">10</span> ⚡ Notable Facts About NULL</h2>
+
+    <div class="facts-grid">
+      <div class="fact-card">
+        <div class="fact-icon">🔢</div>
+        <p><strong>NULL ≠ 0 ≠ ''</strong><br>NULL means unknown. Zero means "I know the value is nothing." Empty string means "I know there's no text here."</p>
+      </div>
+      <div class="fact-card">
+        <div class="fact-icon">🧮</div>
+        <p><strong>NULL arithmetic always gives NULL</strong><br><code class="inline">NULL + 5</code>, <code class="inline">NULL * 100</code>, <code class="inline">'text' + NULL</code> — all return NULL.</p>
+      </div>
+      <div class="fact-card">
+        <div class="fact-icon">❌</div>
+        <p><strong>NULL = NULL is UNKNOWN</strong><br>Two NULLs are not equal to each other in SQL. You cannot check equality with <code class="inline">=</code>.</p>
+      </div>
+      <div class="fact-card">
+        <div class="fact-icon">📊</div>
+        <p><strong>COUNT(*) vs COUNT(col)</strong><br><code class="inline">COUNT(*)</code> counts all rows including NULLs. <code class="inline">COUNT(col)</code> skips NULL values.</p>
+      </div>
+      <div class="fact-card">
+        <div class="fact-icon">🔗</div>
+        <p><strong>NULL in UNIQUE constraints</strong><br>Most databases (including SQL Server) allow <strong>multiple NULLs</strong> in a UNIQUE column because NULL ≠ NULL.</p>
+      </div>
+      <div class="fact-card">
+        <div class="fact-icon">🔄</div>
+        <p><strong>NULL propagates in CASE</strong><br>If no WHEN matches and there's no ELSE, <code class="inline">CASE</code> returns NULL by default.</p>
+      </div>
+      <div class="fact-card">
+        <div class="fact-icon">📋</div>
+        <p><strong>GROUP BY groups NULLs together</strong><br>Multiple NULL values in a GROUP BY column are treated as one group, not separate rows.</p>
+      </div>
+      <div class="fact-card">
+        <div class="fact-icon">🏆</div>
+        <p><strong>AVG ignores NULLs silently</strong><br><code class="inline">AVG()</code> divides by the count of <em>non-NULL</em> values only — this can skew results significantly.</p>
+      </div>
+      <div class="fact-card">
+        <div class="fact-icon">📌</div>
+        <p><strong>NOT IN with NULLs is dangerous</strong><br><code class="inline">col NOT IN (1, 2, NULL)</code> returns <em>no rows</em>. Always use <code class="inline">NOT EXISTS</code> instead when NULLs may be present.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ 11. PRACTICE TASKS ══════ -->
+  <section id="s11">
+    <h2 class="section-title"><span class="num">11</span> ✏️ Practice Tasks</h2>
+    <p>Work through these tasks to solidify your understanding of NULL handling in SQL.</p>
+
+    <div class="practice-section">
+
+      <div class="practice-item">
+        <div class="pnum">1</div>
+        <div class="pinner">
+          <div class="task-num">Task 01 · IS NULL</div>
+          <div class="task-title">Find customers with missing email addresses</div>
+          <div class="task-desc">Write a query on <code class="inline">sales.Customers</code> that returns the CustomerID and CustomerName of all customers where the <code class="inline">Email</code> column is NULL.</div>
+          <span class="task-hint">Hint: WHERE Email IS NULL</span>
+        </div>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">2</div>
+        <div class="pinner">
+          <div class="task-num">Task 02 · IS NOT NULL</div>
+          <div class="task-title">Find products with a defined category</div>
+          <div class="task-desc">From <code class="inline">sales.Products</code>, retrieve all products where <code class="inline">Category</code> is NOT NULL. Sort results alphabetically by <code class="inline">ProductName</code>.</div>
+          <span class="task-hint">Hint: WHERE Category IS NOT NULL</span>
+        </div>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">3</div>
+        <div class="pinner">
+          <div class="task-num">Task 03 · ISNULL</div>
+          <div class="task-title">Replace NULL discount with zero</div>
+          <div class="task-desc">In the <code class="inline">sales.Orders</code> table, the <code class="inline">Discount</code> column can be NULL. Select <code class="inline">OrderID</code>, <code class="inline">TotalAmount</code>, and use <code class="inline">ISNULL</code> to display the discount as <code class="inline">0</code> when it is NULL.</div>
+          <span class="task-hint">Hint: ISNULL(Discount, 0)</span>
+        </div>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">4</div>
+        <div class="pinner">
+          <div class="task-num">Task 04 · COALESCE</div>
+          <div class="task-title">Build a fallback contact column</div>
+          <div class="task-desc">From <code class="inline">sales.Customers</code>, create a <code class="inline">PrimaryContact</code> column that shows <code class="inline">Mobile</code> first, then <code class="inline">Email</code>, then <code class="inline">Phone</code>, and finally the text <code class="inline">'Not Available'</code> if all are NULL.</div>
+          <span class="task-hint">Hint: COALESCE(Mobile, Email, Phone, 'Not Available')</span>
+        </div>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">5</div>
+        <div class="pinner">
+          <div class="task-num">Task 05 · NULLIF</div>
+          <div class="task-title">Safe division — revenue per unit</div>
+          <div class="task-desc">From <code class="inline">sales.Orders</code>, calculate <code class="inline">Revenue / Quantity</code> for each order. Protect against division by zero using <code class="inline">NULLIF</code>. Name the result <code class="inline">RevenuePerUnit</code>.</div>
+          <span class="task-hint">Hint: Revenue / NULLIF(Quantity, 0)</span>
+        </div>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">6</div>
+        <div class="pinner">
+          <div class="task-num">Task 06 · ORDER BY + IS NULL</div>
+          <div class="task-title">Sort customers with NULLs last</div>
+          <div class="task-desc">Select <code class="inline">CustomerID</code> and <code class="inline">Score</code> from <code class="inline">sales.Customers</code>. Sort by Score from lowest to highest, but ensure all NULL scores appear <strong>at the bottom</strong> of the results.</div>
+          <span class="task-hint">Hint: ORDER BY CASE WHEN Score IS NULL THEN 1 ELSE 0 END, Score ASC</span>
+        </div>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">7</div>
+        <div class="pinner">
+          <div class="task-num">Task 07 · LEFT JOIN + IS NULL</div>
+          <div class="task-title">Customers who have never ordered</div>
+          <div class="task-desc">Using a LEFT JOIN between <code class="inline">sales.Customers</code> and <code class="inline">sales.Orders</code>, find all customers who have placed <strong>zero orders</strong>. Return only CustomerID and CustomerName.</div>
+          <span class="task-hint">Hint: LEFT JOIN … WHERE O.CustomerID IS NULL</span>
+        </div>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">8</div>
+        <div class="pinner">
+          <div class="task-num">Task 08 · NULLIF + COALESCE (Advanced)</div>
+          <div class="task-title">Clean sentinel values and apply fallback</div>
+          <div class="task-desc">The <code class="inline">sales.Customers</code> table stores the string <code class="inline">'Unknown'</code> for missing regions. First use <code class="inline">NULLIF</code> to convert <code class="inline">'Unknown'</code> to NULL, then use <code class="inline">COALESCE</code> to replace it with <code class="inline">'Unassigned'</code>.</div>
+          <span class="task-hint">Hint: COALESCE(NULLIF(Region, 'Unknown'), 'Unassigned')</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  SQL NULL Handling — Complete Guide &nbsp;·&nbsp; MD Jaberul Hossen Jabed &nbsp;·&nbsp; All NULL functions covered
+</footer>
+
+</body>
+</html>

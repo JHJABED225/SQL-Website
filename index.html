@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SQL Server Learning Hub</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+    --bg:#0d1117;
+    --surface:#161b22;
+    --surface2:#1c2230;
+    --border:#30363d;
+
+    --accent:#f0a500;
+    --accent2:#3b82f6;
+    --accent3:#10b981;
+    --accent4:#ef4444;
+
+    --text:#e6edf3;
+    --muted:#8b949e;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Lora', serif;
+    line-height:1.7;
+}
+
+/* ================= HEADER ================= */
+
+header{
+    padding:70px 30px 60px;
+    text-align:center;
+
+    background:
+    radial-gradient(circle at top left, rgba(240,165,0,.12), transparent 30%),
+    radial-gradient(circle at top right, rgba(59,130,246,.10), transparent 35%),
+    linear-gradient(135deg,#0d1117,#161b22,#1c2230);
+
+    border-bottom:2px solid var(--accent);
+}
+
+.badge{
+    display:inline-block;
+    padding:6px 14px;
+    border-radius:20px;
+
+    background:rgba(240,165,0,.12);
+    border:1px solid rgba(240,165,0,.35);
+
+    color:var(--accent);
+
+    font-size:12px;
+    letter-spacing:.1em;
+    font-family:'JetBrains Mono', monospace;
+
+    margin-bottom:22px;
+}
+
+header h1{
+    font-family:'Syne', sans-serif;
+    font-size:clamp(2.2rem,5vw,4rem);
+    margin-bottom:18px;
+}
+
+header h1 span{
+    color:var(--accent);
+}
+
+header p{
+    max-width:780px;
+    margin:auto;
+    color:var(--muted);
+    font-size:1.05rem;
+}
+
+/* ================= WRAPPER ================= */
+
+.wrapper{
+    max-width:1150px;
+    margin:auto;
+    padding:60px 25px 90px;
+}
+
+/* ================= SECTION TITLE ================= */
+
+.section-title{
+    font-family:'Syne', sans-serif;
+    font-size:1.7rem;
+    margin-bottom:35px;
+
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.section-title .num{
+    background:var(--accent);
+    color:#000;
+
+    font-size:13px;
+    font-family:'JetBrains Mono', monospace;
+
+    padding:5px 10px;
+    border-radius:5px;
+}
+
+/* ================= GRID ================= */
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:24px;
+}
+
+/* ================= CARD ================= */
+
+.card{
+    background:var(--surface);
+
+    border:1px solid var(--border);
+    border-top:4px solid var(--accent2);
+
+    border-radius:14px;
+
+    padding:26px 24px;
+
+    transition:.25s ease;
+}
+
+.card:hover{
+    transform:translateY(-5px);
+    border-color:var(--accent);
+    box-shadow:0 12px 30px rgba(0,0,0,.35);
+}
+
+.card .tag{
+    display:inline-block;
+
+    padding:4px 10px;
+    border-radius:20px;
+
+    background:rgba(59,130,246,.15);
+    color:var(--accent2);
+
+    font-size:11px;
+    letter-spacing:.08em;
+
+    font-family:'JetBrains Mono', monospace;
+
+    margin-bottom:18px;
+}
+
+.card h2{
+    font-family:'Syne', sans-serif;
+    font-size:1.3rem;
+
+    margin-bottom:14px;
+}
+
+.card p{
+    color:var(--muted);
+    margin-bottom:22px;
+}
+
+/* ================= BUTTON ================= */
+
+.btn{
+    display:inline-block;
+
+    text-decoration:none;
+
+    background:var(--accent);
+    color:#000;
+
+    padding:11px 18px;
+    border-radius:8px;
+
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    font-weight:700;
+
+    transition:.2s;
+}
+
+.btn:hover{
+    background:#ffbc2c;
+}
+
+/* ================= INFO BOX ================= */
+
+.info-box{
+    margin-top:60px;
+
+    background:rgba(16,185,129,.08);
+
+    border:1px solid rgba(16,185,129,.3);
+    border-left:4px solid var(--accent3);
+
+    border-radius:12px;
+
+    padding:24px 26px;
+}
+
+.info-box h3{
+    font-family:'Syne', sans-serif;
+    margin-bottom:12px;
+    color:var(--accent3);
+}
+
+.info-box p{
+    color:var(--muted);
+}
+
+/* ================= FOOTER ================= */
+
+footer{
+    text-align:center;
+
+    padding:35px 20px;
+
+    border-top:1px solid var(--border);
+
+    color:#6e7681;
+
+    font-size:13px;
+
+    font-family:'JetBrains Mono', monospace;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media(max-width:700px){
+
+    header{
+        padding:50px 20px 45px;
+    }
+
+    .wrapper{
+        padding:40px 18px 70px;
+    }
+
+    .card{
+        padding:22px 20px;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+
+    <div class="badge">
+        SQL SERVER • LEARNING HUB
+    </div>
+
+    <h1>
+        Advanced <span>SQL Server</span> Notes
+    </h1>
+
+    <p>
+        A centralized knowledge hub containing deep-dive explanations,
+        real-life business scenarios, syntax breakdowns, interview-focused
+        concepts, and enterprise-level SQL Server learning materials.
+    </p>
+
+</header>
+
+<div class="wrapper">
+
+    <h2 class="section-title">
+        <span class="num">01</span>
+        SQL Learning Modules
+    </h2>
+
+    <div class="grid">
+
+        <!-- CARD 1 -->
+
+        <div class="card">
+
+            <div class="tag">
+                SQL SERVER
+            </div>
+
+            <h2>
+                SQL Server Guide
+            </h2>
+
+            <p>
+                Learn SQL Server fundamentals, architecture,
+                syntax rules, database objects, constraints,
+                joins, indexing, optimization strategies,
+                and enterprise database concepts.
+            </p>
+
+            <a href="sql.-server-guide.html" class="btn">
+                Open Guide →
+            </a>
+
+        </div>
+
+        <!-- CARD 2 -->
+
+        <div class="card">
+
+            <div class="tag">
+                NULL HANDLING
+            </div>
+
+            <h2>
+                NULL Handling
+            </h2>
+
+            <p>
+                Understand NULL values deeply including
+                IS NULL, IS NOT NULL, COALESCE, NULLIF,
+                IFNULL, data quality handling, ETL policies,
+                and real-world business implications.
+            </p>
+
+            <a href="SQL_NULL_Handling.html" class="btn">
+                Open Guide →
+            </a>
+
+        </div>
+
+        <!-- CARD 3 -->
+
+        <div class="card">
+
+            <div class="tag">
+                CONDITIONAL LOGIC
+            </div>
+
+            <h2>
+                CASE WHEN Statement
+            </h2>
+
+            <p>
+                Master conditional expressions in SQL Server
+                using CASE WHEN for transformations,
+                categorization, data cleaning,
+                conditional aggregation, and reporting logic.
+            </p>
+
+            <a href="CASE_WHEN_Statement.html" class="btn">
+                Open Guide →
+            </a>
+
+        </div>
+
+        <!-- CARD 4 -->
+
+        <div class="card">
+
+            <div class="tag">
+                WINDOW FUNCTIONS
+            </div>
+
+            <h2>
+                Window Functions
+            </h2>
+
+            <p>
+                Explore advanced analytical functions including
+                ROW_NUMBER, RANK, DENSE_RANK, LEAD, LAG,
+                cumulative totals, rolling averages,
+                frame clauses, and enterprise use cases.
+            </p>
+
+            <a href="window_functions_guide.html" class="btn">
+                Open Guide →
+            </a>
+
+        </div>
+
+    </div>
+
+    <!-- INFO BOX -->
+
+    <div class="info-box">
+
+        <h3>
+            📘 Purpose of This Website
+        </h3>
+
+        <p>
+            This project is designed as a personal SQL Server learning
+            repository and revision platform. The goal is to preserve
+            advanced SQL notes, business scenarios, best practices,
+            and practical examples in a clean and structured web format
+            for long-term learning and public knowledge sharing.
+        </p>
+
+    </div>
+
+</div>
+
+<footer>
+
+    Built for continuous learning • SQL Server Documentation Hub • 2026
+
+</footer>
+
+</body>
+</html>

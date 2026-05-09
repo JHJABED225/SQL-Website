@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SQL Data Types &amp; Their Conversion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── CSS Variables ── */
+    :root {
+      --bg:         #0d1117;
+      --surface:    #161b22;
+      --surface2:   #1c2230;
+      --border:     #30363d;
+      --accent:     #f0a500;
+      --accent2:    #3b82f6;
+      --accent3:    #10b981;
+      --accent4:    #ef4444;
+      --text:       #e6edf3;
+      --text-muted: #8b949e;
+      --text-dim:   #6e7681;
+      --warning:    #f97316;
+      --tip:        #a78bfa;
+      --code-bg:    #0d1117;
+    }
+
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Lora', Georgia, serif;
+      font-size: 16px;
+      line-height: 1.75;
+    }
+
+    /* ── Header ── */
+    header {
+      position: relative;
+      background: linear-gradient(135deg, #0d1117 0%, #161b22 55%, #1a2035 100%);
+      border-bottom: 2px solid var(--accent);
+      padding: 60px 40px 50px;
+      text-align: center;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 30% 50%, rgba(240,165,0,.07) 0%, transparent 60%),
+        radial-gradient(ellipse at 70% 50%, rgba(59,130,246,.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .header-badge {
+      display: inline-block;
+      background: rgba(240,165,0,.15);
+      border: 1px solid rgba(240,165,0,.45);
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: .1em;
+      padding: 5px 16px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+    header h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      color: #fff;
+      line-height: 1.15;
+      margin-bottom: 14px;
+    }
+    header h1 .hl { color: var(--accent); }
+    header .sub {
+      font-family: 'Lora', serif;
+      font-style: italic;
+      color: var(--text-muted);
+      max-width: 560px;
+      margin: 0 auto 18px;
+      font-size: 1.05rem;
+    }
+    header .meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: .06em;
+    }
+
+    /* ── Layout ── */
+    .wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 50px 32px 80px;
+    }
+
+    section { margin-bottom: 56px; }
+
+    /* ── TOC ── */
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 10px;
+      padding: 28px 32px;
+      margin-bottom: 56px;
+    }
+    .toc-heading {
+      font-family: 'Syne', sans-serif;
+      font-size: .75rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 16px;
+    }
+    .toc ol {
+      list-style: none;
+      counter-reset: toc-counter;
+      padding: 0;
+    }
+    .toc > ol > li { counter-increment: toc-counter; margin-bottom: 4px; }
+    .toc a {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .toc a:hover { color: var(--accent); }
+    .toc .toc-sub {
+      list-style: none;
+      padding-left: 20px;
+      margin-top: 4px;
+    }
+    .toc .toc-sub li { margin-bottom: 3px; }
+    .toc .toc-sub a { font-size: 12px; color: var(--text-dim); }
+    .toc .toc-sub a:hover { color: var(--accent); }
+
+    /* ── Section Titles (h2) ── */
+    h2.sec-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.55rem;
+      color: #fff;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 28px;
+    }
+    .num {
+      background: var(--accent);
+      color: #000;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    /* ── Sub-titles (h3) ── */
+    h3.sub-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--accent2);
+      margin: 28px 0 14px;
+    }
+
+    /* ── H4 ── */
+    h4 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .95rem;
+      color: var(--text);
+      margin: 18px 0 10px;
+    }
+
+    /* ── Body paragraphs ── */
+    p {
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+    p + p { margin-top: 0; }
+
+    /* ── Inline code ── */
+    code {
+      background: rgba(240,165,0,.12);
+      color: var(--accent);
+      border: 1px solid rgba(240,165,0,.25);
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .85em;
+      padding: 1px 6px;
+    }
+
+    /* ── Code Blocks ── */
+    .code-wrap {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 18px 0;
+    }
+    .code-header {
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot-r { background: #ef4444; }
+    .dot-y { background: #f59e0b; }
+    .dot-g { background: #10b981; }
+    .lang {
+      margin-left: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .code-wrap pre {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      line-height: 1.7;
+      padding: 20px 22px;
+      overflow-x: auto;
+      color: var(--text);
+      white-space: pre;
+    }
+    /* Syntax highlighting */
+    .kw  { color: #ff7b72; }
+    .fn  { color: #d2a8ff; }
+    .str { color: #a5d6ff; }
+    .nm  { color: #79c0ff; }
+    .cmt { color: #8b949e; font-style: italic; }
+    .op  { color: var(--accent); }
+
+    /* ── Syntax Block ── */
+    .syntax-block {
+      background: var(--surface);
+      border: 1px solid rgba(59,130,246,.35);
+      border-left: 4px solid var(--accent2);
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      color: var(--text);
+      margin: 14px 0;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* ── Tables ── */
+    .tbl-wrap { overflow-x: auto; margin: 18px 0; border-radius: 10px; border: 1px solid var(--border); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+    }
+    thead tr {
+      background: var(--surface2);
+      border-bottom: 2px solid var(--border);
+    }
+    th {
+      color: var(--accent);
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: .06em;
+      padding: 12px 16px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    td {
+      padding: 11px 16px;
+      color: var(--text-muted);
+      font-family: 'Lora', serif;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,.02); }
+    td:first-child {
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+    }
+    td.yes, td.good { color: var(--accent3); font-weight: 600; }
+    td.no,  td.bad  { color: var(--accent4); font-weight: 600; }
+
+    /* ── Callout Boxes ── */
+    .callout {
+      display: flex;
+      gap: 14px;
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin: 18px 0;
+      align-items: flex-start;
+    }
+    .callout .icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+    .callout .cbody {}
+    .callout .ctitle {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      margin-bottom: 5px;
+    }
+    .callout p { margin-bottom: 0; font-size: .95rem; }
+    .callout.tip    { background: rgba(167,139,250,.1);  border: 1px solid rgba(167,139,250,.3);  color: var(--tip); }
+    .callout.tip    .ctitle { color: var(--tip); }
+    .callout.tip    p { color: var(--text); }
+    .callout.warn   { background: rgba(249,115,22,.1);   border: 1px solid rgba(249,115,22,.3);   color: var(--warning); }
+    .callout.warn   .ctitle { color: var(--warning); }
+    .callout.warn   p { color: var(--text); }
+    .callout.gem    { background: rgba(16,185,129,.1);   border: 1px solid rgba(16,185,129,.3);   color: var(--accent3); }
+    .callout.gem    .ctitle { color: var(--accent3); }
+    .callout.gem    p { color: var(--text); }
+    .callout.danger { background: rgba(239,68,68,.1);    border: 1px solid rgba(239,68,68,.3);    color: var(--accent4); }
+    .callout.danger .ctitle { color: var(--accent4); }
+    .callout.danger p { color: var(--text); }
+    .callout.info   { background: rgba(59,130,246,.1);   border: 1px solid rgba(59,130,246,.3);   color: var(--accent2); }
+    .callout.info   .ctitle { color: var(--accent2); }
+    .callout.info   p { color: var(--text); }
+
+    /* ── Task Box ── */
+    .task-box {
+      background: linear-gradient(135deg, rgba(240,165,0,.08), rgba(240,165,0,.03));
+      border: 1px solid rgba(240,165,0,.35);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 18px 0;
+    }
+    .task-box .task-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .task-box p { margin-bottom: 0; }
+
+    /* ── Type Grid ── */
+    .type-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin: 18px 0;
+    }
+    .type-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+    .type-card .tc-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .95rem;
+      color: var(--accent2);
+      margin-bottom: 8px;
+    }
+    .type-card p { font-size: .9rem; color: var(--text-muted); margin-bottom: 0; }
+
+    /* ── Facts Grid ── */
+    .facts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 18px 0;
+    }
+    .fact-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 16px;
+      text-align: center;
+    }
+    .fact-card .fc-icon { font-size: 1.6rem; margin-bottom: 8px; }
+    .fact-card .fc-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+    .fact-card .fc-val {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    /* ── Badge Row ── */
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 14px 0;
+    }
+    .badge {
+      background: rgba(59,130,246,.12);
+      border: 1px solid rgba(59,130,246,.3);
+      color: var(--accent2);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    /* ── Practice Section ── */
+    .practice-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin: 18px 0;
+    }
+    .practice-section h4.plevel {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .9rem;
+      color: var(--accent3);
+      margin-bottom: 14px;
+    }
+    .practice-item {
+      background: var(--code-bg);
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    .pnum {
+      background: var(--accent3);
+      color: #000;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .practice-item p { margin-bottom: 0; font-size: .9rem; color: var(--text-muted); }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      border-top: 1px solid var(--border);
+      padding: 40px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+      letter-spacing: .04em;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      header { padding: 40px 20px 36px; }
+      .wrapper { padding: 32px 16px 60px; }
+      .toc { padding: 20px 18px; }
+      h2.sec-title { font-size: 1.25rem; }
+      .code-wrap pre { font-size: 12px; padding: 14px 14px; }
+      th, td { padding: 9px 10px; font-size: 13px; }
+      .type-grid, .facts-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Utility ── */
+    ul.plain { list-style: none; padding: 0; }
+    ul.plain li { padding: 3px 0; color: var(--text-muted); }
+    ul.disc { padding-left: 22px; margin: 10px 0; }
+    ul.disc li { color: var(--text-muted); margin-bottom: 4px; }
+    strong { color: var(--text); font-weight: 600; }
+    em { color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header>
+  <div class="header-badge">SQL Reference Guide</div>
+  <h1>SQL <span class="hl">Data Types</span> &amp; Their Conversion</h1>
+  <p class="sub">A complete reference on SQL numeric, character, and date/time data types with type conversion, formatting, and practical use cases.</p>
+  <div class="meta">Author: MD JABERUL HOSSEN JABED &nbsp;·&nbsp; Topics: Data Types · Conversion · Functions</div>
+</header>
+
+<!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+<div class="wrapper">
+
+  <!-- ── TABLE OF CONTENTS ── -->
+  <nav class="toc" aria-label="Table of Contents">
+    <div class="toc-heading">📋 Table of Contents</div>
+    <ol>
+      <li><a href="#numeric">1. Numeric Data Types</a>
+        <ul class="toc-sub">
+          <li><a href="#integer">Integer Types (TINYINT, SMALLINT, INT, BIGINT)</a></li>
+          <li><a href="#decimal">DECIMAL / NUMERIC</a></li>
+          <li><a href="#float">FLOAT / REAL</a></li>
+          <li><a href="#money">MONEY / SMALLMONEY</a></li>
+          <li><a href="#numeric-functions">Numeric Functions &amp; Operations</a></li>
+          <li><a href="#rounding">Rounding: ROUND, CEILING, FLOOR</a></li>
+        </ul>
+      </li>
+      <li><a href="#string">2. Character / String Data Types</a>
+        <ul class="toc-sub">
+          <li><a href="#string-types">CHAR, VARCHAR, TEXT, NCHAR, NVARCHAR</a></li>
+          <li><a href="#string-functions">String Functions</a></li>
+          <li><a href="#trim">TRIM, LTRIM, RTRIM</a></li>
+          <li><a href="#pattern">Pattern Matching: LIKE, %, _, PATINDEX</a></li>
+          <li><a href="#replace">REPLACE</a></li>
+          <li><a href="#format">FORMAT Function</a></li>
+        </ul>
+      </li>
+    </ol>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- SECTION 1 — NUMERIC DATA TYPES             -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section id="numeric">
+    <h2 class="sec-title"><span class="num">01</span> Numeric Data Types</h2>
+
+    <!-- Integer Types -->
+    <h3 class="sub-title" id="integer">Integer Data Types</h3>
+    <p>Integer types store whole numbers without decimal points. Choosing the right integer type saves storage and improves performance.</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Data Type</th>
+            <th>Storage</th>
+            <th>Range</th>
+            <th>When to Use</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>TINYINT</td>
+            <td>1 byte</td>
+            <td>0 to 255 (unsigned only)</td>
+            <td>Flags, status codes, ratings, very small value cases.</td>
+          </tr>
+          <tr>
+            <td>SMALLINT</td>
+            <td>2 bytes</td>
+            <td>−32,768 to 32,767</td>
+            <td>When a large range is not needed. Saves space for smaller integer values.</td>
+          </tr>
+          <tr>
+            <td>INT</td>
+            <td>4 bytes</td>
+            <td>−2,147,483,648 to 2,147,483,647 (±2 billion)</td>
+            <td>Most commonly used integer type. Used for IDs, counts, general numeric values.</td>
+          </tr>
+          <tr>
+            <td>BIGINT</td>
+            <td>8 bytes</td>
+            <td>−9,223,372,036,854,775,808 to 9,223,372,036,854,775,807</td>
+            <td>Huge datasets, large transaction IDs, logs.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- DECIMAL / NUMERIC -->
+    <h3 class="sub-title" id="decimal">DECIMAL / NUMERIC</h3>
+    <p>Both <code>DECIMAL</code> and <code>NUMERIC</code> are used to store <strong>exact numeric values</strong> (unlike <code>FLOAT</code>, which can lose precision). They are identical for most databases.</p>
+
+    <div class="syntax-block">DECIMAL(p, s)  /  NUMERIC(p, s)
+
+p = precision  → total number of digits
+s = scale      → digits after the decimal point
+                 digits before decimal = (p − s)</div>
+
+    <div class="callout gem">
+      <span class="icon">💡</span>
+      <div class="cbody">
+        <div class="ctitle">Syntax Example</div>
+        <p><code>price DECIMAL(5, 2)</code> — valid values: <code>123.45</code>, <code>9.99</code></p>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="icon">✨</span>
+      <div class="cbody">
+        <div class="ctitle">When to Use DECIMAL / NUMERIC</div>
+        <p>Money &amp; financial data · Percentages · Calculations where rounding errors are unacceptable.</p>
+      </div>
+    </div>
+
+    <!-- FLOAT / REAL -->
+    <h3 class="sub-title" id="float">FLOAT / REAL</h3>
+    <p><code>FLOAT</code> and <code>REAL</code> are <strong>approximate numeric</strong> data types used to store floating-point numbers. They do <em>not</em> store exact values — they store approximations.</p>
+
+    <div class="syntax-block">age_ratio FLOAT
+age_ratio FLOAT(n)   -- n = number of bits for precision (optional)
+
+FLOAT(1–24)   → behaves like REAL  (4 bytes)
+FLOAT(25–53)  → high precision     (8 bytes)</div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>DECIMAL / NUMERIC</th>
+            <th>FLOAT / REAL</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Type</td>
+            <td>Exact</td>
+            <td>Approximate</td>
+          </tr>
+          <tr>
+            <td>Precision</td>
+            <td>Exact (user-defined)</td>
+            <td>Approximate</td>
+          </tr>
+          <tr>
+            <td>Storage</td>
+            <td>Based on precision</td>
+            <td>Fixed (4 or 8 bytes)</td>
+          </tr>
+          <tr>
+            <td>Accuracy</td>
+            <td class="yes">100% accurate</td>
+            <td class="no">May have rounding errors</td>
+          </tr>
+          <tr>
+            <td>Use Cases</td>
+            <td>Money, finance</td>
+            <td>Scientific, large calculations</td>
+          </tr>
+          <tr>
+            <td>Example</td>
+            <td class="yes">0.1 + 0.3 = 0.40 ✔</td>
+            <td class="no">0.1 + 0.3 ≠ 0.40 ✘</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- MONEY / SMALLMONEY -->
+    <h3 class="sub-title" id="money">MONEY / SMALLMONEY <span style="color:var(--text-dim);font-size:.8em;">(SQL Server Only)</span></h3>
+
+    <div class="facts-grid">
+      <div class="fact-card">
+        <div class="fc-icon">💰</div>
+        <div class="fc-label">MONEY</div>
+        <div class="fc-val">8 bytes</div>
+      </div>
+      <div class="fact-card">
+        <div class="fc-icon">🪙</div>
+        <div class="fc-label">SMALLMONEY</div>
+        <div class="fc-val">4 bytes</div>
+      </div>
+      <div class="fact-card">
+        <div class="fc-icon">🔢</div>
+        <div class="fc-label">Decimal Places</div>
+        <div class="fc-val">4 places</div>
+      </div>
+    </div>
+
+    <div class="callout danger">
+      <span class="icon">⚠️</span>
+      <div class="cbody">
+        <div class="ctitle">Caution</div>
+        <p>MONEY and SMALLMONEY are not widely used and have known rounding issues. Prefer <code>DECIMAL</code> for financial data.</p>
+      </div>
+    </div>
+
+    <!-- Arithmetic Operations -->
+    <h3 class="sub-title" id="numeric-functions">Numeric Functions &amp; Operations</h3>
+
+    <h4>Arithmetic Operators</h4>
+    <p>Standard arithmetic operators: <code>+</code> (add) &nbsp;<code>-</code> (subtract) &nbsp;<code>*</code> (multiply) &nbsp;<code>/</code> (quotient) &nbsp;<code>%</code> (remainder).</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="nm">10</span><span class="op">/</span><span class="nm">3</span>  <span class="kw">AS</span> quotient,
+       <span class="nm">10</span><span class="op">%</span><span class="nm">3</span>  <span class="kw">AS</span> remainder;
+<span class="cmt">-- Result: Quotient = 3,  Remainder = 1</span>
+</pre>
+    </div>
+
+    <div class="callout warn">
+      <span class="icon">⚡</span>
+      <div class="cbody">
+        <div class="ctitle">Integer Division Gotcha</div>
+        <p><code>SELECT 10/3</code> returns <strong>3</strong> (integer), not 3.333…. To get the exact decimal result, cast the numerator as FLOAT or write <code>10.0/3</code>.</p>
+      </div>
+    </div>
+
+    <h4>Aggregate Functions</h4>
+    <div class="badge-row">
+      <span class="badge">SUM()</span>
+      <span class="badge">AVG()</span>
+      <span class="badge">MIN()</span>
+      <span class="badge">MAX()</span>
+      <span class="badge">COUNT()</span>
+    </div>
+
+    <!-- Rounding -->
+    <h3 class="sub-title" id="rounding">Rounding: ROUND, CEILING, FLOOR</h3>
+
+    <h4>ROUND(number, decimal_places)</h4>
+    <p>Rounds a number to the specified number of decimal places. Negative values round to the left of the decimal point.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">ROUND</span>(<span class="nm">123.4567</span>,  <span class="nm">2</span>) <span class="kw">AS</span> RoundedValue;  <span class="cmt">-- 123.46</span>
+<span class="kw">SELECT</span> <span class="fn">ROUND</span>(<span class="nm">123.4567</span>,  <span class="nm">0</span>) <span class="kw">AS</span> RoundedValue;  <span class="cmt">-- 123</span>
+<span class="kw">SELECT</span> <span class="fn">ROUND</span>(<span class="nm">123.4567</span>, <span class="op">-</span><span class="nm">1</span>) <span class="kw">AS</span> RoundedValue;  <span class="cmt">-- 120  (rounds to tens)</span></pre>
+    </div>
+
+    <div class="callout info">
+      <span class="icon">ℹ️</span>
+      <div class="cbody">
+        <div class="ctitle">Fact</div>
+        <p>Negative decimal places round to the <strong>left</strong> of the decimal point (tens, hundreds, etc.).</p>
+      </div>
+    </div>
+
+    <h4>CEILING(number)</h4>
+    <p>Rounds a number <strong>up</strong> to the nearest integer, regardless of the decimal fraction. Always moves toward <em>positive infinity</em>.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">CEILING</span>( <span class="nm">123.456</span>) <span class="kw">AS</span> CeilValue;  <span class="cmt">--  124</span>
+<span class="kw">SELECT</span> <span class="fn">CEILING</span>(<span class="op">-</span><span class="nm">123.456</span>) <span class="kw">AS</span> CeilValue;  <span class="cmt">-- -123</span></pre>
+    </div>
+
+    <h4>FLOOR(number)</h4>
+    <p>Rounds a number <strong>down</strong> to the nearest integer, regardless of the decimal fraction. Always moves toward <em>negative infinity</em>.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">FLOOR</span>( <span class="nm">123.456</span>) <span class="kw">AS</span> FloorValue;  <span class="cmt">--  123</span>
+<span class="kw">SELECT</span> <span class="fn">FLOOR</span>(<span class="op">-</span><span class="nm">123.456</span>) <span class="kw">AS</span> FloorValue;  <span class="cmt">-- -124</span></pre>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Function</th>
+            <th>Rounds To</th>
+            <th>Positive Example</th>
+            <th>Negative Example</th>
+            <th>Typical Use Case</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ROUND</td>
+            <td>Nearest value</td>
+            <td>123.456 → 123.46</td>
+            <td>−123.456 → −123.46</td>
+            <td>Financial rounding, reports</td>
+          </tr>
+          <tr>
+            <td>CEILING</td>
+            <td>Up (toward +∞)</td>
+            <td>123.456 → 124</td>
+            <td>−123.456 → −123</td>
+            <td>Estimating minimum full units needed</td>
+          </tr>
+          <tr>
+            <td>FLOOR</td>
+            <td>Down (toward −∞)</td>
+            <td>123.456 → 123</td>
+            <td>−123.456 → −124</td>
+            <td>Truncating, limits, minimum thresholds</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- SECTION 2 — STRING DATA TYPES              -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section id="string">
+    <h2 class="sec-title"><span class="num">02</span> Character / String Data Types</h2>
+
+    <h3 class="sub-title" id="string-types">String Data Types Overview</h3>
+
+    <div class="type-grid">
+      <div class="type-card">
+        <div class="tc-title">CHAR(n)</div>
+        <p>Fixed-length non-Unicode characters. Always uses exactly <em>n</em> characters. Pads with spaces if shorter.</p>
+      </div>
+      <div class="type-card">
+        <div class="tc-title">VARCHAR(n)</div>
+        <p>Variable-length non-Unicode characters. Stores only what you insert — no padding.</p>
+      </div>
+      <div class="type-card">
+        <div class="tc-title">TEXT</div>
+        <p>Used for storing very large non-Unicode text. <strong style="color:var(--accent4)">Deprecated</strong> — prefer VARCHAR(MAX).</p>
+      </div>
+      <div class="type-card">
+        <div class="tc-title">NCHAR(n)</div>
+        <p>Same as CHAR but stores Unicode characters (2 bytes per char). Supports Bangla, Arabic, etc.</p>
+      </div>
+      <div class="type-card">
+        <div class="tc-title">NVARCHAR(n)</div>
+        <p>Unicode version of VARCHAR. The most common choice for multilingual applications.</p>
+      </div>
+    </div>
+
+    <h4>Unicode vs Non-Unicode</h4>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Supports Unicode</th>
+            <th>Example Use</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>CHAR</td>
+            <td class="no">❌ No</td>
+            <td>English only</td>
+          </tr>
+          <tr>
+            <td>VARCHAR</td>
+            <td class="no">❌ No</td>
+            <td>English only</td>
+          </tr>
+          <tr>
+            <td>NCHAR</td>
+            <td class="yes">✅ Yes</td>
+            <td>Bangla, Arabic, CJK</td>
+          </tr>
+          <tr>
+            <td>NVARCHAR</td>
+            <td class="yes">✅ Yes</td>
+            <td>Multilingual apps</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>Full Comparison</h4>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>CHAR(n)</th>
+            <th>VARCHAR(n)</th>
+            <th>TEXT</th>
+            <th>NCHAR(n)</th>
+            <th>NVARCHAR(n)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Length Type</td>
+            <td>Fixed</td>
+            <td>Variable</td>
+            <td>Variable</td>
+            <td>Fixed</td>
+            <td>Variable</td>
+          </tr>
+          <tr>
+            <td>Unicode</td>
+            <td class="no">❌ No</td>
+            <td class="no">❌ No</td>
+            <td class="no">❌ No</td>
+            <td class="yes">✅ Yes</td>
+            <td class="yes">✅ Yes</td>
+          </tr>
+          <tr>
+            <td>Storage</td>
+            <td>n bytes</td>
+            <td>actual + 2</td>
+            <td>Large (LOB)</td>
+            <td>n × 2 bytes</td>
+            <td>actual × 2 + 2</td>
+          </tr>
+          <tr>
+            <td>Max Size</td>
+            <td>8,000</td>
+            <td>8,000 / MAX</td>
+            <td>~2 GB</td>
+            <td>4,000</td>
+            <td>4,000 / MAX</td>
+          </tr>
+          <tr>
+            <td>Padding</td>
+            <td class="yes">Yes</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="yes">Yes</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
+            <td>Performance</td>
+            <td>Fast (fixed)</td>
+            <td>Flexible</td>
+            <td>Slower</td>
+            <td>Fast</td>
+            <td>Flexible</td>
+          </tr>
+          <tr>
+            <td>Use Case</td>
+            <td>Fixed values</td>
+            <td>General text</td>
+            <td>Large text (old)</td>
+            <td>Fixed Unicode</td>
+            <td>General Unicode</td>
+          </tr>
+          <tr>
+            <td>Status</td>
+            <td class="yes">Active</td>
+            <td class="yes">Active</td>
+            <td class="no">❌ Deprecated</td>
+            <td class="yes">Active</td>
+            <td class="yes">Active</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info">
+      <span class="icon">📌</span>
+      <div class="cbody">
+        <div class="ctitle">What is Padding?</div>
+        <p><strong>Padding</strong> means adding extra spaces to fill the defined length. Example: <code>DECLARE @x CHAR(10) = 'Hi'</code> — what you expect: <code>'Hi'</code> — what is actually stored: <code>'Hi&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'</code> (8 trailing spaces added to reach length 10).</p>
+      </div>
+    </div>
+
+    <!-- String Functions -->
+    <h3 class="sub-title" id="string-functions">String Functions</h3>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Function</th>
+            <th>Purpose</th>
+            <th>Returns</th>
+            <th>Key Behavior</th>
+            <th>Common Use Case</th>
+            <th>Important Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>LEN</td>
+            <td>Count characters</td>
+            <td>Integer (length)</td>
+            <td>Ignores trailing spaces (SQL Server)</td>
+            <td>Validate string size, filtering</td>
+            <td>Does NOT count trailing spaces</td>
+          </tr>
+          <tr>
+            <td>LEFT</td>
+            <td>Extract from start</td>
+            <td>String</td>
+            <td>Takes first n characters from left</td>
+            <td>Get prefix (e.g., first name initial)</td>
+            <td>If n &gt; length → returns full string</td>
+          </tr>
+          <tr>
+            <td>RIGHT</td>
+            <td>Extract from end</td>
+            <td>String</td>
+            <td>Takes last n characters from right</td>
+            <td>Get suffix (e.g., last digits of phone)</td>
+            <td>Works opposite of LEFT()</td>
+          </tr>
+          <tr>
+            <td>SUBSTRING</td>
+            <td>Extract from any position</td>
+            <td>String</td>
+            <td>Starts at position and takes length chars</td>
+            <td>Flexible extraction anywhere</td>
+            <td>Position starts at 1 (not 0)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="syntax-block">LEN(column_name)
+LEFT(column_name, n)
+RIGHT(column_name, n)
+SUBSTRING(column_name, start_position, length)
+  -- To make dynamic: length = LEN(column)</div>
+
+    <div class="callout gem">
+      <span class="icon">💎</span>
+      <div class="cbody">
+        <div class="ctitle">LEN() vs DATALENGTH()</div>
+        <p><strong>LEN()</strong> ignores trailing spaces but counts spaces at the beginning. <strong>DATALENGTH()</strong> counts actual bytes including all spaces. <code>SUBSTRING</code> is more powerful than <code>LEFT</code> and <code>RIGHT</code> combined.</p>
+      </div>
+    </div>
+
+    <!-- TRIM -->
+    <h3 class="sub-title" id="trim">TRIM, LTRIM, RTRIM</h3>
+    <p>All three functions remove unwanted spaces (or specified characters) from text.</p>
+
+    <div class="badge-row">
+      <span class="badge">TRIM()</span>
+      <span class="badge">LTRIM()</span>
+      <span class="badge">RTRIM()</span>
+    </div>
+
+    <div class="callout tip">
+      <span class="icon">✨</span>
+      <div class="cbody">
+        <div class="ctitle">Special Case — Remove Specific Characters</div>
+        <p><code>SELECT TRIM('#' FROM '###Data###')</code> → Result: <code>'Data'</code></p>
+      </div>
+    </div>
+
+    <h4>Case Conversion</h4>
+    <div class="badge-row">
+      <span class="badge">UPPER()</span>
+      <span class="badge">LOWER()</span>
+    </div>
+    <p><code>UPPER()</code> converts all letters to uppercase. <code>LOWER()</code> converts all letters to lowercase.</p>
+
+    <!-- REPLACE -->
+    <h3 class="sub-title" id="replace">REPLACE</h3>
+
+    <div class="syntax-block">REPLACE(original_string, old_substring, new_substring)</div>
+
+    <p>Replaces all occurrences of <code>old_substring</code> in <code>original_string</code> with <code>new_substring</code>.</p>
+
+    <div class="callout info">
+      <span class="icon">🔧</span>
+      <div class="cbody">
+        <div class="ctitle">Use Case 1 — Remove Unwanted Characters</div>
+        <p>Converts <code>017-123-4567</code> → <code>0171234567</code></p>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="cmt">-- Remove dashes from phone numbers</span>
+<span class="kw">SELECT</span> <span class="fn">REPLACE</span>(phone_number, <span class="str">'-'</span>, <span class="str">''</span>) <span class="kw">AS</span> clean_number
+<span class="kw">FROM</span> customers;
+
+<span class="cmt">-- Replace multiple words (nested REPLACE)</span>
+<span class="kw">SELECT</span> <span class="fn">REPLACE</span>(<span class="fn">REPLACE</span>(description, <span class="str">'bad'</span>, <span class="str">'good'</span>), <span class="str">'poor'</span>, <span class="str">'excellent'</span>)
+<span class="kw">FROM</span> reviews;
+
+<span class="cmt">-- Mask sensitive data (credit card)</span>
+<span class="kw">SELECT</span> <span class="fn">REPLACE</span>(card_number, <span class="fn">LEFT</span>(card_number, <span class="nm">12</span>), <span class="str">'************'</span>)
+<span class="kw">FROM</span> payments;
+<span class="cmt">-- 1234567890123456 → ************3456</span></pre>
+    </div>
+
+    <!-- Pattern Matching -->
+    <h3 class="sub-title" id="pattern">Pattern Matching: LIKE, %, _, PATINDEX</h3>
+    <p>Used to search for a pattern inside a column.</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Wildcard</th>
+            <th>Meaning</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>%</td>
+            <td>Any number of characters (0, 1, or many)</td>
+            <td><code>LIKE 'A%'</code> → starts with A</td>
+          </tr>
+          <tr>
+            <td>_</td>
+            <td>Exactly one character</td>
+            <td><code>LIKE '_at'</code> → cat, bat, hat</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>PATINDEX()</h4>
+    <p><code>PATINDEX</code> is a <em>function</em> (not an operator like <code>LIKE</code>). It returns the <strong>position number</strong> of the first matching pattern. Returns <code>0</code> if no match is found.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">PATINDEX</span>(<span class="str">'%son%'</span>, <span class="str">'Johnson'</span>) <span class="kw">AS</span> position;
+<span class="cmt">-- Result: 5  (pattern 'son' found at position 5 in 'Johnson')</span></pre>
+    </div>
+
+    <!-- FORMAT Function -->
+    <h3 class="sub-title" id="format">FORMAT Function</h3>
+
+    <div class="syntax-block">FORMAT(value, format [, culture])</div>
+
+    <p>The <code>FORMAT</code> function returns a value formatted with the specified format string and optional culture. Primarily used for formatting dates, times, and numbers into human-readable strings.</p>
+
+    <div class="callout tip">
+      <span class="icon">✨</span>
+      <div class="cbody">
+        <div class="ctitle">Parameters</div>
+        <p><strong>value</strong> — the value to format &nbsp;·&nbsp; <strong>'format'</strong> — format string (standard or custom) &nbsp;·&nbsp; <strong>culture</strong> — optional locale (e.g., <code>'en-US'</code>, <code>'fr-FR'</code>)</p>
+      </div>
+    </div>
+
+    <h4>Custom Number Formatting</h4>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">FORMAT</span>(<span class="nm">1234567</span>, <span class="str">'##,##,##,###'</span>);  <span class="cmt">-- 12,34,567</span></pre>
+    </div>
+
+    <h4>Date Formatting</h4>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    <span class="fn">FORMAT</span>(<span class="fn">GETDATE</span>(), <span class="str">'yyyy-MM-dd'</span>)    <span class="kw">AS</span> ISO_Format,
+    <span class="fn">FORMAT</span>(<span class="fn">GETDATE</span>(), <span class="str">'dd/MM/yyyy'</span>)    <span class="kw">AS</span> British_Format,
+    <span class="fn">FORMAT</span>(<span class="fn">GETDATE</span>(), <span class="str">'MMMM dd, yyyy'</span>) <span class="kw">AS</span> Full_Format,
+    <span class="fn">FORMAT</span>(<span class="fn">GETDATE</span>(), <span class="str">'ddd'</span>)           <span class="kw">AS</span> Day_Short,
+    <span class="fn">FORMAT</span>(<span class="fn">GETDATE</span>(), <span class="str">'dddd'</span>)          <span class="kw">AS</span> Day_Full;</pre>
+    </div>
+
+    <h4>Number Formatting (Currency, Percent)</h4>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    <span class="fn">FORMAT</span>(<span class="nm">1234.56</span>, <span class="str">'C'</span>) <span class="kw">AS</span> Currency,    <span class="cmt">-- $1,234.56</span>
+    <span class="fn">FORMAT</span>(<span class="nm">1234.56</span>, <span class="str">'N'</span>) <span class="kw">AS</span> Number,      <span class="cmt">-- 1,234.56</span>
+    <span class="fn">FORMAT</span>(<span class="nm">0.756</span>,   <span class="str">'P'</span>) <span class="kw">AS</span> Percentage;  <span class="cmt">-- 75.60%</span>
+<span class="cmt">-- Output depends on culture setting</span></pre>
+    </div>
+
+    <h4>Culture / Localization</h4>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    <span class="fn">FORMAT</span>(<span class="nm">1234.56</span>, <span class="str">'C'</span>, <span class="str">'en-US'</span>) <span class="kw">AS</span> US_Format,     <span class="cmt">-- $1,234.56</span>
+    <span class="fn">FORMAT</span>(<span class="nm">1234.56</span>, <span class="str">'C'</span>, <span class="str">'fr-FR'</span>) <span class="kw">AS</span> French_Format; <span class="cmt">-- 1 234,56 €</span>
+<span class="cmt">-- Very useful for international reports</span></pre>
+    </div>
+
+    <h4>FORMAT() for Custom Patterns</h4>
+    <div class="task-box">
+      <div class="task-label">📝 Task</div>
+      <p>Convert date to compact format: <code>2026-04-20</code> → <code>20260420</code></p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">FORMAT</span>(<span class="fn">GETDATE</span>(), <span class="str">'yyyyMMdd'</span>) <span class="kw">AS</span> Compact_Date;
+<span class="cmt">-- Output: 20260409</span></pre>
+    </div>
+
+    <h4>Time Formatting</h4>
+    <div class="task-box">
+      <div class="task-label">📝 Task</div>
+      <p>Format to show time only (ignore the date)</p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">FORMAT</span>(<span class="fn">GETDATE</span>(), <span class="str">'hh:mm tt'</span>) <span class="kw">AS</span> Time_12hr;
+<span class="cmt">-- Output: 06:45 PM</span></pre>
+    </div>
+
+    <h4>FORMAT vs CONVERT — Comparison</h4>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>FORMAT()</th>
+            <th>CONVERT()</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Flexibility</td>
+            <td class="yes">Very High</td>
+            <td>Limited</td>
+          </tr>
+          <tr>
+            <td>Performance</td>
+            <td class="no">Slow</td>
+            <td class="yes">Fast</td>
+          </tr>
+          <tr>
+            <td>Culture Support</td>
+            <td class="yes">Yes</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
+            <td>Output Type</td>
+            <td>NVARCHAR</td>
+            <td>Depends on style</td>
+          </tr>
+          <tr>
+            <td>Use Case</td>
+            <td>Reporting / display</td>
+            <td>Data processing</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout warn">
+      <span class="icon">⚡</span>
+      <div class="cbody">
+        <div class="ctitle">Best Practice Note</div>
+        <p>Think of <code>FORMAT()</code> as a <em>presentation layer tool</em>, not a data-processing tool. Use it when preparing final reports needing custom display formats. Avoid it with large datasets, aggregations, or joins — it performs poorly at scale.</p>
+      </div>
+    </div>
+
+    <!-- Practice Tasks -->
+    <h3 class="sub-title">Practice Tasks</h3>
+    <div class="practice-section">
+      <h4 class="plevel">🟢 Beginner</h4>
+      <div class="practice-item">
+        <div class="pnum">1</div>
+        <p>Write a query that returns the CEILING and FLOOR of the number <code>47.3</code>.</p>
+      </div>
+      <div class="practice-item">
+        <div class="pnum">2</div>
+        <p>Use <code>LEN()</code> to find the length of each customer name in a <code>customers</code> table.</p>
+      </div>
+      <div class="practice-item">
+        <div class="pnum">3</div>
+        <p>Use <code>UPPER()</code> and <code>LOWER()</code> to normalize email addresses in a table.</p>
+      </div>
+    </div>
+
+    <div class="practice-section">
+      <h4 class="plevel">🟡 Intermediate</h4>
+      <div class="practice-item">
+        <div class="pnum">1</div>
+        <p>Write a query that rounds a <code>salary</code> column to the nearest hundred using <code>ROUND()</code> with a negative scale.</p>
+      </div>
+      <div class="practice-item">
+        <div class="pnum">2</div>
+        <p>Use <code>SUBSTRING()</code> to extract the area code from phone numbers stored as <code>'017-XXX-XXXX'</code>.</p>
+      </div>
+      <div class="practice-item">
+        <div class="pnum">3</div>
+        <p>Use <code>REPLACE()</code> to mask the middle 8 digits of a 16-digit credit card number.</p>
+      </div>
+      <div class="practice-item">
+        <div class="pnum">4</div>
+        <p>Use <code>PATINDEX()</code> to find rows in a <code>notes</code> column that contain a numeric pattern <code>'%[0-9]%'</code>.</p>
+      </div>
+    </div>
+
+    <div class="practice-section">
+      <h4 class="plevel">🔴 Advanced</h4>
+      <div class="practice-item">
+        <div class="pnum">1</div>
+        <p>Format a <code>sale_amount</code> column as currency in US, French, and German formats using <code>FORMAT()</code> with culture codes.</p>
+      </div>
+      <div class="practice-item">
+        <div class="pnum">2</div>
+        <p>Create a query that compares <code>FORMAT()</code> and <code>CONVERT()</code> performance on a large dataset of 1 million rows.</p>
+      </div>
+      <div class="practice-item">
+        <div class="pnum">3</div>
+        <p>Design a query that stores prices in <code>DECIMAL(10,2)</code> and demonstrates why <code>FLOAT</code> would be inappropriate for the same data.</p>
+      </div>
+    </div>
+
+  </section>
+
+</div><!-- /.wrapper -->
+
+<footer>
+  SQL Data Types &amp; Their Conversion &nbsp;·&nbsp; Courtesy: MD JABERUL HOSSEN JABED &nbsp;·&nbsp; Reference Guide
+</footer>
+
+</body>
+</html>

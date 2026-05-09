@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SQL Functions — Complete Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2230;
+    --border: #30363d;
+    --accent: #f0a500;
+    --accent2: #3b82f6;
+    --accent3: #10b981;
+    --accent4: #ef4444;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --text-dim: #6e7681;
+    --code-bg: #0d1117;
+    --warning: #f97316;
+    --tip: #a78bfa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', Georgia, serif;
+    font-size: 16px;
+    line-height: 1.75;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1a2035 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 60px 40px 50px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(240,165,0,.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 50%, rgba(59,130,246,.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  header .badge {
+    display: inline-block;
+    background: rgba(240,165,0,.15);
+    border: 1px solid rgba(240,165,0,.4);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .1em;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -.02em;
+    margin-bottom: 12px;
+  }
+  header h1 span { color: var(--accent); }
+  header p.sub {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    max-width: 560px;
+    margin: 0 auto 24px;
+    font-style: italic;
+  }
+  header .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: .05em;
+  }
+
+  /* ── LAYOUT ── */
+  .wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 50px 32px 80px;
+  }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 50px;
+  }
+  .toc h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 5px 0; }
+  .toc a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    transition: color .2s;
+  }
+  .toc a:hover { color: var(--accent); }
+
+  /* ── SECTIONS ── */
+  section { margin-bottom: 56px; }
+
+  h2.section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #fff;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  h2.section-title .num {
+    background: var(--accent);
+    color: #000;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 2px 9px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  h3.sub-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent2);
+    margin: 28px 0 12px;
+  }
+
+  p { margin-bottom: 14px; color: var(--text); }
+  p:last-child { margin-bottom: 0; }
+
+  ul, ol {
+    padding-left: 22px;
+    margin-bottom: 14px;
+  }
+  li { margin: 4px 0; color: var(--text); }
+
+  strong { color: #fff; font-weight: 600; }
+  em { color: var(--accent); font-style: italic; }
+
+  code.inline {
+    background: rgba(240,165,0,.12);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .85em;
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(240,165,0,.25);
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-wrap {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 16px 0 24px;
+  }
+  .code-header {
+    background: var(--surface2);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-header .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  .code-header .dot.r { background: #ef4444; }
+  .code-header .dot.y { background: #f59e0b; }
+  .code-header .dot.g { background: #10b981; }
+  .code-header .lang {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: .05em;
+  }
+  pre {
+    padding: 20px 22px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #cdd9e5;
+  }
+  .kw  { color: #ff7b72; }
+  .fn  { color: #d2a8ff; }
+  .str { color: #a5d6ff; }
+  .num { color: #79c0ff; }
+  .cmt { color: #8b949e; font-style: italic; }
+  .op  { color: var(--accent); }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 18px 0;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .callout .icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+  .callout .body { flex: 1; }
+  .callout .body strong {
+    display: block;
+    font-family: 'Syne', sans-serif;
+    font-size: .85rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .callout .body p { margin: 0; font-size: .95rem; }
+
+  .callout.tip    { background: rgba(167,139,250,.1); border: 1px solid rgba(167,139,250,.3); }
+  .callout.tip .icon { color: var(--tip); }
+  .callout.tip .body strong { color: var(--tip); }
+
+  .callout.warn   { background: rgba(249,115,22,.1); border: 1px solid rgba(249,115,22,.3); }
+  .callout.warn .icon { color: var(--warning); }
+  .callout.warn .body strong { color: var(--warning); }
+
+  .callout.gem    { background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.3); }
+  .callout.gem .icon { color: var(--accent3); }
+  .callout.gem .body strong { color: var(--accent3); }
+
+  .callout.danger { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); }
+  .callout.danger .icon { color: var(--accent4); }
+  .callout.danger .body strong { color: var(--accent4); }
+
+  .callout.info   { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.3); }
+  .callout.info .icon { color: var(--accent2); }
+  .callout.info .body strong { color: var(--accent2); }
+
+  /* ── TASK BOX ── */
+  .task-box {
+    background: linear-gradient(135deg, rgba(240,165,0,.08), rgba(240,165,0,.03));
+    border: 1px solid rgba(240,165,0,.35);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin: 20px 0;
+  }
+  .task-box .task-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .task-box p { margin: 0; font-size: .95rem; }
+
+  /* ── PRO TIPS SECTION ── */
+  .practice-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 30px;
+    margin-top: 18px;
+  }
+  .practice-section h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent3);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .practice-item {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .practice-item .pnum {
+    background: var(--accent3);
+    color: #000;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .practice-item p { margin: 0; font-size: .93rem; color: var(--text-muted); }
+  .practice-item p strong { color: var(--text); }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; margin: 18px 0 24px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  thead tr { background: var(--surface2); }
+  th {
+    text-align: left;
+    padding: 11px 16px;
+    color: var(--accent);
+    font-size: 12px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--border);
+  }
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: 'Lora', serif;
+    font-size: 14px;
+  }
+  td:first-child { color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+  tbody tr:hover { background: rgba(255,255,255,.02); }
+
+  .yes  { color: var(--accent3) !important; font-family: 'JetBrains Mono', monospace; }
+  .no   { color: var(--accent4) !important; font-family: 'JetBrains Mono', monospace; }
+  .good { color: var(--accent3) !important; }
+  .bad  { color: var(--accent4) !important; }
+
+  /* ── SYNTAX BLOCK ── */
+  .syntax-block {
+    background: var(--surface);
+    border: 1px solid rgba(59,130,246,.3);
+    border-left: 4px solid var(--accent2);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin: 14px 0 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: #cdd9e5;
+    line-height: 1.8;
+  }
+
+  /* ── DIVIDER ── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 40px 20px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .04em;
+  }
+
+  /* ── CATEGORY GRID ── */
+  .type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin: 18px 0;
+  }
+  .type-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .type-card h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    color: var(--accent2);
+    margin-bottom: 10px;
+  }
+  .type-card ul {
+    padding-left: 16px;
+    margin: 0;
+  }
+  .type-card li { font-size: .88rem; color: var(--text-muted); margin: 3px 0; }
+
+  /* ── BADGE ROW ── */
+  .badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0;
+  }
+  .badge-item {
+    background: rgba(59,130,246,.12);
+    border: 1px solid rgba(59,130,246,.3);
+    color: var(--accent2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 3px 12px;
+    border-radius: 20px;
+  }
+
+  /* ── KEY FACTS GRID ── */
+  .facts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 18px 0;
+  }
+  .fact-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .fact-card .fact-icon { font-size: 1.5rem; margin-bottom: 6px; }
+  .fact-card .fact-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); letter-spacing: .06em; text-transform: uppercase; }
+  .fact-card .fact-val { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: #fff; margin-top: 4px; }
+
+  /* ── MOBILE RESPONSIVE ── */
+  @media (max-width: 640px) {
+    header { padding: 40px 20px 36px; }
+    .wrapper { padding: 30px 16px 60px; }
+    .toc { padding: 20px 18px; }
+    pre { font-size: 12px; padding: 14px 14px; }
+    h2.section-title { font-size: 1.25rem; }
+    .type-grid { grid-template-columns: 1fr; }
+    .facts-grid { grid-template-columns: repeat(2, 1fr); }
+    th, td { padding: 8px 10px; font-size: 12px; }
+    .practice-section { padding: 18px 16px; }
+    .callout { flex-direction: column; gap: 8px; }
+    .syntax-block { font-size: 12px; padding: 14px 14px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════ HEADER ══════════════════════ -->
+<header>
+  <div class="badge">SQL · T-SQL · Reference Guide</div>
+  <h1>SQL <span>Functions</span></h1>
+  <p class="sub">A complete, production-level guide to SQL built-in functions — String, Number, Date/Time, Conversion, and NULL functions with real-world tasks and pro tips.</p>
+  <div class="meta">Author: MD JABERUL HOSSEN JABED &nbsp;·&nbsp; Topic: SQL Built-in Functions</div>
+</header>
+
+<div class="wrapper">
+
+  <!-- ══════ TABLE OF CONTENTS ══════ -->
+  <nav class="toc">
+    <h2>📋 Table of Contents</h2>
+    <ol>
+      <li><a href="#overview">SQL Function Categories Overview</a></li>
+      <li><a href="#string">String Functions</a></li>
+      <li><a href="#number">Number Functions</a></li>
+      <li><a href="#datetime">Date and Time Functions — Part Extraction</a></li>
+      <li><a href="#datemanip">Date Manipulation: DATEADD & DATEDIFF</a></li>
+      <li><a href="#format">FORMAT() Function</a></li>
+      <li><a href="#convert">CONVERT() Function</a></li>
+      <li><a href="#cast">CAST() Function</a></li>
+      <li><a href="#comparison">FORMAT vs CONVERT vs CAST Comparison</a></li>
+      <li><a href="#pattern">Pattern Matching: LIKE, %, _</a></li>
+      <li><a href="#protips">Pro Tips</a></li>
+      <li><a href="#traps">Traps and Solutions</a></li>
+    </ol>
+  </nav>
+
+  <!-- ══════ OVERVIEW ══════ -->
+  <section id="overview">
+    <h2 class="section-title"><span class="num">01</span> SQL Function Categories Overview</h2>
+
+    <p>SQL provides a rich set of built-in functions that help transform, analyze, and format data directly inside queries. Understanding these functions deeply is key to writing production-quality SQL.</p>
+
+    <div class="type-grid">
+      <div class="type-card">
+        <h4>🔤 String Functions</h4>
+        <ul>
+          <li>UPPER, LOWER</li>
+          <li>LEN, DATALENGTH</li>
+          <li>LEFT, RIGHT, SUBSTRING</li>
+          <li>CHARINDEX, PATINDEX</li>
+          <li>REPLACE</li>
+          <li>TRIM, LTRIM, RTRIM</li>
+        </ul>
+      </div>
+      <div class="type-card">
+        <h4>🔢 Number Functions</h4>
+        <ul>
+          <li>ROUND</li>
+          <li>CEILING</li>
+          <li>FLOOR</li>
+          <li>ABS</li>
+        </ul>
+      </div>
+      <div class="type-card">
+        <h4>📅 Date &amp; Time Functions</h4>
+        <ul>
+          <li>DAY, MONTH, YEAR</li>
+          <li>DATEPART, DATENAME</li>
+          <li>DATETRUNC, EOMONTH</li>
+          <li>DATEADD, DATEDIFF</li>
+          <li>GETDATE, SYSDATETIME</li>
+          <li>ISDATE, GETUTCDATE</li>
+        </ul>
+      </div>
+      <div class="type-card">
+        <h4>🔄 Conversion Functions</h4>
+        <ul>
+          <li>FORMAT</li>
+          <li>CONVERT</li>
+          <li>CAST</li>
+          <li>TRY_CAST, TRY_CONVERT</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="facts-grid">
+      <div class="fact-card">
+        <div class="fact-icon">🔤</div>
+        <div class="fact-label">String Functions</div>
+        <div class="fact-val">10+</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-icon">📅</div>
+        <div class="fact-label">Date Functions</div>
+        <div class="fact-val">12+</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-icon">🔄</div>
+        <div class="fact-label">Conversion Types</div>
+        <div class="fact-val">3 Main</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-icon">⚡</div>
+        <div class="fact-label">Platform</div>
+        <div class="fact-val">T-SQL / SQL Server</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ STRING FUNCTIONS ══════ -->
+  <section id="string">
+    <h2 class="section-title"><span class="num">02</span> String Functions</h2>
+
+    <!-- UPPER / LOWER -->
+    <h3 class="sub-title">2.1 UPPER( ) and LOWER( )</h3>
+    <p><code class="inline">UPPER()</code> converts text to uppercase letters. <code class="inline">LOWER()</code> converts text to lowercase letters.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">UPPER</span>(<span class="str">'hello world'</span>) <span class="cmt">-- Result: HELLO WORLD</span>
+<span class="kw">SELECT</span> <span class="fn">LOWER</span>(<span class="str">'HELLO WORLD'</span>) <span class="cmt">-- Result: hello world</span>
+<span class="kw">SELECT</span> <span class="fn">UPPER</span>(first_name), <span class="fn">LOWER</span>(last_name) <span class="kw">FROM</span> employees</pre>
+    </div>
+
+    <!-- LEN / DATALENGTH -->
+    <h3 class="sub-title">2.2 LEN( ) and DATALENGTH( )</h3>
+    <p>Both functions count the number of characters in a text. The key difference is how they handle spaces:</p>
+    <ul>
+      <li><code class="inline">LEN()</code> — ignores <strong>trailing spaces</strong> but counts spaces at the beginning.</li>
+      <li><code class="inline">DATALENGTH()</code> — counts <strong>all characters</strong> including trailing spaces (and returns bytes, not just characters).</li>
+    </ul>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">LEN</span>(<span class="str">'Hello   '</span>)        <span class="cmt">-- Result: 5 (trailing spaces ignored)</span>
+<span class="kw">SELECT</span> <span class="fn">DATALENGTH</span>(<span class="str">'Hello   '</span>) <span class="cmt">-- Result: 8 (all bytes counted)</span></pre>
+    </div>
+
+    <!-- LEFT / RIGHT -->
+    <h3 class="sub-title">2.3 LEFT( ) and RIGHT( )</h3>
+    <p><code class="inline">LEFT(column, n)</code> extracts the first <em>n</em> characters from the start of a string. <code class="inline">RIGHT(column, n)</code> extracts the last <em>n</em> characters from the end. Here, <strong>n means number of characters</strong>, not position.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">LEFT</span>(category, <span class="num">3</span>)  <span class="kw">AS</span> first_3_chars <span class="kw">FROM</span> gold.dim_products
+<span class="kw">SELECT</span> <span class="fn">RIGHT</span>(phone, <span class="num">4</span>)    <span class="kw">AS</span> last_4_digits  <span class="kw">FROM</span> customers</pre>
+    </div>
+
+    <div class="callout info">
+      <div class="icon">ℹ️</div>
+      <div class="body">
+        <strong>Behavior Note</strong>
+        <p>If <em>n</em> is greater than the string length, <code class="inline">LEFT()</code> and <code class="inline">RIGHT()</code> simply return the full string — no error is thrown.</p>
+      </div>
+    </div>
+
+    <!-- SUBSTRING -->
+    <h3 class="sub-title">2.4 SUBSTRING( )</h3>
+    <p><code class="inline">SUBSTRING(column, start_position, length)</code> extracts a portion of characters from any position in a text. It is the most flexible string extraction function and can replicate both LEFT and RIGHT behavior. <strong>Position starts at 1</strong>, not 0.</p>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task</div>
+      <p>In a column, data is stored as <strong>(FF-Name)</strong>. Extract only the name information using SUBSTRING.</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    <span class="fn">SUBSTRING</span>(info, <span class="num">4</span>, <span class="fn">LEN</span>(<span class="fn">TRIM</span>(info))) <span class="kw">AS</span> name  <span class="cmt">-- Extract from 4th position to last</span>
+<span class="kw">FROM</span> customers</pre>
+    </div>
+
+    <p>SUBSTRING can also replace LEFT and RIGHT:</p>
+    <div class="syntax-block">
+      <strong>Replacement of LEFT:</strong> SUBSTRING(column, 1, ending_position)<br>
+      <strong>Replacement of RIGHT:</strong> SUBSTRING(column, LEN(column)-2, LEN(column))
+    </div>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task</div>
+      <p>Extract the first and last 3 characters from the <code class="inline">category</code> column of the products table using different string functions.</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    <span class="fn">LEFT</span>(category, <span class="num">3</span>)                                        <span class="kw">AS</span> leftinfo,
+    <span class="fn">SUBSTRING</span>(category, <span class="num">1</span>, <span class="num">3</span>)                                 <span class="kw">AS</span> subinfo1,
+    <span class="fn">RIGHT</span>(category, <span class="num">3</span>)                                       <span class="kw">AS</span> rightinfo,
+    <span class="fn">SUBSTRING</span>(category, <span class="fn">LEN</span>(<span class="fn">TRIM</span>(category))<span class="op">-</span><span class="num">2</span>, <span class="fn">LEN</span>(Category)) <span class="kw">AS</span> subinfo2
+<span class="kw">FROM</span> gold.dim_products
+<span class="kw">WHERE</span> Category <span class="kw">IS NOT NULL</span></pre>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Function</th><th>Purpose</th><th>Returns</th><th>Key Behavior</th><th>Common Use Case</th><th>Important Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>LEN</td><td>Count string length</td><td>Integer</td><td>Ignores trailing spaces</td><td>Validate string size, filtering</td><td>Does NOT count trailing spaces</td></tr>
+          <tr><td>LEFT</td><td>Extract from start</td><td>String</td><td>Takes first n characters</td><td>Get prefix (e.g., first name initial)</td><td>If n &gt; length, returns full string</td></tr>
+          <tr><td>RIGHT</td><td>Extract from end</td><td>String</td><td>Takes last n characters</td><td>Get suffix (e.g., last digits of phone)</td><td>Works opposite of LEFT()</td></tr>
+          <tr><td>SUBSTRING</td><td>Extract from any position</td><td>String</td><td>Given position to defined length</td><td>Flexible extraction anywhere</td><td>Position starts at 1 (not 0)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- CHARINDEX / PATINDEX -->
+    <h3 class="sub-title">2.5 CHARINDEX( ) and PATINDEX( )</h3>
+    <p><strong>CHARINDEX</strong> (Character Index) finds the position of one or multiple characters together inside a string. <strong>PATINDEX</strong> (Pattern Index) finds the position of a <em>pattern</em> using wildcard characters.</p>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task</div>
+      <p>Find the position of <code class="inline">'r'</code> and <code class="inline">'Ra'</code> in the first name column of employees.</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    firstname,
+    <span class="fn">CHARINDEX</span>(<span class="str">'r'</span>, FirstName)   <span class="kw">AS</span> r_position,
+    <span class="fn">CHARINDEX</span>(<span class="str">'Ra'</span>, FirstName)  <span class="kw">AS</span> Ra_position,
+    <span class="fn">PATINDEX</span>(<span class="str">'%r%'</span>, FirstName) <span class="kw">AS</span> r_pattern_position
+<span class="kw">FROM</span> sales.employees</pre>
+    </div>
+
+    <!-- REPLACE -->
+    <h3 class="sub-title">2.6 REPLACE( )</h3>
+    <p>Syntax: <code class="inline">REPLACE(original_string, old_substring, new_substring)</code> — replaces part of a text.</p>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task — Remove unwanted characters</div>
+      <p>Remove <code class="inline">'-'</code> from phone numbers.</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Clean Phone Numbers</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">REPLACE</span>(phone_number, <span class="str">'-'</span>, <span class="str">''</span>) <span class="kw">AS</span> clean_number
+<span class="kw">FROM</span> customers;
+<span class="cmt">-- Output: 017-123-4567 → 0171234567</span></pre>
+    </div>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task — Replace multiple words</div>
+      <p>Convert the words <code class="inline">'bad'</code> and <code class="inline">'poor'</code> to <code class="inline">'good'</code> and <code class="inline">'excellent'</code> respectively.</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Nested REPLACE</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">REPLACE</span>(<span class="fn">REPLACE</span>(description, <span class="str">'bad'</span>, <span class="str">'good'</span>), <span class="str">'poor'</span>, <span class="str">'excellent'</span>)
+<span class="kw">FROM</span> reviews;</pre>
+    </div>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task — Mask Sensitive Data</div>
+      <p>Hide the first 12 digits of a card number with <code class="inline">'*'</code>.</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Data Masking</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">REPLACE</span>(card_number, <span class="fn">LEFT</span>(card_number, <span class="num">12</span>), <span class="str">'************'</span>)
+<span class="kw">FROM</span> payments;
+<span class="cmt">-- Output: 1234567890123456 → ************3456</span></pre>
+    </div>
+
+    <!-- TRIM -->
+    <h3 class="sub-title">2.7 TRIM( ), LTRIM( ), RTRIM( )</h3>
+    <p>All three functions remove unwanted spaces (or specified characters) from text.</p>
+    <ul>
+      <li><code class="inline">LTRIM()</code> — removes spaces from the <strong>left</strong> (beginning) of the string.</li>
+      <li><code class="inline">RTRIM()</code> — removes spaces from the <strong>right</strong> (end) of the string.</li>
+      <li><code class="inline">TRIM()</code> — removes spaces from both sides. Can also remove specific characters.</li>
+    </ul>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Special TRIM Case</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">TRIM</span>(<span class="str">'#'</span> <span class="kw">FROM</span> <span class="str">'###Data###'</span>)
+<span class="cmt">-- Result: 'Data'</span></pre>
+    </div>
+
+    <div class="callout tip">
+      <div class="icon">💡</div>
+      <div class="body">
+        <strong>Pro Tip</strong>
+        <p>Use <code class="inline">TRIM()</code> to remove specific characters (not just spaces) using the <code class="inline">FROM</code> syntax — a powerful but lesser-known feature in SQL Server 2017+.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ NUMBER FUNCTIONS ══════ -->
+  <section id="number">
+    <h2 class="section-title"><span class="num">03</span> Number Functions</h2>
+
+    <h3 class="sub-title">3.1 ROUND( ), CEILING( ), FLOOR( )</h3>
+    <p>These are the core rounding functions in SQL. Syntax: <code class="inline">ROUND(number, decimal_places)</code></p>
+
+    <div class="callout info">
+      <div class="icon">ℹ️</div>
+      <div class="body">
+        <strong>Negative Decimal Places</strong>
+        <p>Using a negative number for decimal places rounds to the left of the decimal point. For example, <code class="inline">ROUND(234.545, -1)</code> rounds to the nearest ten → <strong>230</strong>.</p>
+      </div>
+    </div>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task</div>
+      <p>Practice rounding a number at different decimal places — including positive and negative values.</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — ROUND Practice</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">ROUND</span>(<span class="num">234.545</span>, <span class="num">2</span>)  <span class="kw">AS</span> RoundedValue <span class="kw">UNION ALL</span>  <span class="cmt">-- 234.550</span>
+<span class="kw">SELECT</span> <span class="fn">ROUND</span>(<span class="num">234.545</span>, <span class="num">1</span>)             <span class="kw">UNION ALL</span>  <span class="cmt">-- 234.500</span>
+<span class="kw">SELECT</span> <span class="fn">ROUND</span>(<span class="num">234.545</span>, <span class="num">0</span>)             <span class="kw">UNION ALL</span>  <span class="cmt">-- 235.000</span>
+<span class="kw">SELECT</span> <span class="fn">ROUND</span>(<span class="num">234.545</span>, <span class="op">-</span><span class="num">1</span>)            <span class="kw">UNION ALL</span>  <span class="cmt">-- 230.000</span>
+<span class="kw">SELECT</span> <span class="fn">ROUND</span>(<span class="op">-</span><span class="num">234.545</span>, <span class="num">2</span>)            <span class="kw">UNION ALL</span>  <span class="cmt">-- -234.550</span>
+<span class="kw">SELECT</span> <span class="fn">ROUND</span>(<span class="op">-</span><span class="num">234.545</span>, <span class="num">1</span>)                         <span class="cmt">-- -234.500</span></pre>
+    </div>
+
+    <p><strong>CEILING</strong> always rounds a number <em>up</em> to the nearest integer, regardless of the decimal fraction. It behaves toward <strong>positive infinity</strong>.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — CEILING</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">CEILING</span>(<span class="num">123.456</span>)   <span class="cmt">-- Result: 124</span>
+<span class="kw">SELECT</span> <span class="fn">CEILING</span>(<span class="op">-</span><span class="num">123.456</span>)  <span class="cmt">-- Result: -123 (moves toward zero = up toward +∞)</span></pre>
+    </div>
+
+    <p><strong>FLOOR</strong> always rounds a number <em>down</em> to the nearest integer, regardless of the decimal fraction. It behaves toward <strong>negative infinity</strong>.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — FLOOR</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">FLOOR</span>(<span class="num">123.456</span>)   <span class="cmt">-- Result: 123</span>
+<span class="kw">SELECT</span> <span class="fn">FLOOR</span>(<span class="op">-</span><span class="num">123.456</span>)  <span class="cmt">-- Result: -124 (moves away from zero = down toward -∞)</span></pre>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Function</th><th>Rounds To</th><th>Positive Example</th><th>Negative Example</th><th>Typical Use Case</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>ROUND</td><td>Nearest value</td><td>123.456 → 123.46</td><td>-123.456 → -123.46</td><td>Financial rounding, reports</td></tr>
+          <tr><td>CEILING</td><td>Up (toward +∞)</td><td>123.456 → 124</td><td>-123.456 → -123</td><td>Estimating minimum full units needed</td></tr>
+          <tr><td>FLOOR</td><td>Down (toward -∞)</td><td>123.456 → 123</td><td>-123.456 → -124</td><td>Truncating, limits, minimum thresholds</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">3.2 ABS( )</h3>
+    <p><code class="inline">ABS(number)</code> returns the absolute (positive) value of a number, regardless of whether it was positive or negative.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">ABS</span>(<span class="op">-</span><span class="num">450</span>)  <span class="cmt">-- Result: 450</span>
+<span class="kw">SELECT</span> <span class="fn">ABS</span>(<span class="num">450</span>)   <span class="cmt">-- Result: 450</span></pre>
+    </div>
+  </section>
+
+  <!-- ══════ DATE AND TIME FUNCTIONS ══════ -->
+  <section id="datetime">
+    <h2 class="section-title"><span class="num">04</span> Date and Time Functions — Part Extraction</h2>
+
+    <div class="badge-row">
+      <span class="badge-item">DAY</span>
+      <span class="badge-item">MONTH</span>
+      <span class="badge-item">YEAR</span>
+      <span class="badge-item">DATEPART</span>
+      <span class="badge-item">DATENAME</span>
+      <span class="badge-item">DATETRUNC</span>
+      <span class="badge-item">EOMONTH</span>
+    </div>
+
+    <h3 class="sub-title">4.1 DAY( ), MONTH( ), YEAR( )</h3>
+    <p>These are simple shortcut functions to extract a specific part of a date:</p>
+    <ul>
+      <li><code class="inline">DAY(date_column)</code> — extracts the day number from the date.</li>
+      <li><code class="inline">MONTH(date_column)</code> — extracts only the month number.</li>
+      <li><code class="inline">YEAR(date_column)</code> — extracts only the year.</li>
+    </ul>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task</div>
+      <p>Find how many orders were placed in each year.</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    <span class="fn">YEAR</span>(order_date) <span class="kw">AS</span> order_year,
+    <span class="fn">COUNT</span>(<span class="op">*</span>)        <span class="kw">AS</span> total_orders
+<span class="kw">FROM</span> gold.fact_sales
+<span class="kw">WHERE</span> order_date <span class="kw">IS NOT NULL</span>
+<span class="kw">GROUP BY</span> <span class="fn">YEAR</span>(order_date)
+<span class="kw">ORDER BY</span> order_year</pre>
+    </div>
+
+    <h3 class="sub-title">4.2 DATEPART( )</h3>
+    <p><code class="inline">DATEPART(part, date_column)</code> accepts two parameters: the <em>part</em> (Day, Week, Month, Quarter, Year, Hour, etc.) and the column name. You can use abbreviations instead of full names — for example, <code class="inline">DATEPART(MM, column_name)</code> for month.</p>
+
+    <h3 class="sub-title">4.3 DATENAME( )</h3>
+    <p><code class="inline">DATENAME(part, date_column)</code> provides the <strong>name</strong> of the extracted part. For example, it returns <em>'August'</em> for a month or <em>'Wednesday'</em> for a weekday.</p>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <div class="body">
+        <strong>Important Distinction</strong>
+        <p><code class="inline">DATENAME(day, column)</code> returns the <strong>day number</strong>, not the day name. To get the day name, use <code class="inline">DATENAME(WEEKDAY, column)</code>. Also, DATENAME results are stored as <strong>characters</strong>, not integers — so use DATEPART if you need numeric values for calculations.</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">4.4 DATETRUNC( )</h3>
+    <p><code class="inline">DATETRUNC(part, date)</code> truncates a datetime value to the specified part. Everything after that part is reset to its minimum value (zero or 1).</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — DATETRUNC Example</span>
+      </div>
+      <pre><span class="cmt">-- Input: '2026-04-28 13:08:10.117'</span>
+<span class="kw">SELECT</span> <span class="fn">DATETRUNC</span>(Minute, <span class="fn">GETDATE</span>()) <span class="kw">AS</span> current_date_time
+<span class="cmt">-- Result: 2026-04-28 13:08:00.000 (seconds & ms reset to 0)</span></pre>
+    </div>
+
+    <h3 class="sub-title">4.5 EOMONTH( )</h3>
+    <p><code class="inline">EOMONTH(date_column)</code> replaces the day information with the last day of that month. Very useful for financial dashboards and monthly period filtering.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Date type</th><th></th><th>INTEGER</th><th>STRING</th><th>DATETIME/DATE</th></tr>
+          <tr><th>Part</th><th>Abbreviation</th><th>DATEPART</th><th>DATENAME</th><th>DATETRUNC</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Year</td><td>yy, yyyy</td><td>2025</td><td>2025</td><td>2025-01-01 00:00:00</td></tr>
+          <tr><td>Quarter</td><td>qq, q</td><td>3</td><td>3</td><td>2025-07-01 00:00:00</td></tr>
+          <tr><td>Month</td><td>mm, m</td><td>8</td><td>August</td><td>2025-08-01 00:00:00</td></tr>
+          <tr><td>Dayofyear</td><td>dy, y</td><td>232</td><td>232</td><td>2025-08-20 00:00:00</td></tr>
+          <tr><td>Day</td><td>dd, d</td><td>20</td><td>20</td><td>2025-08-20 00:00:00</td></tr>
+          <tr><td>Weekday</td><td>dw</td><td>4</td><td>Wednesday</td><td class="bad">Not supported</td></tr>
+          <tr><td>Week</td><td>wk, ww</td><td>34</td><td>34</td><td>2025-08-17 00:00:00</td></tr>
+          <tr><td>Hour</td><td>hh</td><td>9</td><td>9</td><td>2025-08-20 09:00:00</td></tr>
+          <tr><td>Minute</td><td>mi, n</td><td>45</td><td>45</td><td>2025-08-20 09:45:00</td></tr>
+          <tr><td>Second</td><td>ss, s</td><td>21</td><td>21</td><td>2025-08-20 09:45:21</td></tr>
+          <tr><td>Millisecond</td><td>ms</td><td>0</td><td>0</td><td>2025-08-20 09:45:21</td></tr>
+          <tr><td>Microsecond</td><td>msc</td><td>0</td><td>0</td><td>2025-08-20 09:45:21</td></tr>
+          <tr><td>Nanosecond</td><td>ns</td><td>0</td><td>0</td><td class="bad">Not supported</td></tr>
+          <tr><td>iso_week</td><td>isowk, isoww</td><td>0</td><td>+00:00</td><td class="bad">Not supported</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════ DATEADD & DATEDIFF ══════ -->
+  <section id="datemanip">
+    <h2 class="section-title"><span class="num">05</span> Date Manipulation: DATEADD &amp; DATEDIFF</h2>
+
+    <h3 class="sub-title">5.1 DATEADD( )</h3>
+    <p><code class="inline">DATEADD(part, number, date)</code> adds or subtracts a specified amount from a date part. Use a negative number to go backward in time.</p>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task</div>
+      <p>Find the date value from 7 days before the current date.</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — DATEADD</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">DATEADD</span>(day, <span class="op">-</span><span class="num">7</span>, <span class="fn">GETDATE</span>()) <span class="kw">AS</span> previous_week           <span class="cmt">-- Returns datetime</span>
+<span class="kw">SELECT</span> <span class="fn">CAST</span>(<span class="fn">DATEADD</span>(day, <span class="op">-</span><span class="num">7</span>, <span class="fn">GETDATE</span>()) <span class="kw">AS</span> <span class="fn">DATE</span>) <span class="kw">AS</span> casted_previous_week  <span class="cmt">-- Date only</span></pre>
+    </div>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task</div>
+      <p>Get all order details from the last 7 days.</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> sales.orders
+<span class="kw">WHERE</span> Orderdate <span class="op">&gt;=</span> <span class="fn">DATEADD</span>(DAY, <span class="op">-</span><span class="num">7</span>, <span class="fn">GETDATE</span>())</pre>
+    </div>
+
+    <h3 class="sub-title">5.2 DATEDIFF( )</h3>
+    <p><code class="inline">DATEDIFF(part, start_date, end_date)</code> calculates the difference between two dates in the specified unit.</p>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task</div>
+      <p>Calculate the difference in days between order date and ship date.</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — DATEDIFF</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    sls_order_dt,
+    sls_ship_dt,
+    <span class="fn">DATEDIFF</span>(Day, sls_order_dt, sls_ship_dt) <span class="kw">AS</span> daytoship
+<span class="kw">FROM</span> silver.crm_sales_details</pre>
+    </div>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <div class="body">
+        <strong>DATEDIFF Boundary Trap</strong>
+        <p><code class="inline">DATEDIFF(DAY, '2026-05-01 23:59', '2026-05-02 00:01')</code> returns <strong>1</strong> — only the date boundary crossing matters, not the actual time difference (2 minutes). Use seconds for precision: <code class="inline">DATEDIFF(SECOND, start, end) / 3600.0</code>. The <em>.0</em> is critical to get a decimal result.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ FORMAT ══════ -->
+  <section id="format">
+    <h2 class="section-title"><span class="num">06</span> FORMAT( ) Function</h2>
+
+    <p><code class="inline">FORMAT(value, format [, culture])</code> returns a value formatted with the specified format and optional culture. It is primarily used for formatting dates, times, and numbers into human-readable strings.</p>
+
+    <div class="callout info">
+      <div class="icon">ℹ️</div>
+      <div class="body">
+        <strong>Parameters</strong>
+        <p><strong>value</strong> = the value to format. <strong>format</strong> = format string (standard or custom). <strong>culture</strong> = optional locale identifier (e.g., 'en-US', 'fr-FR').</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">6.1 Formatting Numbers</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Number Formatting</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">FORMAT</span>(<span class="num">1234567</span>, <span class="str">'##,##,##,###'</span>)  <span class="cmt">-- Result: 12,34,567</span>
+
+<span class="kw">SELECT</span>
+    <span class="fn">FORMAT</span>(<span class="num">1234.56</span>, <span class="str">'C'</span>) <span class="kw">AS</span> Currency,    <span class="cmt">-- $1,234.56</span>
+    <span class="fn">FORMAT</span>(<span class="num">1234.56</span>, <span class="str">'N'</span>) <span class="kw">AS</span> Number,      <span class="cmt">-- 1,234.56</span>
+    <span class="fn">FORMAT</span>(<span class="num">0.756</span>, <span class="str">'P'</span>)   <span class="kw">AS</span> Percentage;  <span class="cmt">-- 75.60%</span></pre>
+    </div>
+
+    <h3 class="sub-title">6.2 Formatting Dates</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Date Formatting</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    <span class="fn">FORMAT</span>(<span class="fn">GETDATE</span>(), <span class="str">'yyyy-MM-dd'</span>)  <span class="kw">AS</span> formatted_date,
+    <span class="fn">FORMAT</span>(<span class="fn">GETDATE</span>(), <span class="str">'dd/MM/yyyy'</span>)  <span class="kw">AS</span> British_Format,
+    <span class="fn">FORMAT</span>(<span class="fn">GETDATE</span>(), <span class="str">'MMMM dd, yyyy'</span>) <span class="kw">AS</span> Full_Format,
+    <span class="fn">FORMAT</span>(<span class="fn">GETDATE</span>(), <span class="str">'ddd'</span>)          <span class="kw">AS</span> Day_Short,
+    <span class="fn">FORMAT</span>(<span class="fn">GETDATE</span>(), <span class="str">'dddd'</span>)         <span class="kw">AS</span> Day_Full</pre>
+    </div>
+
+    <h3 class="sub-title">6.3 Culture / Localization</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Culture Support</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    <span class="fn">FORMAT</span>(<span class="num">1234.56</span>, <span class="str">'C'</span>, <span class="str">'en-US'</span>) <span class="kw">AS</span> US_Format,     <span class="cmt">-- $1,234.56</span>
+    <span class="fn">FORMAT</span>(<span class="num">1234.56</span>, <span class="str">'C'</span>, <span class="str">'fr-FR'</span>) <span class="kw">AS</span> French_Format  <span class="cmt">-- 1 234,56 €</span></pre>
+    </div>
+
+    <div class="callout gem">
+      <div class="icon">💎</div>
+      <div class="body">
+        <strong>International Reports</strong>
+        <p>Culture-aware formatting is very useful when working with international reports — you can display currency, dates, and numbers in the local format for each region without changing the underlying data.</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">6.4 Custom Date & Time Patterns</h3>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task</div>
+      <p>Convert the date into a compact pattern: <code class="inline">2026-04-20</code> → <code class="inline">20260420</code></p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Compact Date</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">FORMAT</span>(<span class="fn">GETDATE</span>(), <span class="str">'yyyyMMdd'</span>) <span class="kw">AS</span> Compact_Date
+<span class="cmt">-- Output: 20260409</span></pre>
+    </div>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task — Time Formatting</div>
+      <p>Format the time into 12-hour format only (ignore the date).</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">FORMAT</span>(<span class="fn">GETDATE</span>(), <span class="str">'hh:mm tt'</span>) <span class="kw">AS</span> Time_12hr
+<span class="cmt">-- Output: 06:45 PM</span></pre>
+    </div>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task — Comprehensive FORMAT Demo</div>
+      <p>Show all common FORMAT patterns on the <code class="inline">CreationTime</code> column of sales.orders.</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — FORMAT All Patterns</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    CreationTime,
+    <span class="fn">FORMAT</span>(CreationTime, <span class="str">'dd-MM-yyyy'</span>) <span class="kw">AS</span> European_format,
+    <span class="fn">FORMAT</span>(CreationTime, <span class="str">'dd'</span>)         <span class="kw">AS</span> DD,
+    <span class="fn">FORMAT</span>(CreationTime, <span class="str">'ddd'</span>)        <span class="kw">AS</span> DDD,
+    <span class="fn">FORMAT</span>(CreationTime, <span class="str">'dddd'</span>)       <span class="kw">AS</span> Fullday_name,
+    <span class="fn">FORMAT</span>(CreationTime, <span class="str">'MM'</span>)         <span class="kw">AS</span> Month_number,
+    <span class="fn">FORMAT</span>(CreationTime, <span class="str">'MMM'</span>)        <span class="kw">AS</span> month_short_name,
+    <span class="fn">FORMAT</span>(CreationTime, <span class="str">'MMMM'</span>)       <span class="kw">AS</span> month_full_name
+<span class="kw">FROM</span> sales.orders</pre>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Creation Time</th><th>European Format</th><th>DD</th><th>DDD</th><th>Full Day Name</th><th>Month No.</th><th>Short Name</th><th>Full Name</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>2025-01-01</td><td>01-01-2025</td><td>01</td><td>Wed</td><td>Wednesday</td><td>01</td><td>Jan</td><td>January</td></tr>
+          <tr><td>2025-01-05</td><td>05-01-2025</td><td>05</td><td>Sun</td><td>Sunday</td><td>01</td><td>Jan</td><td>January</td></tr>
+          <tr><td>2025-01-10</td><td>10-01-2025</td><td>10</td><td>Fri</td><td>Friday</td><td>01</td><td>Jan</td><td>January</td></tr>
+          <tr><td>2025-02-01</td><td>01-02-2025</td><td>01</td><td>Sat</td><td>Saturday</td><td>02</td><td>Feb</td><td>February</td></tr>
+          <tr><td>2025-02-06</td><td>06-02-2025</td><td>06</td><td>Thu</td><td>Thursday</td><td>02</td><td>Feb</td><td>February</td></tr>
+          <tr><td>2025-03-10</td><td>10-03-2025</td><td>10</td><td>Mon</td><td>Monday</td><td>03</td><td>Mar</td><td>March</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">6.5 FORMAT Code Reference Table</h3>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Type</th><th>Format Code</th><th>Description / Example</th><th>Case Sensitive?</th><th>Watch Out</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Numeric</td><td>C</td><td>Currency (e.g., $1,234.00)</td><td>No</td><td>Culture affects currency symbol</td></tr>
+          <tr><td>Numeric</td><td>D</td><td>Decimal integer (e.g., 00123)</td><td>No</td><td></td></tr>
+          <tr><td>Numeric</td><td>N / N0 / N2</td><td>Number with commas (1,234.56)</td><td>No</td><td></td></tr>
+          <tr><td>Numeric</td><td>F / F0 / F2</td><td>Fixed-point with decimals (1234.56)</td><td>No</td><td></td></tr>
+          <tr><td>Numeric</td><td>P / P1 / P2</td><td>Percentage (25.6%)</td><td>No</td><td></td></tr>
+          <tr><td>Numeric</td><td>E</td><td>Scientific notation</td><td>No</td><td></td></tr>
+          <tr><td>Date</td><td>d</td><td>Short date</td><td class="yes">YES</td><td>Error if 'D' used (Long date)</td></tr>
+          <tr><td>Date</td><td>D</td><td>Long date (Friday, April 2, 2026)</td><td class="yes">YES</td><td>Error if 'd' used</td></tr>
+          <tr><td>Date</td><td>dd</td><td>Day number of month (26)</td><td class="yes">YES</td><td>Results "DD" in all columns</td></tr>
+          <tr><td>Date</td><td>M</td><td>Month + Day (Apr 02)</td><td>No</td><td></td></tr>
+          <tr><td>Date</td><td>MM</td><td>Month number (04)</td><td class="yes">YES</td><td>lowercase mm = minutes</td></tr>
+          <tr><td>Date</td><td>MMM</td><td>Abbreviated month name (Apr)</td><td class="yes">YES</td><td>lowercase mmm = error</td></tr>
+          <tr><td>Date</td><td>MMMM</td><td>Full month name (April)</td><td class="yes">YES</td><td>lowercase mmmm = error</td></tr>
+          <tr><td>Date</td><td>yy</td><td>Year in two digits (26)</td><td>No</td><td></td></tr>
+          <tr><td>Date</td><td>yyyy</td><td>Year full digits (2026)</td><td>No</td><td></td></tr>
+          <tr><td>Time</td><td>hh</td><td>12-hour format (11)</td><td class="yes">YES</td><td>HH = 24-hour</td></tr>
+          <tr><td>Time</td><td>HH</td><td>24-hour format (15)</td><td class="yes">YES</td><td>hh = 12-hour</td></tr>
+          <tr><td>Time</td><td>t</td><td>Short time (12:40)</td><td class="yes">YES</td><td>Error if 'T' used (Long time)</td></tr>
+          <tr><td>Time</td><td>T</td><td>Long time (12:40:34 PM)</td><td class="yes">YES</td><td>Error if 't' used</td></tr>
+          <tr><td>Custom Date</td><td>dd/MM/yyyy</td><td>29/04/2026</td><td class="yes">YES</td><td>MM must be uppercase</td></tr>
+          <tr><td>Custom Date</td><td>dd MMM yyyy</td><td>29 Apr 2026</td><td class="yes">YES</td><td></td></tr>
+          <tr><td>Custom Date</td><td>yyyy-MM</td><td>2026-04</td><td class="yes">YES</td><td>mm (lowercase) = minutes</td></tr>
+          <tr><td>Custom Number</td><td>0.00</td><td>1234.50</td><td>No</td><td></td></tr>
+          <tr><td>Custom Number</td><td>#,##0.00</td><td>1,234.50</td><td>No</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════ CONVERT ══════ -->
+  <section id="convert">
+    <h2 class="section-title"><span class="num">07</span> CONVERT( ) Function</h2>
+
+    <p><code class="inline">CONVERT(data_type, value [, style])</code> converts a value to a different data type and also formats the value. It is <strong>SQL Server specific</strong>.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — CONVERT Examples</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">CONVERT</span>(INT, <span class="str">'125'</span>)                   <span class="cmt">-- String '125' → Integer 125</span>
+<span class="kw">SELECT</span> <span class="fn">CONVERT</span>(<span class="fn">VARCHAR</span>, <span class="fn">GETDATE</span>(), <span class="num">103</span>)      <span class="cmt">-- Output: 02/05/2026 (dd/mm/yyyy)</span>
+
+<span class="kw">SELECT</span>
+    <span class="fn">CONVERT</span>(<span class="fn">VARCHAR</span>, OrderDate, <span class="num">120</span>) <span class="kw">AS</span> FormattedDate
+<span class="kw">FROM</span> Orders;</pre>
+    </div>
+
+    <h3 class="sub-title">Common Style Codes</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Style Code</th><th>Format Output</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>101</td><td>mm/dd/yyyy</td></tr>
+          <tr><td>103</td><td>dd/mm/yyyy</td></tr>
+          <tr><td>120</td><td>yyyy-mm-dd hh:mi:ss</td></tr>
+          <tr><td>107</td><td>Mon dd, yyyy</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout gem">
+      <div class="icon">💎</div>
+      <div class="body">
+        <strong>When to Use CONVERT</strong>
+        <p>CONVERT is <strong>faster than FORMAT()</strong> for date formatting in queries. Use it when performance matters — especially in large datasets, joins, or WHERE clause filtering. However, it has limited style codes compared to FORMAT's full flexibility.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ CAST ══════ -->
+  <section id="cast">
+    <h2 class="section-title"><span class="num">08</span> CAST( ) Function</h2>
+
+    <p><code class="inline">CAST(value AS data_type)</code> converts a value into a specified data type. It is ANSI SQL standard, making it the most portable conversion function across different database platforms.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — CAST Examples</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">CAST</span>(<span class="str">'2026-05-01'</span> <span class="kw">AS</span> DATE)         <span class="cmt">-- String → Date</span>
+<span class="kw">SELECT</span> <span class="fn">CAST</span>(<span class="num">123.45</span> <span class="kw">AS</span> INT)               <span class="cmt">-- Float → Integer (123)</span>
+<span class="kw">SELECT</span> <span class="fn">CAST</span>(<span class="fn">DATEADD</span>(day, <span class="op">-</span><span class="num">7</span>, <span class="fn">GETDATE</span>()) <span class="kw">AS</span> DATE) <span class="kw">AS</span> last_week</pre>
+    </div>
+
+    <div class="callout tip">
+      <div class="icon">💡</div>
+      <div class="body">
+        <strong>TRY_CAST and TRY_CONVERT</strong>
+        <p>For dirty or untrusted data (e.g., ETL pipelines), use <code class="inline">TRY_CAST()</code> and <code class="inline">TRY_CONVERT()</code> instead. They return <strong>NULL</strong> instead of throwing an error if the conversion fails.</p>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Safe Conversion</span>
+      </div>
+      <pre><span class="fn">TRY_CAST</span>(<span class="str">'abc'</span> <span class="kw">AS</span> INT)     <span class="cmt">-- Result: NULL (no error thrown)</span>
+<span class="fn">TRY_CONVERT</span>(INT, <span class="str">'xyz'</span>)   <span class="cmt">-- Result: NULL (no error thrown)</span></pre>
+    </div>
+  </section>
+
+  <!-- ══════ COMPARISON ══════ -->
+  <section id="comparison">
+    <h2 class="section-title"><span class="num">09</span> FORMAT vs CONVERT vs CAST — Comparison</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th></th><th>Casting</th><th>Formatting</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>CAST</td><td>Any type to any type</td><td>No formatting capability</td></tr>
+          <tr><td>CONVERT</td><td>Any type to any type</td><td>Formats Date &amp; Time only (style codes)</td></tr>
+          <tr><td>FORMAT</td><td>Any type → only string</td><td>Formats Date/Time AND Numbers</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Feature</th><th>FORMAT( )</th><th>CONVERT( )</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Flexibility</td><td class="good">Very high</td><td class="bad">Limited (style codes only)</td></tr>
+          <tr><td>Performance</td><td class="bad">Slow</td><td class="good">Fast</td></tr>
+          <tr><td>Culture support</td><td class="yes">✔ Yes</td><td class="no">✘ No</td></tr>
+          <tr><td>Output type</td><td>NVARCHAR (always)</td><td>Depends on target type</td></tr>
+          <tr><td>ANSI Standard</td><td class="no">✘ No (SQL Server only)</td><td class="no">✘ No (SQL Server only)</td></tr>
+          <tr><td>Best use case</td><td>Reporting / display</td><td>Data processing</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="task-box">
+      <div class="task-label">🎯 Task — Combining FORMAT, DATENAME, and CONCAT</div>
+      <p>Show creation time in the format: <strong>Day Wed Jan Q1 2025 12:34:56 PM</strong></p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Custom Format</span>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    <span class="fn">CONCAT</span>(<span class="str">'Day '</span>,
+           <span class="fn">FORMAT</span>(dwh_create_date, <span class="str">'ddd MMM'</span>),
+           <span class="str">' Q'</span>,
+           <span class="fn">DATENAME</span>(quarter, dwh_create_date),
+           <span class="str">' '</span>,
+           <span class="fn">FORMAT</span>(dwh_create_date, <span class="str">'yyyy hh:mm:ss tt'</span>)) <span class="kw">AS</span> CustomerFormat
+<span class="kw">FROM</span> silver.crm_sales_details   <span class="cmt">-- Warehouse database</span></pre>
+    </div>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <div class="body">
+        <strong>Case Sensitivity in FORMAT</strong>
+        <p><code class="inline">mm</code> (lowercase) means <strong>minutes</strong>. For month, you must use <code class="inline">MM</code> (uppercase). This is the most common FORMAT mistake that causes wrong output silently.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ PATTERN MATCHING ══════ -->
+  <section id="pattern">
+    <h2 class="section-title"><span class="num">10</span> Pattern Matching: LIKE, %, _</h2>
+
+    <p>Used to search for a pattern inside a column. Pattern matching is done with the <code class="inline">LIKE</code> operator combined with wildcard characters.</p>
+
+    <div class="syntax-block">
+      <strong>%</strong> → any number of characters (0, 1, or many)<br>
+      <strong>_</strong> → exactly one character
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — LIKE Pattern Examples</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> customers <span class="kw">WHERE</span> name <span class="kw">LIKE</span> <span class="str">'A%'</span>      <span class="cmt">-- Starts with 'A'</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> customers <span class="kw">WHERE</span> name <span class="kw">LIKE</span> <span class="str">'%son'</span>    <span class="cmt">-- Ends with 'son'</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> customers <span class="kw">WHERE</span> name <span class="kw">LIKE</span> <span class="str">'%ar%'</span>    <span class="cmt">-- Contains 'ar' anywhere</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> customers <span class="kw">WHERE</span> code <span class="kw">LIKE</span> <span class="str">'A_C'</span>     <span class="cmt">-- A, any 1 char, then C (e.g., 'ABC')</span></pre>
+    </div>
+
+    <div class="callout danger">
+      <div class="icon">❌</div>
+      <div class="body">
+        <strong>Performance Warning</strong>
+        <p>Using <code class="inline">LIKE '%value%'</code> with a leading wildcard forces a <strong>full table scan</strong> and cannot use an index. Avoid leading wildcards on large tables. Use full-text search or indexed views for large-scale pattern matching.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ PRO TIPS ══════ -->
+  <section id="protips">
+    <h2 class="section-title"><span class="num">11</span> Pro Tips</h2>
+
+    <div class="practice-section">
+      <h4>⚡ Performance &amp; Best Practice Tips</h4>
+
+      <div class="practice-item">
+        <div class="pnum">1</div>
+        <p><strong>Avoid FORMAT on large datasets.</strong> It is a performance killer. Use FORMAT only for reporting and final display layers. Never use it in core queries, aggregations, or joins.</p>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">2</div>
+        <p><strong>Calculate day differences using seconds.</strong> When data is in datetime format, use <code class="inline">DATEDIFF(SECOND, start, end) / 3600.0</code>. The <em>.0</em> is crucial — without it, you get only integer results.</p>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">3</div>
+        <p><strong>Use DATETRUNC instead of GROUP BY DATEPART</strong> for cleaner grouping. DATETRUNC produces proper date values that sort and display correctly in reports.</p>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">4</div>
+        <p><strong>Use EOMONTH for financial dashboards.</strong> It instantly gives you the last day of any month, which is essential for period-end reporting and financial summaries.</p>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">5</div>
+        <p><strong>Always use DATEADD in filters</strong> for relative date ranges (e.g., last 7 days, last 30 days). It is dynamic and handles month-end boundaries correctly.</p>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">6</div>
+        <p><strong>Never use functions on indexed columns in WHERE clause.</strong> Index gets deactivated. Rewrite to keep the column bare on one side of the comparison.</p>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">7</div>
+        <p><strong>Always use ISO Date format</strong> (<code class="inline">2026-04-25</code>) in queries. It is unambiguous across all SQL Server language settings and avoids locale-related date parsing errors.</p>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">8</div>
+        <p><strong>Use EOMONTH trick for monthly filtering.</strong> Combine DATETRUNC and DATEADD to create safe, index-friendly monthly filters.</p>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">9</div>
+        <p><strong>Use DATEFROMPARTS() for safe date creation.</strong> Risky: <code class="inline">'2026-13-01'</code> may pass as string. Safe: <code class="inline">SELECT DATEFROMPARTS(2026, 5, 2)</code> — SQL validates the values.</p>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">10</div>
+        <p><strong>Use TRY_CAST / TRY_CONVERT for dirty data.</strong> Essential for ETL pipelines. <code class="inline">TRY_CAST('anc' AS INT)</code> returns NULL gracefully instead of crashing your pipeline.</p>
+      </div>
+
+      <div class="practice-item">
+        <div class="pnum">11</div>
+        <p><strong>Avoid repeated function calls.</strong> Store the result in a variable for reuse: <code class="inline">DECLARE @Last7Days DATE = DATEADD(DAY, -7, GETDATE());</code>. This improves readability and slight performance.</p>
+      </div>
+    </div>
+
+    <div class="code-wrap" style="margin-top: 20px">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — EOMONTH Monthly Filter Pattern</span>
+      </div>
+      <pre><span class="kw">WHERE</span> OrderDate <span class="op">&gt;=</span> <span class="fn">DATETRUNC</span>(MONTH, Orderdate)
+  <span class="kw">AND</span> OrderDate <span class="op">&lt;</span>  <span class="fn">DATEADD</span>(MONTH, <span class="num">1</span>, <span class="fn">DATETRUNC</span>(MONTH, Orderdate))</pre>
+    </div>
+  </section>
+
+  <!-- ══════ TRAPS AND SOLUTIONS ══════ -->
+  <section id="traps">
+    <h2 class="section-title"><span class="num">12</span> Traps and Solutions</h2>
+
+    <h3 class="sub-title">Trap 1 — Functions in WHERE Clause Deactivate Indexes</h3>
+    <p>Wrapping an indexed column inside a function in the WHERE clause prevents SQL Server from using the index, causing a full table scan.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — Index Trap vs Fix</span>
+      </div>
+      <pre><span class="cmt">-- ❌ BAD — CAST wraps indexed column, forces full scan</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Orders
+<span class="kw">WHERE</span> <span class="fn">CAST</span>(OrderDate <span class="kw">AS</span> DATE) <span class="op">=</span> <span class="str">'2026-05-02'</span>;
+
+<span class="cmt">-- ✅ GOOD — Column is bare, index is used</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Orders
+<span class="kw">WHERE</span> OrderDate <span class="op">&gt;=</span> <span class="str">'2026-05-02'</span>
+  <span class="kw">AND</span> OrderDate <span class="op">&lt;</span>  <span class="str">'2026-05-03'</span>;</pre>
+    </div>
+
+    <h3 class="sub-title">Trap 2 — DATEDIFF Boundary vs Actual Time Difference</h3>
+    <p>DATEDIFF counts <em>date boundary crossings</em>, not actual elapsed time. This causes subtle bugs when working with datetime values near midnight.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — DATEDIFF Boundary Trap</span>
+      </div>
+      <pre><span class="kw">SELECT</span> <span class="fn">DATEDIFF</span>(DAY, <span class="str">'2026-05-01 23:59'</span>, <span class="str">'2026-05-02 00:01'</span>)
+<span class="cmt">-- Output: 1 (only the date boundary crossed matters — actual gap is 2 minutes!)</span>
+
+<span class="cmt">-- ✅ Use seconds for precision:</span>
+<span class="kw">SELECT</span> <span class="fn">DATEDIFF</span>(SECOND, start_date, end_date) <span class="op">/</span> <span class="num">3600.0</span> <span class="kw">AS</span> hours_elapsed
+<span class="cmt">-- 3600.0 is crucial — without it, result is truncated to integer</span></pre>
+    </div>
+
+    <h3 class="sub-title">Trap 3 — LIKE with Leading Wildcard</h3>
+    <p>A pattern with a leading <code class="inline">%</code> cannot use an index and forces a full table scan. Especially harmful on large production tables.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="lang">SQL — LIKE Wildcard Trap</span>
+      </div>
+      <pre><span class="cmt">-- ❌ Slow — leading wildcard forces full table scan</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> customers <span class="kw">WHERE</span> name <span class="kw">LIKE</span> <span class="str">'%Smith'</span>;
+
+<span class="cmt">-- ✅ Fast — trailing wildcard can still use an index</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> customers <span class="kw">WHERE</span> name <span class="kw">LIKE</span> <span class="str">'Smith%'</span>;</pre>
+    </div>
+
+    <div class="callout gem">
+      <div class="icon">💎</div>
+      <div class="body">
+        <strong>Summary: The Golden Rules</strong>
+        <p>Think of FORMAT as a <strong>presentation layer tool</strong> — not a data processing tool. Keep indexed columns bare in WHERE/JOIN conditions. Use TRY_CAST/TRY_CONVERT for ETL. Always use ISO dates. Precision matters in datetime calculations — always work in seconds, then convert.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  SQL Functions — Complete Reference &nbsp;·&nbsp; Author: MD Jaberul Hossen Jabed &nbsp;·&nbsp; Enhanced Edition
+</footer>
+
+</body>
+</html>

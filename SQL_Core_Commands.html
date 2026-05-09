@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SQL Core Commands (T-SQL) Learning Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── CSS Variables ── */
+    :root {
+      --bg:         #0d1117;
+      --surface:    #161b22;
+      --surface2:   #1c2230;
+      --border:     #30363d;
+      --accent:     #f0a500;
+      --accent2:    #3b82f6;
+      --accent3:    #10b981;
+      --accent4:    #ef4444;
+      --text:       #e6edf3;
+      --text-muted: #8b949e;
+      --text-dim:   #6e7681;
+      --warning:    #f97316;
+      --tip:        #a78bfa;
+      --code-bg:    #0d1117;
+    }
+
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Lora', Georgia, serif;
+      font-size: 16px;
+      line-height: 1.75;
+    }
+
+    /* ── Header ── */
+    header {
+      position: relative;
+      background: linear-gradient(135deg, #0d1117 0%, #161b22 55%, #1a2035 100%);
+      border-bottom: 2px solid var(--accent);
+      padding: 60px 40px 50px;
+      text-align: center;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 30% 50%, rgba(240,165,0,.07) 0%, transparent 60%),
+        radial-gradient(ellipse at 70% 50%, rgba(59,130,246,.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .header-badge {
+      display: inline-block;
+      background: rgba(240,165,0,.15);
+      border: 1px solid rgba(240,165,0,.45);
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: .1em;
+      padding: 5px 16px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+    header h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      color: #fff;
+      line-height: 1.15;
+      margin-bottom: 14px;
+    }
+    header h1 .hl { color: var(--accent); }
+    header .sub {
+      font-family: 'Lora', serif;
+      font-style: italic;
+      color: var(--text-muted);
+      max-width: 560px;
+      margin: 0 auto 18px;
+      font-size: 1.05rem;
+    }
+    header .meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: .06em;
+    }
+
+    /* ── Layout ── */
+    .wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 50px 32px 80px;
+    }
+
+    section {
+      margin-bottom: 56px;
+      scroll-margin-top: 24px;
+    }
+
+    /* ── TOC ── */
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 10px;
+      padding: 28px 32px;
+      margin-bottom: 56px;
+    }
+    .toc-heading {
+      font-family: 'Syne', sans-serif;
+      font-size: .75rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 16px;
+    }
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 4px 24px;
+    }
+    .toc-grid a {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 3px 0;
+      transition: color .2s;
+    }
+    .toc-grid a:hover { color: var(--accent); }
+
+    /* ── Section Titles (h2) ── */
+    h2.sec-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.55rem;
+      color: #fff;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 28px;
+    }
+    .num {
+      background: var(--accent);
+      color: #000;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ── Sub-titles (h3) ── */
+    h3.sub-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--accent2);
+      margin: 28px 0 14px;
+    }
+
+    /* ── H4 ── */
+    h4 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .95rem;
+      color: var(--text);
+      margin: 18px 0 10px;
+    }
+
+    /* ── Body paragraphs ── */
+    p {
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+    p + p { margin-top: 0; }
+    ul, ol { padding-left: 22px; margin-bottom: 14px; }
+    li { margin-bottom: 5px; color: var(--text-muted); }
+    strong { color: var(--text); font-weight: 600; }
+    em { color: var(--text-muted); }
+
+    /* ── Inline code ── */
+    code {
+      background: rgba(240,165,0,.12);
+      color: var(--accent);
+      border: 1px solid rgba(240,165,0,.25);
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .85em;
+      padding: 1px 6px;
+    }
+
+    /* ── Code Blocks ── */
+    .code-wrap {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 18px 0;
+    }
+    .code-header {
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot-r { background: #ef4444; }
+    .dot-y { background: #f59e0b; }
+    .dot-g { background: #10b981; }
+    .lang {
+      margin-left: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .code-wrap pre {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      line-height: 1.7;
+      padding: 20px 22px;
+      overflow-x: auto;
+      color: var(--text);
+      white-space: pre;
+    }
+    /* Syntax highlighting */
+    .kw  { color: #ff7b72; }
+    .fn  { color: #d2a8ff; }
+    .str { color: #a5d6ff; }
+    .nm  { color: #79c0ff; }
+    .cmt { color: #8b949e; font-style: italic; }
+    .op  { color: var(--accent); }
+
+    /* ── Syntax Block ── */
+    .syntax-block {
+      background: var(--surface);
+      border: 1px solid rgba(59,130,246,.35);
+      border-left: 4px solid var(--accent2);
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      color: var(--text);
+      margin: 14px 0;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* ── Tables ── */
+    .tbl-wrap { overflow-x: auto; margin: 18px 0; border-radius: 10px; border: 1px solid var(--border); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+    }
+    thead tr {
+      background: var(--surface2);
+      border-bottom: 2px solid var(--border);
+    }
+    th {
+      color: var(--accent);
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: .06em;
+      padding: 12px 16px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    td {
+      padding: 11px 16px;
+      color: var(--text-muted);
+      font-family: 'Lora', serif;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,.02); }
+    td:first-child {
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+    }
+    td.yes, td.good { color: var(--accent3) !important; font-weight: 600; }
+    td.no,  td.bad  { color: var(--accent4) !important; font-weight: 600; }
+
+    /* ── Callout Boxes ── */
+    .callout {
+      display: flex;
+      gap: 14px;
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin: 18px 0;
+      align-items: flex-start;
+    }
+    .callout .icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+    .callout .cbody {}
+    .callout .ctitle {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      margin-bottom: 5px;
+    }
+    .callout p { margin-bottom: 0; font-size: .95rem; }
+    .callout.tip    { background: rgba(167,139,250,.1);  border: 1px solid rgba(167,139,250,.3);  color: var(--tip); }
+    .callout.tip    .ctitle { color: var(--tip); }
+    .callout.tip    p { color: var(--text); }
+    .callout.warn   { background: rgba(249,115,22,.1);   border: 1px solid rgba(249,115,22,.3);   color: var(--warning); }
+    .callout.warn   .ctitle { color: var(--warning); }
+    .callout.warn   p { color: var(--text); }
+    .callout.gem    { background: rgba(16,185,129,.1);   border: 1px solid rgba(16,185,129,.3);   color: var(--accent3); }
+    .callout.gem    .ctitle { color: var(--accent3); }
+    .callout.gem    p { color: var(--text); }
+    .callout.danger { background: rgba(239,68,68,.1);    border: 1px solid rgba(239,68,68,.3);    color: var(--accent4); }
+    .callout.danger .ctitle { color: var(--accent4); }
+    .callout.danger p { color: var(--text); }
+    .callout.info   { background: rgba(59,130,246,.1);   border: 1px solid rgba(59,130,246,.3);   color: var(--accent2); }
+    .callout.info   .ctitle { color: var(--accent2); }
+    .callout.info   p { color: var(--text); }
+
+    /* ── Task Box ── */
+    .task-box {
+      background: linear-gradient(135deg, rgba(240,165,0,.08), rgba(240,165,0,.03));
+      border: 1px solid rgba(240,165,0,.35);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 18px 0;
+    }
+    .task-box .task-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .task-box p { margin-bottom: 0; }
+
+    /* ── Type Grid ── */
+    .type-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin: 18px 0;
+    }
+    .type-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+    .type-card .tc-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .95rem;
+      color: var(--accent2);
+      margin-bottom: 8px;
+    }
+    .type-card p { font-size: .9rem; color: var(--text-muted); margin-bottom: 0; }
+
+    /* ── Facts Grid ── */
+    .facts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 18px 0;
+    }
+    .fact-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 16px;
+      text-align: center;
+    }
+    .fact-card .fc-icon { font-size: 1.6rem; margin-bottom: 8px; }
+    .fact-card .fc-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+    .fact-card .fc-val {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    /* ── Badge Row ── */
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 14px 0;
+    }
+    .badge {
+      background: rgba(59,130,246,.12);
+      border: 1px solid rgba(59,130,246,.3);
+      color: var(--accent2);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    /* ── Practice Section ── */
+    .practice-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin: 18px 0;
+    }
+    .practice-section h4.plevel {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .9rem;
+      color: var(--accent3);
+      margin-bottom: 14px;
+    }
+    .practice-item {
+      background: var(--code-bg);
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    .pnum {
+      background: var(--accent3);
+      color: #000;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .practice-item p { margin-bottom: 0; font-size: .9rem; color: var(--text-muted); }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      border-top: 1px solid var(--border);
+      padding: 40px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+      letter-spacing: .04em;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      header { padding: 40px 20px 36px; }
+      .wrapper { padding: 32px 16px 60px; }
+      .toc { padding: 20px 18px; }
+      .toc-grid { grid-template-columns: 1fr; }
+      h2.sec-title { font-size: 1.25rem; }
+      .code-wrap pre { font-size: 12px; padding: 14px 14px; }
+      th, td { padding: 9px 10px; font-size: 13px; }
+      .type-grid, .facts-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Utility ── */
+    ul.plain { list-style: none; padding: 0; }
+    ul.plain li { padding: 3px 0; color: var(--text-muted); }
+    ul.disc { padding-left: 22px; margin: 10px 0; }
+    ul.disc li { color: var(--text-muted); margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ HEADER ════════════════════════════ -->
+<header>
+  <div class="header-badge">T-SQL · SQL Server · Learning Guide</div>
+  <h1>SQL <span class="hl">Core Commands</span></h1>
+  <p class="sub">A comprehensive T-SQL reference covering DDL, DML, query clauses, optimization, and real-world business scenarios.</p>
+  <div class="meta">Author: MD JABERUL HOSSEN JABED &nbsp;·&nbsp; Platform: Microsoft SQL Server &nbsp;·&nbsp; Level: Beginner → Advanced</div>
+</header>
+
+<!-- ═══════════════════════════ WRAPPER ═══════════════════════════ -->
+<div class="wrapper">
+
+  <!-- TABLE OF CONTENTS -->
+  <nav class="toc" aria-label="Table of Contents">
+    <div class="toc-heading">📋 Table of Contents</div>
+    <div class="toc-grid">
+      <a href="#s1">01 · Introduction to SQL Server</a>
+      <a href="#s2">02 · Databases and Tables</a>
+      <a href="#s3">03 · Query Processing Basics</a>
+      <a href="#s4">04 · SELECT Statement</a>
+      <a href="#s5">05 · FROM Clause</a>
+      <a href="#s6">06 · WHERE Clause</a>
+      <a href="#s7">07 · ORDER BY Clause</a>
+      <a href="#s8">08 · GROUP BY Clause</a>
+      <a href="#s9">09 · HAVING Clause</a>
+      <a href="#s10">10 · DDL Commands</a>
+      <a href="#s11">11 · DML Commands</a>
+      <a href="#s12">12 · LIKE &amp; Pattern Matching</a>
+      <a href="#s13">13 · NULL Handling</a>
+      <a href="#s14">14 · Aliases</a>
+      <a href="#s15">15 · Aggregate Functions</a>
+      <a href="#s16">16 · DISTINCT</a>
+      <a href="#s17">17 · TOP Clause</a>
+      <a href="#s18">18 · Performance Optimization</a>
+      <a href="#s19">19 · Security &amp; Production Safety</a>
+      <a href="#s20">20 · Real-World Scenarios</a>
+      <a href="#s21">21 · Common Mistakes</a>
+      <a href="#s22">22 · Interview Q&amp;A</a>
+      <a href="#s23">23 · Practice Exercises</a>
+      <a href="#s24">24 · Advanced Pro Tips</a>
+    </div>
+  </nav>
+
+  <!-- ═══════ SECTION 1 ═══════ -->
+  <section id="s1">
+    <h2 class="sec-title"><span class="num">01</span> Introduction to SQL Server</h2>
+
+    <h3 class="sub-title">What is SQL?</h3>
+    <p>SQL stands for <strong>Structured Query Language</strong>. It is the standard language used to interact with relational databases.</p>
+    <div class="badge-row">
+      <span class="badge">Store Data</span>
+      <span class="badge">Retrieve Data</span>
+      <span class="badge">Filter Data</span>
+      <span class="badge">Modify Data</span>
+      <span class="badge">Delete Data</span>
+      <span class="badge">Control Structures</span>
+      <span class="badge">Analyze Business Info</span>
+    </div>
+
+    <h3 class="sub-title">What is SQL Server?</h3>
+    <p>SQL Server is a <strong>Relational Database Management System (RDBMS)</strong> developed by <strong>Microsoft Corporation</strong>. It uses T-SQL (Transact-SQL) as its primary query language.</p>
+    <div class="facts-grid">
+      <div class="fact-card"><div class="fc-icon">🏢</div><div class="fc-label">Developer</div><div class="fc-val">Microsoft</div></div>
+      <div class="fact-card"><div class="fc-icon">💬</div><div class="fc-label">Language</div><div class="fc-val">T-SQL</div></div>
+      <div class="fact-card"><div class="fc-icon">🗄️</div><div class="fc-label">Type</div><div class="fc-val">RDBMS</div></div>
+      <div class="fact-card"><div class="fc-icon">🔑</div><div class="fc-label">Architecture</div><div class="fc-val">Relational</div></div>
+    </div>
+
+    <div class="callout info">
+      <span class="icon">ℹ️</span>
+      <div class="cbody">
+        <div class="ctitle">SQL Server Architecture</div>
+        <p>SQL Server organizes data using Tables, Rows, Columns, Keys, and Constraints within a relational architecture. T-SQL extends standard SQL with procedural programming capabilities like variables, loops, and stored procedures.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 2 ═══════ -->
+  <section id="s2">
+    <h2 class="sec-title"><span class="num">02</span> Understanding Databases and Tables</h2>
+
+    <h3 class="sub-title">Real-Life Example — E-Commerce Company</h3>
+    <p><strong>Database: EcommerceDB</strong></p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Table Name</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>Customers</td><td>Stores customer information</td></tr>
+          <tr><td>Orders</td><td>Stores order records</td></tr>
+          <tr><td>Products</td><td>Stores product details</td></tr>
+          <tr><td>Payments</td><td>Stores payment information</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">Sample Database Setup</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- Create database</span>
+<span class="kw">CREATE DATABASE</span> CompanyDB;
+<span class="kw">GO</span>
+
+<span class="cmt">-- Use database</span>
+<span class="kw">USE</span> CompanyDB;
+<span class="kw">GO</span></pre>
+    </div>
+
+    <h3 class="sub-title">Sample Tables Used Throughout This Guide</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- Employees table</span>
+<span class="kw">CREATE TABLE</span> Employees
+(
+    EmployeeID  <span class="kw">INT</span> <span class="fn">IDENTITY</span>(<span class="nm">1</span>,<span class="nm">1</span>) <span class="kw">PRIMARY KEY</span>,
+    FirstName   <span class="kw">VARCHAR</span>(<span class="nm">50</span>),
+    LastName    <span class="kw">VARCHAR</span>(<span class="nm">50</span>),
+    Department  <span class="kw">VARCHAR</span>(<span class="nm">50</span>),
+    Salary      <span class="kw">DECIMAL</span>(<span class="nm">10</span>,<span class="nm">2</span>),
+    HireDate    <span class="kw">DATE</span>,
+    ManagerID   <span class="kw">INT NULL</span>,
+    Email       <span class="kw">VARCHAR</span>(<span class="nm">100</span>) <span class="kw">UNIQUE</span>,
+    Status      <span class="kw">VARCHAR</span>(<span class="nm">20</span>) <span class="kw">DEFAULT</span> <span class="str">'Active'</span>
+);
+
+<span class="cmt">-- Customers table</span>
+<span class="kw">CREATE TABLE</span> Customers
+(
+    CustomerID       <span class="kw">INT</span> <span class="fn">IDENTITY</span>(<span class="nm">1</span>,<span class="nm">1</span>) <span class="kw">PRIMARY KEY</span>,
+    CustomerName     <span class="kw">VARCHAR</span>(<span class="nm">100</span>),
+    City             <span class="kw">VARCHAR</span>(<span class="nm">50</span>),
+    Country          <span class="kw">VARCHAR</span>(<span class="nm">50</span>),
+    Email            <span class="kw">VARCHAR</span>(<span class="nm">100</span>),
+    RegistrationDate <span class="kw">DATE</span>
+);
+
+<span class="cmt">-- Orders table</span>
+<span class="kw">CREATE TABLE</span> Orders
+(
+    OrderID     <span class="kw">INT</span> <span class="fn">IDENTITY</span>(<span class="nm">1</span>,<span class="nm">1</span>) <span class="kw">PRIMARY KEY</span>,
+    CustomerID  <span class="kw">INT</span>,
+    OrderDate   <span class="kw">DATE</span>,
+    TotalAmount <span class="kw">DECIMAL</span>(<span class="nm">12</span>,<span class="nm">2</span>),
+    OrderStatus <span class="kw">VARCHAR</span>(<span class="nm">20</span>),
+    <span class="kw">CONSTRAINT</span> FK_Orders_Customers
+        <span class="kw">FOREIGN KEY</span> (CustomerID)
+        <span class="kw">REFERENCES</span> Customers(CustomerID)
+);</pre>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 3 ═══════ -->
+  <section id="s3">
+    <h2 class="sec-title"><span class="num">03</span> SQL Query Processing Basics</h2>
+
+    <h3 class="sub-title">Logical Query Processing Order</h3>
+    <p>Even though we write queries in one order, SQL Server processes them logically in a different sequence. Understanding this is critical for writing correct and optimized queries.</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Execution Order</th><th>Clause</th><th>What Happens</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>FROM</td><td>Identifies the data source / joins tables</td></tr>
+          <tr><td>2</td><td>WHERE</td><td>Filters individual rows</td></tr>
+          <tr><td>3</td><td>GROUP BY</td><td>Groups filtered rows</td></tr>
+          <tr><td>4</td><td>HAVING</td><td>Filters groups</td></tr>
+          <tr><td>5</td><td>SELECT</td><td>Selects and computes columns</td></tr>
+          <tr><td>6</td><td>ORDER BY</td><td>Sorts the final result set</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout gem">
+      <span class="icon">💎</span>
+      <div class="cbody">
+        <div class="ctitle">Why This Matters</div>
+        <p>Understanding logical processing order is key for writing optimized queries, debugging errors (like "column alias not found"), writing analytical reports, and acing SQL interview questions. Column aliases defined in SELECT cannot be used in WHERE because SELECT runs after WHERE.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 4 ═══════ -->
+  <section id="s4">
+    <h2 class="sec-title"><span class="num">04</span> SELECT Statement</h2>
+    <p>The <code>SELECT</code> statement retrieves data from one or more tables. It is the most frequently used SQL command.</p>
+
+    <h3 class="sub-title">Basic Syntax</h3>
+    <div class="syntax-block"><span class="kw">SELECT</span> column_name <span class="kw">FROM</span> table_name;</div>
+
+    <h3 class="sub-title">Selecting Specific Columns</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span>
+    FirstName,
+    LastName,
+    Salary
+<span class="kw">FROM</span> Employees;</pre>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Component</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>SELECT</td><td>Chooses which columns to return</td></tr>
+          <tr><td>FirstName</td><td>First column requested</td></tr>
+          <tr><td>LastName</td><td>Second column requested</td></tr>
+          <tr><td>Salary</td><td>Third column requested</td></tr>
+          <tr><td>FROM Employees</td><td>Data source table</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">Selecting All Columns</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span> <span class="op">*</span>
+<span class="kw">FROM</span> Employees;</pre>
+    </div>
+
+    <div class="callout danger">
+      <span class="icon">⛔</span>
+      <div class="cbody">
+        <div class="ctitle">Avoid SELECT * in Production</div>
+        <p>Using <code>SELECT *</code> returns unnecessary columns, increases network usage, slows reporting systems, reduces readability, and may expose sensitive data. Always select only the columns you actually need.</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">Using Aliases</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span>
+    FirstName <span class="kw">AS</span> EmployeeFirstName,
+    Salary    <span class="kw">AS</span> MonthlySalary
+<span class="kw">FROM</span> Employees;</pre>
+    </div>
+
+    <h3 class="sub-title">Calculated Columns</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span>
+    FirstName,
+    Salary,
+    Salary <span class="op">*</span> <span class="nm">12</span> <span class="kw">AS</span> AnnualSalary,
+    Salary <span class="op">*</span> <span class="nm">0.10</span> <span class="kw">AS</span> Bonus,
+    Salary <span class="op">+</span> <span class="nm">5000</span> <span class="kw">AS</span> RevisedSalary
+<span class="kw">FROM</span> Employees;</pre>
+    </div>
+
+    <h3 class="sub-title">String Concatenation</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- Basic concatenation</span>
+<span class="kw">SELECT</span>
+    FirstName <span class="op">+</span> <span class="str">' '</span> <span class="op">+</span> LastName <span class="kw">AS</span> FullName
+<span class="kw">FROM</span> Employees;
+
+<span class="cmt">-- NULL-safe concatenation using ISNULL</span>
+<span class="kw">SELECT</span>
+    FirstName <span class="op">+</span> <span class="str">' '</span> <span class="op">+</span> <span class="fn">ISNULL</span>(LastName, <span class="str">''</span>) <span class="kw">AS</span> FullName
+<span class="kw">FROM</span> Employees;</pre>
+    </div>
+
+    <div class="callout warn">
+      <span class="icon">⚠️</span>
+      <div class="cbody">
+        <div class="ctitle">NULL Breaks Concatenation</div>
+        <p>If <code>LastName</code> is NULL, the entire concatenated result becomes NULL. Always use <code>ISNULL()</code> or <code>COALESCE()</code> when concatenating nullable columns.</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">Real-World Reporting Examples</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- Finance: Bonus calculation</span>
+<span class="kw">SELECT</span> EmployeeID, Salary, Salary <span class="op">*</span> <span class="nm">0.10</span> <span class="kw">AS</span> Bonus <span class="kw">FROM</span> Employees;
+
+<span class="cmt">-- Sales: Tax estimation</span>
+<span class="kw">SELECT</span> OrderID, TotalAmount, TotalAmount <span class="op">*</span> <span class="nm">0.15</span> <span class="kw">AS</span> TaxAmount <span class="kw">FROM</span> Orders;
+
+<span class="cmt">-- Analytics: Profit calculation</span>
+<span class="kw">SELECT</span> ProductName, SalesAmount, SalesAmount <span class="op">-</span> CostPrice <span class="kw">AS</span> Profit <span class="kw">FROM</span> ProductSales;</pre>
+    </div>
+
+    <h3 class="sub-title">SARGability — Index-Friendly WHERE Clauses</h3>
+    <div class="callout tip">
+      <span class="icon">💡</span>
+      <div class="cbody">
+        <div class="ctitle">SARGable Queries</div>
+        <p>Avoid wrapping columns in functions inside WHERE clauses — this prevents index usage.<br>
+        <strong>Bad:</strong> <code>WHERE YEAR(OrderDate) = 2023</code> — ignores indexes<br>
+        <strong>Good:</strong> <code>WHERE OrderDate >= '2023-01-01' AND OrderDate &lt; '2024-01-01'</code> — index-friendly</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">Best Practices</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Best Practice</th><th>Reason</th></tr></thead>
+        <tbody>
+          <tr><td>Avoid SELECT *</td><td>Better performance and security</td></tr>
+          <tr><td>Use meaningful aliases</td><td>Better readability in reports</td></tr>
+          <tr><td>Use comments</td><td>Easier maintenance by the team</td></tr>
+          <tr><td>Format queries properly</td><td>Professional code quality</td></tr>
+          <tr><td>Handle NULL values</td><td>Prevent unexpected empty outputs</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="practice-section">
+      <h4 class="plevel">🟢 Mini Exercises</h4>
+      <div class="practice-item"><div class="pnum">1</div><p>Retrieve employee names and salaries from the Employees table.</p></div>
+      <div class="practice-item"><div class="pnum">2</div><p>Show annual salary by multiplying monthly salary by 12.</p></div>
+      <div class="practice-item"><div class="pnum">3</div><p>Concatenate FirstName and LastName into a FullName column.</p></div>
+      <div class="practice-item"><div class="pnum">4</div><p>Rename columns using meaningful aliases.</p></div>
+      <div class="practice-item"><div class="pnum">5</div><p>Calculate a 15% bonus for each employee.</p></div>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 5 ═══════ -->
+  <section id="s5">
+    <h2 class="sec-title"><span class="num">05</span> FROM Clause</h2>
+    <p>The <code>FROM</code> clause specifies the data source — the table, view, subquery, or join from which data is retrieved.</p>
+
+    <h3 class="sub-title">Basic Usage &amp; Schema References</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- Simple table reference</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees;
+
+<span class="cmt">-- Schema-qualified reference (recommended)</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> sales.employees;
+
+<span class="cmt">-- Table alias shorthand</span>
+<span class="kw">SELECT</span> e.FirstName, e.Salary
+<span class="kw">FROM</span> sales.employees e;</pre>
+    </div>
+
+    <h3 class="sub-title">Multiple Tables with JOIN</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span>
+    c.CustomerName,
+    o.TotalAmount
+<span class="kw">FROM</span> Customers c
+<span class="kw">INNER JOIN</span> Orders o
+    <span class="kw">ON</span> c.CustomerID <span class="op">=</span> o.CustomerID;</pre>
+    </div>
+
+    <h3 class="sub-title">Derived Tables (Subqueries in FROM)</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span> <span class="op">*</span>
+<span class="kw">FROM</span>
+(
+    <span class="kw">SELECT</span>
+        Department,
+        <span class="fn">AVG</span>(Salary) <span class="kw">AS</span> AvgSalary
+    <span class="kw">FROM</span> Employees
+    <span class="kw">GROUP BY</span> Department
+) <span class="kw">AS</span> DepartmentSummary;</pre>
+    </div>
+
+    <h3 class="sub-title">Best Practices</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Practice</th><th>Benefit</th></tr></thead>
+        <tbody>
+          <tr><td>Use schema names (e.g. dbo.Table)</td><td>Better execution plan reuse</td></tr>
+          <tr><td>Use table aliases</td><td>Cleaner, shorter code</td></tr>
+          <tr><td>Avoid unnecessary joins</td><td>Better performance</td></tr>
+          <tr><td>Use meaningful aliases</td><td>Easier debugging and reading</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 6 ═══════ -->
+  <section id="s6">
+    <h2 class="sec-title"><span class="num">06</span> WHERE Clause</h2>
+    <p>The <code>WHERE</code> clause filters rows <strong>before</strong> they are returned. It is processed after FROM but before GROUP BY.</p>
+
+    <h3 class="sub-title">Comparison Operators</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Operator</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>=</td><td>Equal to</td></tr>
+          <tr><td>!= or &lt;&gt;</td><td>Not equal to</td></tr>
+          <tr><td>&gt;</td><td>Greater than</td></tr>
+          <tr><td>&lt;</td><td>Less than</td></tr>
+          <tr><td>&gt;=</td><td>Greater than or equal</td></tr>
+          <tr><td>&lt;=</td><td>Less than or equal</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">Logical Operators &amp; Filtering Examples</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- AND: both conditions must be true</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">WHERE</span> Department <span class="op">=</span> <span class="str">'HR'</span> <span class="kw">AND</span> Salary <span class="op">></span> <span class="nm">40000</span>;
+
+<span class="cmt">-- OR: either condition true</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">WHERE</span> Department <span class="op">=</span> <span class="str">'HR'</span> <span class="kw">OR</span> Department <span class="op">=</span> <span class="str">'Finance'</span>;
+
+<span class="cmt">-- NOT: negates condition</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">WHERE</span> <span class="kw">NOT</span> Department <span class="op">=</span> <span class="str">'HR'</span>;
+
+<span class="cmt">-- BETWEEN: inclusive range</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">WHERE</span> Salary <span class="kw">BETWEEN</span> <span class="nm">40000</span> <span class="kw">AND</span> <span class="nm">70000</span>;
+
+<span class="cmt">-- IN: match any value in list</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">WHERE</span> Department <span class="kw">IN</span> (<span class="str">'HR'</span>, <span class="str">'Finance'</span>, <span class="str">'Sales'</span>);
+
+<span class="cmt">-- EXISTS: check for related rows</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Customers c
+<span class="kw">WHERE EXISTS</span>
+(
+    <span class="kw">SELECT</span> <span class="nm">1</span> <span class="kw">FROM</span> Orders o
+    <span class="kw">WHERE</span> o.CustomerID <span class="op">=</span> c.CustomerID
+);</pre>
+    </div>
+
+    <h3 class="sub-title">NULL Filtering — Critical Rule</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- ❌ WRONG: = NULL never returns TRUE</span>
+<span class="kw">WHERE</span> ManagerID <span class="op">=</span> <span class="kw">NULL</span>
+
+<span class="cmt">-- ✅ CORRECT: use IS NULL / IS NOT NULL</span>
+<span class="kw">WHERE</span> ManagerID <span class="kw">IS NULL</span>
+<span class="kw">WHERE</span> Email     <span class="kw">IS NOT NULL</span></pre>
+    </div>
+
+    <h3 class="sub-title">Operator Precedence — Watch Out!</h3>
+    <div class="callout danger">
+      <span class="icon">⛔</span>
+      <div class="cbody">
+        <div class="ctitle">AND Executes Before OR</div>
+        <p>Without parentheses, <code>AND</code> binds tighter than <code>OR</code>. The query below does <em>not</em> behave as intended — it applies the salary filter only to Finance, not HR.</p>
+      </div>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- ❌ Dangerous: AND binds before OR</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">WHERE</span> Department <span class="op">=</span> <span class="str">'HR'</span>
+   <span class="kw">OR</span> Department <span class="op">=</span> <span class="str">'Finance'</span>
+  <span class="kw">AND</span> Salary <span class="op">></span> <span class="nm">50000</span>;
+
+<span class="cmt">-- ✅ Correct: use parentheses</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">WHERE</span>
+(
+    Department <span class="op">=</span> <span class="str">'HR'</span>
+    <span class="kw">OR</span> Department <span class="op">=</span> <span class="str">'Finance'</span>
+)
+<span class="kw">AND</span> Salary <span class="op">></span> <span class="nm">50000</span>;</pre>
+    </div>
+
+    <h3 class="sub-title">Common Mistakes</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Mistake</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td class="bad">Missing WHERE in UPDATE/DELETE</td><td>Massive unintended data loss</td></tr>
+          <tr><td class="bad">Using = NULL</td><td>No rows returned (silent failure)</td></tr>
+          <tr><td class="bad">Ignoring AND/OR precedence</td><td>Wrong, hard-to-detect output</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 7 ═══════ -->
+  <section id="s7">
+    <h2 class="sec-title"><span class="num">07</span> ORDER BY Clause</h2>
+    <p>The <code>ORDER BY</code> clause sorts the final result set. It is the last clause processed logically, which means it can reference aliases defined in SELECT.</p>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- Ascending (default)</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees <span class="kw">ORDER BY</span> Salary <span class="kw">ASC</span>;
+
+<span class="cmt">-- Descending</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees <span class="kw">ORDER BY</span> Salary <span class="kw">DESC</span>;
+
+<span class="cmt">-- Multiple columns</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">ORDER BY</span> Department <span class="kw">ASC</span>, Salary <span class="kw">DESC</span>;
+
+<span class="cmt">-- Sort by alias</span>
+<span class="kw">SELECT</span> Salary <span class="op">*</span> <span class="nm">12</span> <span class="kw">AS</span> AnnualSalary
+<span class="kw">FROM</span> Employees
+<span class="kw">ORDER BY</span> AnnualSalary <span class="kw">DESC</span>;
+
+<span class="cmt">-- Recent orders first</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Orders <span class="kw">ORDER BY</span> OrderDate <span class="kw">DESC</span>;</pre>
+    </div>
+
+    <div class="callout tip">
+      <span class="icon">💡</span>
+      <div class="cbody">
+        <div class="ctitle">NULL Sorting Behavior</div>
+        <p>In SQL Server, NULL values appear <strong>first</strong> when sorting in ascending order. Keep this in mind when generating reports where nulls should appear last.</p>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <span class="icon">⚠️</span>
+      <div class="cbody">
+        <div class="ctitle">Sorting Has a Cost</div>
+        <p>Sorting is expensive — especially on large datasets, multiple columns, or non-indexed columns. Create indexes on frequently sorted columns to improve performance.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 8 ═══════ -->
+  <section id="s8">
+    <h2 class="sec-title"><span class="num">08</span> GROUP BY Clause</h2>
+    <p>The <code>GROUP BY</code> clause groups rows that share the same values in specified columns so that aggregate functions can be applied to each group.</p>
+
+    <h3 class="sub-title">Aggregate Functions</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Function</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>SUM(col)</td><td>Total of all values in the group</td></tr>
+          <tr><td>AVG(col)</td><td>Average of all values</td></tr>
+          <tr><td>MIN(col)</td><td>Minimum value</td></tr>
+          <tr><td>MAX(col)</td><td>Maximum value</td></tr>
+          <tr><td>COUNT(*)</td><td>Count of all rows (including NULLs)</td></tr>
+          <tr><td>COUNT(col)</td><td>Count of non-NULL values only</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- Average salary per department</span>
+<span class="kw">SELECT</span>
+    Department,
+    <span class="fn">AVG</span>(Salary) <span class="kw">AS</span> AverageSalary
+<span class="kw">FROM</span> Employees
+<span class="kw">GROUP BY</span> Department;
+
+<span class="cmt">-- Multiple column grouping</span>
+<span class="kw">SELECT</span>
+    Department,
+    Status,
+    <span class="fn">COUNT</span>(<span class="op">*</span>) <span class="kw">AS</span> EmployeeCount
+<span class="kw">FROM</span> Employees
+<span class="kw">GROUP BY</span> Department, Status;</pre>
+    </div>
+
+    <div class="callout danger">
+      <span class="icon">⛔</span>
+      <div class="cbody">
+        <div class="ctitle">Grouping Rule — Common Error</div>
+        <p>Every non-aggregated column in SELECT <strong>must</strong> appear in GROUP BY. The query below will throw an error because <code>Salary</code> is neither aggregated nor grouped.<br>
+        <code>SELECT Department, Salary FROM Employees GROUP BY Department; ← Error!</code></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 9 ═══════ -->
+  <section id="s9">
+    <h2 class="sec-title"><span class="num">09</span> HAVING Clause</h2>
+    <p>The <code>HAVING</code> clause filters <strong>groups</strong> after aggregation — it is the equivalent of WHERE but for GROUP BY results.</p>
+
+    <h3 class="sub-title">WHERE vs HAVING</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Feature</th><th>WHERE</th><th>HAVING</th></tr></thead>
+        <tbody>
+          <tr><td>Filters</td><td>Individual rows</td><td>Grouped results</td></tr>
+          <tr><td>When applied</td><td>Before GROUP BY</td><td>After GROUP BY</td></tr>
+          <tr><td>Can use aggregates?</td><td class="no">No</td><td class="yes">Yes</td></tr>
+          <tr><td>Example</td><td><code>WHERE Salary &gt; 50000</code></td><td><code>HAVING AVG(Salary) &gt; 50000</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- Departments with average salary above 50,000</span>
+<span class="kw">SELECT</span>
+    Department,
+    <span class="fn">AVG</span>(Salary) <span class="kw">AS</span> AvgSalary
+<span class="kw">FROM</span> Employees
+<span class="kw">GROUP BY</span> Department
+<span class="kw">HAVING</span> <span class="fn">AVG</span>(Salary) <span class="op">></span> <span class="nm">50000</span>;</pre>
+    </div>
+
+    <div class="callout gem">
+      <span class="icon">💎</span>
+      <div class="cbody">
+        <div class="ctitle">Performance Best Practice</div>
+        <p>Use <code>WHERE</code> first to reduce the number of rows before they reach <code>GROUP BY</code>. Only use <code>HAVING</code> for conditions that require aggregate values.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 10 ═══════ -->
+  <section id="s10">
+    <h2 class="sec-title"><span class="num">10</span> DDL Commands</h2>
+    <p>Data Definition Language (DDL) commands define and manage database structures — databases, tables, columns, and constraints.</p>
+
+    <h3 class="sub-title">CREATE — Build Database Objects</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- Create a database</span>
+<span class="kw">CREATE DATABASE</span> SalesDB;
+
+<span class="cmt">-- Create a table with constraints</span>
+<span class="kw">CREATE TABLE</span> Products
+(
+    ProductID     <span class="kw">INT</span> <span class="kw">PRIMARY KEY</span>,
+    ProductName   <span class="kw">VARCHAR</span>(<span class="nm">100</span>) <span class="kw">NOT NULL</span>,
+    Price         <span class="kw">DECIMAL</span>(<span class="nm">10</span>,<span class="nm">2</span>),
+    StockQuantity <span class="kw">INT</span>,
+    CreatedDate   <span class="kw">DATETIME DEFAULT</span> <span class="fn">GETDATE</span>()
+);</pre>
+    </div>
+
+    <h3 class="sub-title">Common Data Types</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Data Type</th><th>Usage</th></tr></thead>
+        <tbody>
+          <tr><td>INT</td><td>Whole numbers (IDs, counts)</td></tr>
+          <tr><td>DECIMAL(p,s)</td><td>Financial data with precision</td></tr>
+          <tr><td>VARCHAR(n)</td><td>Variable-length text</td></tr>
+          <tr><td>DATE</td><td>Date only (YYYY-MM-DD)</td></tr>
+          <tr><td>DATETIME</td><td>Date and time</td></tr>
+          <tr><td>BIT</td><td>Boolean True/False (1/0)</td></tr>
+          <tr><td>NVARCHAR(n)</td><td>Unicode variable-length text</td></tr>
+          <tr><td>BIGINT</td><td>Large whole numbers</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">Constraints Reference</h3>
+    <div class="type-grid">
+      <div class="type-card"><div class="tc-title">PRIMARY KEY</div><p>Uniquely identifies each row. Cannot be NULL. Only one per table.</p></div>
+      <div class="type-card"><div class="tc-title">FOREIGN KEY</div><p>References a primary key in another table. Maintains referential integrity.</p></div>
+      <div class="type-card"><div class="tc-title">UNIQUE</div><p>Prevents duplicate values in a column. Multiple allowed per table.</p></div>
+      <div class="type-card"><div class="tc-title">DEFAULT</div><p>Provides automatic values when no value is supplied on insert.</p></div>
+      <div class="type-card"><div class="tc-title">CHECK</div><p>Validates a condition before allowing data in. E.g. Salary &gt; 0.</p></div>
+      <div class="type-card"><div class="tc-title">IDENTITY</div><p>Auto-increments integer values. Common for surrogate primary keys.</p></div>
+    </div>
+
+    <h3 class="sub-title">ALTER — Modify Existing Objects</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- Add a new column</span>
+<span class="kw">ALTER TABLE</span> Employees
+<span class="kw">ADD</span> PhoneNumber <span class="kw">VARCHAR</span>(<span class="nm">20</span>);
+
+<span class="cmt">-- Modify column data type/length</span>
+<span class="kw">ALTER TABLE</span> Employees
+<span class="kw">ALTER COLUMN</span> PhoneNumber <span class="kw">VARCHAR</span>(<span class="nm">30</span>);
+
+<span class="cmt">-- Add a CHECK constraint</span>
+<span class="kw">ALTER TABLE</span> Employees
+<span class="kw">ADD CONSTRAINT</span> CK_Salary <span class="kw">CHECK</span> (Salary <span class="op">></span> <span class="nm">0</span>);</pre>
+    </div>
+
+    <div class="callout warn">
+      <span class="icon">⚠️</span>
+      <div class="cbody">
+        <div class="ctitle">Production Caution for ALTER</div>
+        <p>ALTER operations can lock tables, rebuild indexes, and slow applications. Always test in a staging environment before running on production databases.</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">DROP — Remove Objects Permanently</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- Drop a table (irreversible without backup)</span>
+<span class="kw">DROP TABLE</span> Employees;
+
+<span class="cmt">-- Drop a database</span>
+<span class="kw">DROP DATABASE</span> CompanyDB;</pre>
+    </div>
+
+    <h3 class="sub-title">TRUNCATE — Remove All Rows Quickly</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">TRUNCATE TABLE</span> Employees;</pre>
+    </div>
+
+    <h3 class="sub-title">DELETE vs TRUNCATE</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Feature</th><th>DELETE</th><th>TRUNCATE</th></tr></thead>
+        <tbody>
+          <tr><td>Removal method</td><td>Row by row</td><td>All rows at once</td></tr>
+          <tr><td>Supports WHERE</td><td class="yes">Yes</td><td class="no">No</td></tr>
+          <tr><td>Logging</td><td>Fully logged</td><td>Minimally logged</td></tr>
+          <tr><td>Speed</td><td>Slower</td><td>Faster</td></tr>
+          <tr><td>IDENTITY reset</td><td class="no">No</td><td class="yes">Yes</td></tr>
+          <tr><td>Rollback support</td><td class="yes">Yes (in transaction)</td><td class="yes">Yes (in transaction)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 11 ═══════ -->
+  <section id="s11">
+    <h2 class="sec-title"><span class="num">11</span> DML Commands</h2>
+    <p>Data Manipulation Language (DML) commands insert, update, and delete data within tables.</p>
+
+    <h3 class="sub-title">INSERT — Add Data</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- Single row insert (always specify column names)</span>
+<span class="kw">INSERT INTO</span> Employees (FirstName, LastName, Department, Salary)
+<span class="kw">VALUES</span> (<span class="str">'John'</span>, <span class="str">'Smith'</span>, <span class="str">'HR'</span>, <span class="nm">50000</span>);
+
+<span class="cmt">-- Multi-row insert</span>
+<span class="kw">INSERT INTO</span> Employees (FirstName, LastName, Department, Salary)
+<span class="kw">VALUES</span>
+    (<span class="str">'Alice'</span>, <span class="str">'Brown'</span>, <span class="str">'Finance'</span>, <span class="nm">60000</span>),
+    (<span class="str">'David'</span>, <span class="str">'Lee'</span>,   <span class="str">'Sales'</span>,   <span class="nm">70000</span>);
+
+<span class="cmt">-- INSERT from SELECT (archive inactive records)</span>
+<span class="kw">INSERT INTO</span> EmployeeArchive
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">WHERE</span> Status <span class="op">=</span> <span class="str">'Inactive'</span>;</pre>
+    </div>
+
+    <h3 class="sub-title">UPDATE — Modify Existing Data</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- Targeted update with WHERE (safe)</span>
+<span class="kw">UPDATE</span> Employees
+<span class="kw">SET</span> Salary <span class="op">=</span> <span class="nm">55000</span>
+<span class="kw">WHERE</span> EmployeeID <span class="op">=</span> <span class="nm">1</span>;
+
+<span class="cmt">-- Transaction safety pattern</span>
+<span class="kw">BEGIN TRANSACTION</span>;
+    <span class="kw">UPDATE</span> Employees
+    <span class="kw">SET</span> Salary <span class="op">=</span> Salary <span class="op">+</span> <span class="nm">5000</span>
+    <span class="kw">WHERE</span> Department <span class="op">=</span> <span class="str">'HR'</span>;
+<span class="kw">ROLLBACK</span>; <span class="cmt">-- Change to COMMIT when verified</span>
+
+<span class="cmt">-- UPDATE with JOIN</span>
+<span class="kw">UPDATE</span> e
+<span class="kw">SET</span> e.Salary <span class="op">=</span> e.Salary <span class="op">+</span> <span class="nm">5000</span>
+<span class="kw">FROM</span> Employees e
+<span class="kw">INNER JOIN</span> Departments d ON e.Department <span class="op">=</span> d.DepartmentName
+<span class="kw">WHERE</span> d.Location <span class="op">=</span> <span class="str">'New York'</span>;
+
+<span class="cmt">-- CASE-based conditional update</span>
+<span class="kw">UPDATE</span> Employees
+<span class="kw">SET</span> Salary <span class="op">=</span>
+    <span class="kw">CASE</span>
+        <span class="kw">WHEN</span> Department <span class="op">=</span> <span class="str">'HR'</span>      <span class="kw">THEN</span> Salary <span class="op">+</span> <span class="nm">1000</span>
+        <span class="kw">WHEN</span> Department <span class="op">=</span> <span class="str">'Finance'</span> <span class="kw">THEN</span> Salary <span class="op">+</span> <span class="nm">2000</span>
+        <span class="kw">ELSE</span> Salary
+    <span class="kw">END</span>;</pre>
+    </div>
+
+    <h3 class="sub-title">DELETE — Remove Rows</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- Delete specific row</span>
+<span class="kw">DELETE FROM</span> Employees <span class="kw">WHERE</span> EmployeeID <span class="op">=</span> <span class="nm">5</span>;
+
+<span class="cmt">-- Delete with JOIN</span>
+<span class="kw">DELETE</span> o
+<span class="kw">FROM</span> Orders o
+<span class="kw">INNER JOIN</span> Customers c ON o.CustomerID <span class="op">=</span> c.CustomerID
+<span class="kw">WHERE</span> c.Country <span class="op">=</span> <span class="str">'USA'</span>;
+
+<span class="cmt">-- Soft delete (preferred in production)</span>
+<span class="kw">UPDATE</span> Employees
+<span class="kw">SET</span> Status <span class="op">=</span> <span class="str">'Inactive'</span>
+<span class="kw">WHERE</span> EmployeeID <span class="op">=</span> <span class="nm">5</span>;</pre>
+    </div>
+
+    <div class="callout gem">
+      <span class="icon">💎</span>
+      <div class="cbody">
+        <div class="ctitle">Soft Delete Strategy</div>
+        <p>Instead of physically deleting records, mark them as inactive using a Status column. This supports auditing, compliance, recovery, and historical analytics — critical in finance, HR, and healthcare systems.</p>
+      </div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Mistake</th><th>Risk</th></tr></thead>
+        <tbody>
+          <tr><td class="bad">Missing WHERE in UPDATE</td><td>Every row updated — potentially catastrophic</td></tr>
+          <tr><td class="bad">No transaction wrapping</td><td>No rollback path if something goes wrong</td></tr>
+          <tr><td class="bad">Wrong JOIN condition</td><td>Unexpected rows affected</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 12 ═══════ -->
+  <section id="s12">
+    <h2 class="sec-title"><span class="num">12</span> LIKE Operator &amp; Pattern Matching</h2>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- Starts with A</span>
+<span class="kw">WHERE</span> CustomerName <span class="kw">LIKE</span> <span class="str">'A%'</span>
+
+<span class="cmt">-- Ends with 'son'</span>
+<span class="kw">WHERE</span> CustomerName <span class="kw">LIKE</span> <span class="str">'%son'</span>
+
+<span class="cmt">-- Contains 'tech' anywhere</span>
+<span class="kw">WHERE</span> CustomerName <span class="kw">LIKE</span> <span class="str">'%tech%'</span>
+
+<span class="cmt">-- Single character wildcard (_)</span>
+<span class="kw">WHERE</span> CustomerName <span class="kw">LIKE</span> <span class="str">'J_n'</span>  <span class="cmt">-- Matches Jan, Jen, Jon</span>
+
+<span class="cmt">-- Character range</span>
+<span class="kw">WHERE</span> CustomerName <span class="kw">LIKE</span> <span class="str">'[A-C]%'</span>
+
+<span class="cmt">-- Escaping the % character itself</span>
+<span class="kw">WHERE</span> ProductCode <span class="kw">LIKE</span> <span class="str">'%\%%'</span> <span class="kw">ESCAPE</span> <span class="str">'\'</span></pre>
+    </div>
+
+    <h3 class="sub-title">Wildcard Summary</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Wildcard</th><th>Meaning</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>%</td><td>Zero or more characters</td><td><code>'A%'</code> → starts with A</td></tr>
+          <tr><td>_</td><td>Exactly one character</td><td><code>'J_n'</code> → Jan, Jen, Jon</td></tr>
+          <tr><td>[abc]</td><td>Any one character in set</td><td><code>'[AK]%'</code> → starts with A or K</td></tr>
+          <tr><td>[a-z]</td><td>Any one character in range</td><td><code>'[A-C]%'</code> → starts with A, B, or C</td></tr>
+          <tr><td>[^abc]</td><td>Any character NOT in set</td><td><code>'[^AK]%'</code> → not starting with A or K</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout warn">
+      <span class="icon">⚠️</span>
+      <div class="cbody">
+        <div class="ctitle">Leading Wildcard Kills Performance</div>
+        <p><code>LIKE '%A%'</code> cannot use indexes (full table scan). <code>LIKE 'A%'</code> can use an index efficiently. Avoid leading wildcards on large tables.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 13 ═══════ -->
+  <section id="s13">
+    <h2 class="sec-title"><span class="num">13</span> NULL Handling</h2>
+    <p>NULL means <strong>unknown</strong> — it is not zero, not empty string. It behaves uniquely in comparisons and aggregations.</p>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- IS NULL / IS NOT NULL</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees <span class="kw">WHERE</span> ManagerID <span class="kw">IS NULL</span>;
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees <span class="kw">WHERE</span> Email     <span class="kw">IS NOT NULL</span>;
+
+<span class="cmt">-- ISNULL: T-SQL specific (2 arguments)</span>
+<span class="kw">SELECT</span> <span class="fn">ISNULL</span>(PhoneNumber, <span class="str">'N/A'</span>) <span class="kw">FROM</span> Employees;
+
+<span class="cmt">-- COALESCE: ANSI standard (multiple arguments)</span>
+<span class="kw">SELECT</span> <span class="fn">COALESCE</span>(PhoneNumber, MobileNumber, <span class="str">'Not Available'</span>) <span class="kw">FROM</span> Employees;</pre>
+    </div>
+
+    <h3 class="sub-title">NULL in Aggregate Functions</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Function</th><th>NULL Behavior</th></tr></thead>
+        <tbody>
+          <tr><td>SUM(col)</td><td>Ignores NULL values</td></tr>
+          <tr><td>AVG(col)</td><td>Ignores NULL (affects denominator!)</td></tr>
+          <tr><td>COUNT(col)</td><td>Ignores NULL rows</td></tr>
+          <tr><td>COUNT(*)</td><td>Counts all rows including NULLs</td></tr>
+          <tr><td>MIN / MAX</td><td>Ignores NULL values</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">COALESCE vs ISNULL</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Feature</th><th>COALESCE</th><th>ISNULL</th></tr></thead>
+        <tbody>
+          <tr><td>Standard</td><td class="yes">ANSI SQL</td><td>SQL Server only</td></tr>
+          <tr><td>Arguments</td><td>Multiple (returns first non-NULL)</td><td>Exactly two</td></tr>
+          <tr><td>Flexibility</td><td class="yes">More flexible</td><td>Slightly faster</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 14 ═══════ -->
+  <section id="s14">
+    <h2 class="sec-title"><span class="num">14</span> Aliases</h2>
+    <p>Aliases give temporary names to columns or tables to improve readability and shorten code.</p>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- Column alias</span>
+<span class="kw">SELECT</span> Salary <span class="kw">AS</span> MonthlySalary <span class="kw">FROM</span> Employees;
+
+<span class="cmt">-- Table alias</span>
+<span class="kw">SELECT</span> e.FirstName <span class="kw">FROM</span> Employees e;
+
+<span class="cmt">-- Multi-word alias (use brackets or quotes)</span>
+<span class="kw">SELECT</span> Salary <span class="kw">AS</span> [Monthly Salary] <span class="kw">FROM</span> Employees;</pre>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Bad Alias</th><th>Better Alias</th></tr></thead>
+        <tbody>
+          <tr><td class="bad">x</td><td class="good">EmployeeName</td></tr>
+          <tr><td class="bad">a1</td><td class="good">TotalRevenue</td></tr>
+          <tr><td class="bad">t</td><td class="good">TransactionDate</td></tr>
+          <tr><td class="bad">c</td><td class="good">CustomerCount</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 15 ═══════ -->
+  <section id="s15">
+    <h2 class="sec-title"><span class="num">15</span> Aggregate Functions</h2>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- Total salary payroll</span>
+<span class="kw">SELECT</span> <span class="fn">SUM</span>(Salary) <span class="kw">AS</span> TotalPayroll <span class="kw">FROM</span> Employees;
+
+<span class="cmt">-- Average salary</span>
+<span class="kw">SELECT</span> <span class="fn">AVG</span>(Salary) <span class="kw">AS</span> AverageSalary <span class="kw">FROM</span> Employees;
+
+<span class="cmt">-- Salary range</span>
+<span class="kw">SELECT</span>
+    <span class="fn">MIN</span>(Salary) <span class="kw">AS</span> LowestSalary,
+    <span class="fn">MAX</span>(Salary) <span class="kw">AS</span> HighestSalary
+<span class="kw">FROM</span> Employees;
+
+<span class="cmt">-- Row counts</span>
+<span class="kw">SELECT</span> <span class="fn">COUNT</span>(<span class="op">*</span>) <span class="kw">AS</span> TotalRows          <span class="kw">FROM</span> Employees;
+<span class="kw">SELECT</span> <span class="fn">COUNT</span>(Email) <span class="kw">AS</span> EmailsOnFile   <span class="kw">FROM</span> Employees; <span class="cmt">-- NULLs excluded</span></pre>
+    </div>
+
+    <div class="callout info">
+      <span class="icon">ℹ️</span>
+      <div class="cbody">
+        <div class="ctitle">COUNT(*) vs COUNT(column)</div>
+        <p><code>COUNT(*)</code> counts every row regardless of NULLs. <code>COUNT(column)</code> counts only rows where that column is not NULL. This difference matters greatly in analytics — always choose deliberately.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 16 ═══════ -->
+  <section id="s16">
+    <h2 class="sec-title"><span class="num">16</span> DISTINCT</h2>
+    <p>The <code>DISTINCT</code> keyword removes duplicate rows from the result set.</p>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- Unique departments</span>
+<span class="kw">SELECT DISTINCT</span> Department <span class="kw">FROM</span> Employees;
+
+<span class="cmt">-- Unique combinations of department + status</span>
+<span class="kw">SELECT DISTINCT</span> Department, Status <span class="kw">FROM</span> Employees;</pre>
+    </div>
+
+    <div class="callout tip">
+      <span class="icon">💡</span>
+      <div class="cbody">
+        <div class="ctitle">DISTINCT Applies to the Entire Row</div>
+        <p><code>SELECT DISTINCT Department, Status</code> deduplicates by the <em>combination</em> of both columns, not just Department alone. Also note that DISTINCT may require internal sorting or hashing — use GROUP BY when you also need aggregation.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 17 ═══════ -->
+  <section id="s17">
+    <h2 class="sec-title"><span class="num">17</span> TOP Clause</h2>
+    <p>The <code>TOP</code> clause limits the number of rows returned. Always pair it with <code>ORDER BY</code> for deterministic results.</p>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- Top 5 employees</span>
+<span class="kw">SELECT TOP</span> <span class="nm">5</span> <span class="op">*</span> <span class="kw">FROM</span> Employees;
+
+<span class="cmt">-- Top 5 highest paid (with ties)</span>
+<span class="kw">SELECT TOP</span> <span class="nm">5</span> <span class="kw">WITH TIES</span> <span class="op">*</span>
+<span class="kw">FROM</span> Employees
+<span class="kw">ORDER BY</span> Salary <span class="kw">DESC</span>;
+
+<span class="cmt">-- Pagination using OFFSET / FETCH NEXT</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">ORDER BY</span> EmployeeID
+<span class="kw">OFFSET</span> <span class="nm">10</span> <span class="kw">ROWS</span>
+<span class="kw">FETCH NEXT</span> <span class="nm">10</span> <span class="kw">ROWS ONLY</span>;
+
+<span class="cmt">-- Top 10 customers by spending</span>
+<span class="kw">SELECT TOP</span> <span class="nm">10</span>
+    CustomerID,
+    <span class="fn">SUM</span>(TotalAmount) <span class="kw">AS</span> TotalSpent
+<span class="kw">FROM</span> Orders
+<span class="kw">GROUP BY</span> CustomerID
+<span class="kw">ORDER BY</span> TotalSpent <span class="kw">DESC</span>;</pre>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Use Case</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>Dashboard leaderboard</td><td>Top 10 customers by revenue</td></tr>
+          <tr><td>HR reporting</td><td>Highest-paid employees</td></tr>
+          <tr><td>Sales analysis</td><td>Top-selling products</td></tr>
+          <tr><td>Pagination</td><td>Page 2 of 10-row pages (OFFSET/FETCH)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 18 ═══════ -->
+  <section id="s18">
+    <h2 class="sec-title"><span class="num">18</span> Performance Optimization Tips</h2>
+
+    <h3 class="sub-title">Indexing Guidelines</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Tip</th><th>Benefit</th></tr></thead>
+        <tbody>
+          <tr><td>Index columns used in WHERE</td><td>Dramatically faster row filtering</td></tr>
+          <tr><td>Index JOIN columns</td><td>Speeds up join operations</td></tr>
+          <tr><td>Index ORDER BY columns</td><td>Avoids expensive sort operations</td></tr>
+          <tr><td>Avoid over-indexing</td><td>INSERT/UPDATE/DELETE remain fast</td></tr>
+          <tr><td>Use covering indexes</td><td>Eliminates key lookups</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">Query Writing Best Practices</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Tip</th><th>Benefit</th></tr></thead>
+        <tbody>
+          <tr><td>Avoid SELECT *</td><td>Reduced IO and network transfer</td></tr>
+          <tr><td>Use EXISTS instead of IN for subqueries</td><td>Often more efficient</td></tr>
+          <tr><td>Filter early with WHERE</td><td>Smaller datasets to process</td></tr>
+          <tr><td>Avoid functions on indexed columns</td><td>Prevents full table scans</td></tr>
+          <tr><td>Use proper JOIN types</td><td>Faster execution plans</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">SARGable Date Filtering</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+      <pre><span class="cmt">-- ❌ Non-SARGable: function on column, ignores index</span>
+<span class="kw">WHERE</span> <span class="fn">YEAR</span>(OrderDate) <span class="op">=</span> <span class="nm">2025</span>
+
+<span class="cmt">-- ✅ SARGable: range comparison, uses index</span>
+<span class="kw">WHERE</span> OrderDate <span class="op">>=</span> <span class="str">'2025-01-01'</span>
+  <span class="kw">AND</span> OrderDate  <span class="op">&lt;</span>  <span class="str">'2026-01-01'</span></pre>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 19 ═══════ -->
+  <section id="s19">
+    <h2 class="sec-title"><span class="num">19</span> Security &amp; Production Safety</h2>
+
+    <h3 class="sub-title">UPDATE &amp; DELETE Safety Checklist</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Checklist Item</th><th>Importance</th></tr></thead>
+        <tbody>
+          <tr><td class="yes">✔ Always use WHERE clause</td><td>Prevents accidental mass updates/deletes</td></tr>
+          <tr><td class="yes">✔ Test with SELECT first</td><td>Verify exactly which rows will be affected</td></tr>
+          <tr><td class="yes">✔ Wrap in a transaction</td><td>Enables ROLLBACK if something looks wrong</td></tr>
+          <tr><td class="yes">✔ Backup critical tables</td><td>Last resort recovery</td></tr>
+          <tr><td class="yes">✔ Limit user permissions</td><td>Principle of least privilege</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">Production-Level Concerns</h3>
+    <div class="type-grid">
+      <div class="type-card"><div class="tc-title">🔒 Locking</div><p>Large UPDATE or DELETE operations can lock tables and block other users. Run during off-peak hours or use batch deletes.</p></div>
+      <div class="type-card"><div class="tc-title">⏳ Blocking</div><p>Queries may wait indefinitely for locks held by other transactions. Monitor with <code>sys.dm_exec_requests</code>.</p></div>
+      <div class="type-card"><div class="tc-title">💀 Deadlocks</div><p>Two transactions waiting on each other's locks. SQL Server kills one. Design transactions to acquire locks in the same order.</p></div>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 20 ═══════ -->
+  <section id="s20">
+    <h2 class="sec-title"><span class="num">20</span> Real-World Business Scenarios</h2>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL — Finance: Monthly Revenue</span></div>
+      <pre><span class="kw">SELECT</span>
+    <span class="fn">MONTH</span>(OrderDate) <span class="kw">AS</span> OrderMonth,
+    <span class="fn">SUM</span>(TotalAmount) <span class="kw">AS</span> Revenue
+<span class="kw">FROM</span> Orders
+<span class="kw">GROUP BY</span> <span class="fn">MONTH</span>(OrderDate)
+<span class="kw">ORDER BY</span> OrderMonth;</pre>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL — HR: Employees Without Managers</span></div>
+      <pre><span class="kw">SELECT</span> <span class="op">*</span>
+<span class="kw">FROM</span> Employees
+<span class="kw">WHERE</span> ManagerID <span class="kw">IS NULL</span>;</pre>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL — E-Commerce: Top 10 Customers</span></div>
+      <pre><span class="kw">SELECT TOP</span> <span class="nm">10</span>
+    CustomerID,
+    <span class="fn">SUM</span>(TotalAmount) <span class="kw">AS</span> TotalSpent
+<span class="kw">FROM</span> Orders
+<span class="kw">GROUP BY</span> CustomerID
+<span class="kw">ORDER BY</span> TotalSpent <span class="kw">DESC</span>;</pre>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL — Healthcare: Pending Payments</span></div>
+      <pre><span class="kw">SELECT</span> <span class="op">*</span>
+<span class="kw">FROM</span> Patients
+<span class="kw">WHERE</span> PaymentStatus <span class="op">=</span> <span class="str">'Pending'</span>;</pre>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL — Analytics: Regional Performance</span></div>
+      <pre><span class="kw">SELECT</span>
+    Region,
+    <span class="fn">AVG</span>(SalesAmount) <span class="kw">AS</span> AvgSales,
+    <span class="fn">SUM</span>(SalesAmount) <span class="kw">AS</span> TotalSales,
+    <span class="fn">COUNT</span>(<span class="op">*</span>)         <span class="kw">AS</span> TransactionCount
+<span class="kw">FROM</span> Sales
+<span class="kw">GROUP BY</span> Region
+<span class="kw">ORDER BY</span> TotalSales <span class="kw">DESC</span>;</pre>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 21 ═══════ -->
+  <section id="s21">
+    <h2 class="sec-title"><span class="num">21</span> Common Mistakes &amp; Hidden Behaviors</h2>
+
+    <h3 class="sub-title">Common Mistakes</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Mistake</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td class="bad">Missing WHERE in UPDATE/DELETE</td><td>All rows affected — potential data disaster</td></tr>
+          <tr><td class="bad">SELECT *</td><td>Poor performance, possible data exposure</td></tr>
+          <tr><td class="bad">Ignoring NULL</td><td>Wrong results in joins and aggregations</td></tr>
+          <tr><td class="bad">Bad join conditions</td><td>Cartesian product — duplicate rows</td></tr>
+          <tr><td class="bad">Wrong GROUP BY</td><td>SQL errors or incorrect grouped results</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">Hidden Behaviors to Know</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Behavior</th><th>Explanation</th></tr></thead>
+        <tbody>
+          <tr><td>COUNT(col) ignores NULL</td><td>Can produce a lower count than expected — use COUNT(*) to count all rows</td></tr>
+          <tr><td>ORDER BY is expensive</td><td>Sorting large non-indexed datasets causes performance bottlenecks</td></tr>
+          <tr><td>DISTINCT may sort internally</td><td>Uses extra memory and CPU — consider GROUP BY as an alternative</td></tr>
+          <tr><td>TRUNCATE resets IDENTITY</td><td>Important to know when re-seeding staging or ETL tables</td></tr>
+          <tr><td>NULL = NULL is false</td><td>NULL comparisons always return UNKNOWN, never TRUE</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 22 ═══════ -->
+  <section id="s22">
+    <h2 class="sec-title"><span class="num">22</span> Interview Questions &amp; Answers</h2>
+
+    <div class="task-box">
+      <div class="task-label">Q1</div>
+      <strong>Difference between WHERE and HAVING?</strong>
+      <p style="margin-top:8px;">WHERE filters individual <strong>rows</strong> before grouping. HAVING filters <strong>groups</strong> after aggregation and can reference aggregate functions like SUM or AVG. You cannot use aggregate functions in a WHERE clause.</p>
+    </div>
+
+    <div class="task-box">
+      <div class="task-label">Q2</div>
+      <strong>Difference between DELETE and TRUNCATE?</strong>
+      <p style="margin-top:8px;">DELETE removes rows one by one, supports WHERE, is fully logged, slower, and does not reset IDENTITY. TRUNCATE removes all rows at once, cannot use WHERE, is minimally logged, faster, and resets IDENTITY.</p>
+    </div>
+
+    <div class="task-box">
+      <div class="task-label">Q3</div>
+      <strong>Why avoid SELECT *?</strong>
+      <p style="margin-top:8px;">It causes unnecessary IO and network transfer, reduces performance, breaks applications when schema changes, reduces readability, and may expose sensitive columns inadvertently.</p>
+    </div>
+
+    <div class="task-box">
+      <div class="task-label">Q4</div>
+      <strong>Difference between COUNT(*) and COUNT(column)?</strong>
+      <p style="margin-top:8px;">COUNT(*) counts every row including those with NULLs. COUNT(column) only counts rows where the specified column is not NULL — important for nullable columns in analytics.</p>
+    </div>
+
+    <div class="task-box">
+      <div class="task-label">Q5</div>
+      <strong>What is a PRIMARY KEY?</strong>
+      <p style="margin-top:8px;">A constraint that uniquely identifies each row in a table. A primary key column cannot be NULL and must have unique values. Each table can have only one PRIMARY KEY (which may span multiple columns).</p>
+    </div>
+
+    <div class="task-box">
+      <div class="task-label">Q6</div>
+      <strong>What is the logical query processing order?</strong>
+      <p style="margin-top:8px;">FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY. This is why column aliases defined in SELECT cannot be referenced in WHERE, and why ORDER BY can use aliases.</p>
+    </div>
+
+    <div class="task-box">
+      <div class="task-label">Q7</div>
+      <strong>What is a Foreign Key?</strong>
+      <p style="margin-top:8px;">A constraint that enforces referential integrity by requiring a value in one table to match a value in the primary key of a related table. Prevents orphan records.</p>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 23 ═══════ -->
+  <section id="s23">
+    <h2 class="sec-title"><span class="num">23</span> Practice Exercises</h2>
+
+    <div class="practice-section">
+      <h4 class="plevel">🟢 Beginner Exercises</h4>
+      <div class="practice-item"><div class="pnum">1</div><p>Retrieve all employees from the Employees table.</p></div>
+      <div class="practice-item"><div class="pnum">2</div><p>Retrieve only employees from the HR department.</p></div>
+      <div class="practice-item"><div class="pnum">3</div><p>Sort all employees by salary in descending order.</p></div>
+      <div class="practice-item"><div class="pnum">4</div><p>Count the number of employees per department using GROUP BY.</p></div>
+      <div class="practice-item"><div class="pnum">5</div><p>Find the average salary across all employees.</p></div>
+    </div>
+
+    <div class="practice-section">
+      <h4 class="plevel">🟡 Intermediate Exercises</h4>
+      <div class="practice-item"><div class="pnum">1</div><p>Find the top 5 highest-paid employees with their department.</p></div>
+      <div class="practice-item"><div class="pnum">2</div><p>Show only departments where the average salary exceeds 50,000.</p></div>
+      <div class="practice-item"><div class="pnum">3</div><p>Find all customers who have never placed an order (use NOT EXISTS or LEFT JOIN).</p></div>
+      <div class="practice-item"><div class="pnum">4</div><p>Update salaries using CASE: +1000 for HR, +2000 for Finance, no change otherwise.</p></div>
+      <div class="practice-item"><div class="pnum">5</div><p>Safely delete inactive records using a transaction with ROLLBACK for testing.</p></div>
+    </div>
+
+    <div class="practice-section">
+      <h4 class="plevel">🔴 Advanced Exercises</h4>
+      <div class="practice-item"><div class="pnum">1</div><p>Write a full monthly revenue report grouped by year and month with totals.</p></div>
+      <div class="practice-item"><div class="pnum">2</div><p>Identify and rewrite a slow query to be SARGable by removing functions from WHERE.</p></div>
+      <div class="practice-item"><div class="pnum">3</div><p>Design a normalized schema for a bank with accounts, customers, and transactions.</p></div>
+      <div class="practice-item"><div class="pnum">4</div><p>Implement a soft-delete strategy with an IsDeleted column and proper filtering.</p></div>
+      <div class="practice-item"><div class="pnum">5</div><p>Compare EXISTS vs IN for a subquery and explain when EXISTS performs better.</p></div>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 24 ═══════ -->
+  <section id="s24">
+    <h2 class="sec-title"><span class="num">24</span> Advanced Pro Tips</h2>
+
+    <div class="task-box">
+      <div class="task-label">Pro Tip 01</div>
+      <strong>Always test UPDATE and DELETE with SELECT first.</strong>
+      <div class="code-wrap" style="margin-top:12px;">
+        <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+        <pre><span class="cmt">-- Step 1: Verify the rows you'll affect</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees <span class="kw">WHERE</span> Department <span class="op">=</span> <span class="str">'HR'</span>;
+
+<span class="cmt">-- Step 2: Run the actual update</span>
+<span class="kw">UPDATE</span> Employees
+<span class="kw">SET</span> Salary <span class="op">=</span> Salary <span class="op">+</span> <span class="nm">1000</span>
+<span class="kw">WHERE</span> Department <span class="op">=</span> <span class="str">'HR'</span>;</pre>
+      </div>
+    </div>
+
+    <div class="task-box">
+      <div class="task-label">Pro Tip 02</div>
+      <strong>Wrap critical modifications in transactions.</strong>
+      <div class="code-wrap" style="margin-top:12px;">
+        <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+        <pre><span class="kw">BEGIN TRANSACTION</span>;
+
+<span class="kw">DELETE FROM</span> Orders
+<span class="kw">WHERE</span> OrderDate <span class="op">&lt;</span> <span class="str">'2020-01-01'</span>;
+
+<span class="cmt">-- Verify row count before committing</span>
+<span class="kw">ROLLBACK</span>; <span class="cmt">-- change to COMMIT when satisfied</span></pre>
+      </div>
+    </div>
+
+    <div class="task-box">
+      <div class="task-label">Pro Tip 03</div>
+      <strong>Index strategically — not excessively.</strong>
+      <p style="margin-top:8px;">Create indexes on columns used in <code>WHERE</code>, <code>JOIN</code>, and <code>ORDER BY</code>. Over-indexing slows INSERT, UPDATE, and DELETE. Review index usage with <code>sys.dm_db_index_usage_stats</code>.</p>
+    </div>
+
+    <div class="task-box">
+      <div class="task-label">Pro Tip 04</div>
+      <strong>Never use functions on indexed columns in WHERE.</strong>
+      <p style="margin-top:8px;">Wrapping a column in a function (e.g. <code>YEAR(OrderDate)</code>) prevents the query engine from using the index, causing full table scans. Use range comparisons instead.</p>
+    </div>
+
+    <div class="callout gem">
+      <span class="icon">💎</span>
+      <div class="cbody">
+        <div class="ctitle">Final Advice from the Author</div>
+        <p>SQL is not only about writing queries. Professional SQL development requires <strong>business understanding</strong>, <strong>performance optimization</strong>, <strong>data integrity</strong>, <strong>security awareness</strong>, <strong>production safety</strong>, and <strong>analytical thinking</strong>. The more real datasets you practice with, the faster you grow into a professional SQL developer, data analyst, or database engineer.</p>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /.wrapper -->
+
+<footer>
+  SQL Core Commands (T-SQL) &nbsp;·&nbsp; MD JABERUL HOSSEN JABED &nbsp;·&nbsp; Microsoft SQL Server
+</footer>
+
+</body>
+</html>

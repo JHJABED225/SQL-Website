@@ -694,7 +694,7 @@
     FirstName,
     LastName,
     Salary
-<span class="kw">FROM</span> Employees;</pre>
+<span class="kw">FROM</span> sales.employees;</pre>
     </div>
 
     <div class="tbl-wrap">
@@ -731,7 +731,7 @@
       <pre><span class="kw">SELECT</span>
     FirstName <span class="kw">AS</span> EmployeeFirstName,
     Salary    <span class="kw">AS</span> MonthlySalary
-<span class="kw">FROM</span> Employees;</pre>
+<span class="kw">FROM</span> sales.employees;</pre>
     </div>
 
     <h3 class="sub-title">Calculated Columns</h3>
@@ -743,7 +743,7 @@
     Salary <span class="op">*</span> <span class="nm">12</span> <span class="kw">AS</span> AnnualSalary,
     Salary <span class="op">*</span> <span class="nm">0.10</span> <span class="kw">AS</span> Bonus,
     Salary <span class="op">+</span> <span class="nm">5000</span> <span class="kw">AS</span> RevisedSalary
-<span class="kw">FROM</span> Employees;</pre>
+<span class="kw">FROM</span> sales.employees;</pre>
     </div>
 
     <h3 class="sub-title">String Concatenation</h3>
@@ -752,12 +752,12 @@
       <pre><span class="cmt">-- Basic concatenation</span>
 <span class="kw">SELECT</span>
     FirstName <span class="op">+</span> <span class="str">' '</span> <span class="op">+</span> LastName <span class="kw">AS</span> FullName
-<span class="kw">FROM</span> Employees;
+<span class="kw">FROM</span> sales.employees;
 
 <span class="cmt">-- NULL-safe concatenation using ISNULL</span>
 <span class="kw">SELECT</span>
     FirstName <span class="op">+</span> <span class="str">' '</span> <span class="op">+</span> <span class="fn">ISNULL</span>(LastName, <span class="str">''</span>) <span class="kw">AS</span> FullName
-<span class="kw">FROM</span> Employees;</pre>
+<span class="kw">FROM</span> sales.employees;</pre>
     </div>
 
     <div class="callout warn">
@@ -772,13 +772,13 @@
     <div class="code-wrap">
       <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
       <pre><span class="cmt">-- Finance: Bonus calculation</span>
-<span class="kw">SELECT</span> EmployeeID, Salary, Salary <span class="op">*</span> <span class="nm">0.10</span> <span class="kw">AS</span> Bonus <span class="kw">FROM</span> Employees;
+<span class="kw">SELECT</span> EmployeeID, Salary, Salary <span class="op">*</span> <span class="nm">0.10</span> <span class="kw">AS</span> Bonus <span class="kw">FROM</span> sales.employees;
 
 <span class="cmt">-- Sales: Tax estimation</span>
-<span class="kw">SELECT</span> OrderID, TotalAmount, TotalAmount <span class="op">*</span> <span class="nm">0.15</span> <span class="kw">AS</span> TaxAmount <span class="kw">FROM</span> Orders;
+<span class="kw">SELECT</span> OrderID, TotalAmount, TotalAmount <span class="op">*</span> <span class="nm">0.15</span> <span class="kw">AS</span> TaxAmount <span class="kw">FROM</span> sales.orders;
 
 <span class="cmt">-- Analytics: Profit calculation</span>
-<span class="kw">SELECT</span> ProductName, SalesAmount, SalesAmount <span class="op">-</span> CostPrice <span class="kw">AS</span> Profit <span class="kw">FROM</span> ProductSales;</pre>
+<span class="kw">SELECT</span> ProductName, SalesAmount, SalesAmount <span class="op">-</span> CostPrice <span class="kw">AS</span> Profit <span class="kw">FROM</span> sales.productSales;</pre>
     </div>
 
     <h3 class="sub-title">SARGability — Index-Friendly WHERE Clauses</h3>
@@ -841,8 +841,8 @@
       <pre><span class="kw">SELECT</span>
     c.CustomerName,
     o.TotalAmount
-<span class="kw">FROM</span> Customers c
-<span class="kw">INNER JOIN</span> Orders o
+<span class="kw">FROM</span> sales.customers c
+<span class="kw">INNER JOIN</span> sales.orders o
     <span class="kw">ON</span> c.CustomerID <span class="op">=</span> o.CustomerID;</pre>
     </div>
 
@@ -855,7 +855,7 @@
     <span class="kw">SELECT</span>
         Department,
         <span class="fn">AVG</span>(Salary) <span class="kw">AS</span> AvgSalary
-    <span class="kw">FROM</span> Employees
+    <span class="kw">FROM</span> sales.employees
     <span class="kw">GROUP BY</span> Department
 ) <span class="kw">AS</span> DepartmentSummary;</pre>
     </div>
@@ -898,30 +898,30 @@
     <div class="code-wrap">
       <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
       <pre><span class="cmt">-- AND: both conditions must be true</span>
-<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> sales.employees
 <span class="kw">WHERE</span> Department <span class="op">=</span> <span class="str">'HR'</span> <span class="kw">AND</span> Salary <span class="op">></span> <span class="nm">40000</span>;
 
 <span class="cmt">-- OR: either condition true</span>
-<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> sales.employees
 <span class="kw">WHERE</span> Department <span class="op">=</span> <span class="str">'HR'</span> <span class="kw">OR</span> Department <span class="op">=</span> <span class="str">'Finance'</span>;
 
 <span class="cmt">-- NOT: negates condition</span>
-<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> sales.employees
 <span class="kw">WHERE</span> <span class="kw">NOT</span> Department <span class="op">=</span> <span class="str">'HR'</span>;
 
 <span class="cmt">-- BETWEEN: inclusive range</span>
-<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> sales.employees
 <span class="kw">WHERE</span> Salary <span class="kw">BETWEEN</span> <span class="nm">40000</span> <span class="kw">AND</span> <span class="nm">70000</span>;
 
 <span class="cmt">-- IN: match any value in list</span>
-<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> sales.employees
 <span class="kw">WHERE</span> Department <span class="kw">IN</span> (<span class="str">'HR'</span>, <span class="str">'Finance'</span>, <span class="str">'Sales'</span>);
 
 <span class="cmt">-- EXISTS: check for related rows</span>
-<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Customers c
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> sales.customers c
 <span class="kw">WHERE EXISTS</span>
 (
-    <span class="kw">SELECT</span> <span class="nm">1</span> <span class="kw">FROM</span> Orders o
+    <span class="kw">SELECT</span> <span class="nm">1</span> <span class="kw">FROM</span> sales.orders o
     <span class="kw">WHERE</span> o.CustomerID <span class="op">=</span> c.CustomerID
 );</pre>
     </div>
@@ -948,13 +948,13 @@
     <div class="code-wrap">
       <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
       <pre><span class="cmt">-- ❌ Dangerous: AND binds before OR</span>
-<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> sales.employees 
 <span class="kw">WHERE</span> Department <span class="op">=</span> <span class="str">'HR'</span>
    <span class="kw">OR</span> Department <span class="op">=</span> <span class="str">'Finance'</span>
   <span class="kw">AND</span> Salary <span class="op">></span> <span class="nm">50000</span>;
 
 <span class="cmt">-- ✅ Correct: use parentheses</span>
-<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> sales.employees 
 <span class="kw">WHERE</span>
 (
     Department <span class="op">=</span> <span class="str">'HR'</span>
@@ -984,22 +984,22 @@
     <div class="code-wrap">
       <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
       <pre><span class="cmt">-- Ascending (default)</span>
-<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees <span class="kw">ORDER BY</span> Salary <span class="kw">ASC</span>;
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> sales.employees <span class="kw">ORDER BY</span> Salary <span class="kw">ASC</span>;
 
 <span class="cmt">-- Descending</span>
-<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees <span class="kw">ORDER BY</span> Salary <span class="kw">DESC</span>;
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> sales.employees <span class="kw">ORDER BY</span> Salary <span class="kw">DESC</span>;
 
 <span class="cmt">-- Multiple columns</span>
-<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> sales.employees
 <span class="kw">ORDER BY</span> Department <span class="kw">ASC</span>, Salary <span class="kw">DESC</span>;
 
 <span class="cmt">-- Sort by alias</span>
 <span class="kw">SELECT</span> Salary <span class="op">*</span> <span class="nm">12</span> <span class="kw">AS</span> AnnualSalary
-<span class="kw">FROM</span> Employees
+<span class="kw">FROM</span> sales.employees
 <span class="kw">ORDER BY</span> AnnualSalary <span class="kw">DESC</span>;
 
 <span class="cmt">-- Recent orders first</span>
-<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Orders <span class="kw">ORDER BY</span> OrderDate <span class="kw">DESC</span>;</pre>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> sales.orders <span class="kw">ORDER BY</span> OrderDate <span class="kw">DESC</span>;</pre>
     </div>
 
     <div class="callout tip">
@@ -1062,7 +1062,7 @@
       <div class="cbody">
         <div class="ctitle">Grouping Rule — Common Error</div>
         <p>Every non-aggregated column in SELECT <strong>must</strong> appear in GROUP BY. The query below will throw an error because <code>Salary</code> is neither aggregated nor grouped.<br>
-        <code>SELECT Department, Salary FROM Employees GROUP BY Department; ← Error!</code></p>
+        <code>SELECT Department, Salary FROM sales.employees GROUP BY Department; ← Error!</code></p>
       </div>
     </div>
   </section>
@@ -1091,7 +1091,7 @@
 <span class="kw">SELECT</span>
     Department,
     <span class="fn">AVG</span>(Salary) <span class="kw">AS</span> AvgSalary
-<span class="kw">FROM</span> Employees
+<span class="kw">FROM</span> sales.employees
 <span class="kw">GROUP BY</span> Department
 <span class="kw">HAVING</span> <span class="fn">AVG</span>(Salary) <span class="op">></span> <span class="nm">50000</span>;</pre>
     </div>
@@ -1117,7 +1117,7 @@
 <span class="kw">CREATE DATABASE</span> SalesDB;
 
 <span class="cmt">-- Create a table with constraints</span>
-<span class="kw">CREATE TABLE</span> Products
+<span class="kw">CREATE TABLE</span> sales.products
 (
     ProductID     <span class="kw">INT</span> <span class="kw">PRIMARY KEY</span>,
     ProductName   <span class="kw">VARCHAR</span>(<span class="nm">100</span>) <span class="kw">NOT NULL</span>,
@@ -1158,15 +1158,15 @@
     <div class="code-wrap">
       <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
       <pre><span class="cmt">-- Add a new column</span>
-<span class="kw">ALTER TABLE</span> Employees
+<span class="kw">ALTER TABLE</span> sales.employees
 <span class="kw">ADD</span> PhoneNumber <span class="kw">VARCHAR</span>(<span class="nm">20</span>);
 
 <span class="cmt">-- Modify column data type/length</span>
-<span class="kw">ALTER TABLE</span> Employees
+<span class="kw">ALTER TABLE</span> sales.employees
 <span class="kw">ALTER COLUMN</span> PhoneNumber <span class="kw">VARCHAR</span>(<span class="nm">30</span>);
 
 <span class="cmt">-- Add a CHECK constraint</span>
-<span class="kw">ALTER TABLE</span> Employees
+<span class="kw">ALTER TABLE</span> sales.employees
 <span class="kw">ADD CONSTRAINT</span> CK_Salary <span class="kw">CHECK</span> (Salary <span class="op">></span> <span class="nm">0</span>);</pre>
     </div>
 
@@ -1182,7 +1182,7 @@
     <div class="code-wrap">
       <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
       <pre><span class="cmt">-- Drop a table (irreversible without backup)</span>
-<span class="kw">DROP TABLE</span> Employees;
+<span class="kw">DROP TABLE</span> sales.employees;
 
 <span class="cmt">-- Drop a database</span>
 <span class="kw">DROP DATABASE</span> CompanyDB;</pre>
@@ -1311,7 +1311,7 @@
     <div class="code-wrap">
       <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
       <pre><span class="cmt">-- Starts with A</span>
-<span class="kw">WHERE</span> CustomerName <span class="kw">LIKE</span> <span class="str">'A%'</span>
+<span class="kw">WHERE</span> CustomerName <span class="kw">LIKE</span> <span class="tr">'A%'</span>
 
 <span class="cmt">-- Ends with 'son'</span>
 <span class="kw">WHERE</span> CustomerName <span class="kw">LIKE</span> <span class="str">'%son'</span>
@@ -1405,13 +1405,13 @@
     <div class="code-wrap">
       <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
       <pre><span class="cmt">-- Column alias</span>
-<span class="kw">SELECT</span> Salary <span class="kw">AS</span> MonthlySalary <span class="kw">FROM</span> Employees;
+<span class="kw">SELECT</span> Salary <span class="kw">AS</span> MonthlySalary <span class="kw">FROM</span> sales.employees;
 
 <span class="cmt">-- Table alias</span>
-<span class="kw">SELECT</span> e.FirstName <span class="kw">FROM</span> Employees e;
+<span class="kw">SELECT</span> e.FirstName <span class="kw">FROM</span> sales.employees e; 
 
 <span class="cmt">-- Multi-word alias (use brackets or quotes)</span>
-<span class="kw">SELECT</span> Salary <span class="kw">AS</span> [Monthly Salary] <span class="kw">FROM</span> Employees;</pre>
+<span class="kw">SELECT</span> Salary <span class="kw">AS</span> [Monthly Salary] <span class="kw">FROM</span> sales.employees;</pre>
     </div>
 
     <div class="tbl-wrap">
@@ -1434,20 +1434,20 @@
     <div class="code-wrap">
       <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
       <pre><span class="cmt">-- Total salary payroll</span>
-<span class="kw">SELECT</span> <span class="fn">SUM</span>(Salary) <span class="kw">AS</span> TotalPayroll <span class="kw">FROM</span> Employees;
+<span class="kw">SELECT</span> <span class="fn">SUM</span>(Salary) <span class="kw">AS</span> TotalPayroll <span class="kw">FROM</span> sales.employees;
 
 <span class="cmt">-- Average salary</span>
-<span class="kw">SELECT</span> <span class="fn">AVG</span>(Salary) <span class="kw">AS</span> AverageSalary <span class="kw">FROM</span> Employees;
+<span class="kw">SELECT</span> <span class="fn">AVG</span>(Salary) <span class="kw">AS</span> AverageSalary <span class="kw">FROM</span> sales.employees;
 
 <span class="cmt">-- Salary range</span>
 <span class="kw">SELECT</span>
     <span class="fn">MIN</span>(Salary) <span class="kw">AS</span> LowestSalary,
     <span class="fn">MAX</span>(Salary) <span class="kw">AS</span> HighestSalary
-<span class="kw">FROM</span> Employees;
+<span class="kw">FROM</span> sales.employees;
 
 <span class="cmt">-- Row counts</span>
-<span class="kw">SELECT</span> <span class="fn">COUNT</span>(<span class="op">*</span>) <span class="kw">AS</span> TotalRows          <span class="kw">FROM</span> Employees;
-<span class="kw">SELECT</span> <span class="fn">COUNT</span>(Email) <span class="kw">AS</span> EmailsOnFile   <span class="kw">FROM</span> Employees; <span class="cmt">-- NULLs excluded</span></pre>
+<span class="kw">SELECT</span> <span class="fn">COUNT</span>(<span class="op">*</span>) <span class="kw">AS</span> TotalRows          <span class="kw">FROM</span> sales.employees;
+<span class="kw">SELECT</span> <span class="fn">COUNT</span>(Email) <span class="kw">AS</span> EmailsOnFile   <span class="kw">FROM</span> sales.employees; <span class="cmt">-- NULLs excluded</span></pre>
     </div>
 
     <div class="callout info">
@@ -1467,10 +1467,10 @@
     <div class="code-wrap">
       <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
       <pre><span class="cmt">-- Unique departments</span>
-<span class="kw">SELECT DISTINCT</span> Department <span class="kw">FROM</span> Employees;
+<span class="kw">SELECT DISTINCT</span> Department <span class="kw">FROM</span> sales.employees;
 
 <span class="cmt">-- Unique combinations of department + status</span>
-<span class="kw">SELECT DISTINCT</span> Department, Status <span class="kw">FROM</span> Employees;</pre>
+<span class="kw">SELECT DISTINCT</span> Department, Status <span class="kw">FROM</span> sales.employees;</pre>
     </div>
 
     <div class="callout tip">
@@ -1490,15 +1490,15 @@
     <div class="code-wrap">
       <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
       <pre><span class="cmt">-- Top 5 employees</span>
-<span class="kw">SELECT TOP</span> <span class="nm">5</span> <span class="op">*</span> <span class="kw">FROM</span> Employees;
+<span class="kw">SELECT TOP</span> <span class="nm">5</span> <span class="op">*</span> <span class="kw">FROM</span> sales.employees;
 
 <span class="cmt">-- Top 5 highest paid (with ties)</span>
 <span class="kw">SELECT TOP</span> <span class="nm">5</span> <span class="kw">WITH TIES</span> <span class="op">*</span>
-<span class="kw">FROM</span> Employees
+<span class="kw">FROM</span> sales.employees
 <span class="kw">ORDER BY</span> Salary <span class="kw">DESC</span>;
 
 <span class="cmt">-- Pagination using OFFSET / FETCH NEXT</span>
-<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> sales.employees
 <span class="kw">ORDER BY</span> EmployeeID
 <span class="kw">OFFSET</span> <span class="nm">10</span> <span class="kw">ROWS</span>
 <span class="kw">FETCH NEXT</span> <span class="nm">10</span> <span class="kw">ROWS ONLY</span>;
@@ -1507,7 +1507,7 @@
 <span class="kw">SELECT TOP</span> <span class="nm">10</span>
     CustomerID,
     <span class="fn">SUM</span>(TotalAmount) <span class="kw">AS</span> TotalSpent
-<span class="kw">FROM</span> Orders
+<span class="kw">FROM</span> sales.orders
 <span class="kw">GROUP BY</span> CustomerID
 <span class="kw">ORDER BY</span> TotalSpent <span class="kw">DESC</span>;</pre>
     </div>
@@ -1604,7 +1604,7 @@
       <pre><span class="kw">SELECT</span>
     <span class="fn">MONTH</span>(OrderDate) <span class="kw">AS</span> OrderMonth,
     <span class="fn">SUM</span>(TotalAmount) <span class="kw">AS</span> Revenue
-<span class="kw">FROM</span> Orders
+<span class="kw">FROM</span> sales.orders
 <span class="kw">GROUP BY</span> <span class="fn">MONTH</span>(OrderDate)
 <span class="kw">ORDER BY</span> OrderMonth;</pre>
     </div>
@@ -1768,10 +1768,10 @@
       <div class="code-wrap" style="margin-top:12px;">
         <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
         <pre><span class="cmt">-- Step 1: Verify the rows you'll affect</span>
-<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Employees <span class="kw">WHERE</span> Department <span class="op">=</span> <span class="str">'HR'</span>;
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> sales.employees <span class="kw">WHERE</span> Department <span class="op">=</span> <span class="str">'HR'</span>;
 
 <span class="cmt">-- Step 2: Run the actual update</span>
-<span class="kw">UPDATE</span> Employees
+<span class="kw">UPDATE</span> sales.employees
 <span class="kw">SET</span> Salary <span class="op">=</span> Salary <span class="op">+</span> <span class="nm">1000</span>
 <span class="kw">WHERE</span> Department <span class="op">=</span> <span class="str">'HR'</span>;</pre>
       </div>

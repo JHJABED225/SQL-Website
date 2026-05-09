@@ -610,7 +610,7 @@
     <div class="code-wrap">
       <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
       <pre><span class="cmt">-- Employees table</span>
-<span class="kw">CREATE TABLE</span> Employees
+<span class="kw">CREATE TABLE</span> sales.employees
 (
     EmployeeID  <span class="kw">INT</span> <span class="fn">IDENTITY</span>(<span class="nm">1</span>,<span class="nm">1</span>) <span class="kw">PRIMARY KEY</span>,
     FirstName   <span class="kw">VARCHAR</span>(<span class="nm">50</span>),
@@ -624,7 +624,7 @@
 );
 
 <span class="cmt">-- Customers table</span>
-<span class="kw">CREATE TABLE</span> Customers
+<span class="kw">CREATE TABLE</span> sales.customers
 (
     CustomerID       <span class="kw">INT</span> <span class="fn">IDENTITY</span>(<span class="nm">1</span>,<span class="nm">1</span>) <span class="kw">PRIMARY KEY</span>,
     CustomerName     <span class="kw">VARCHAR</span>(<span class="nm">100</span>),
@@ -635,7 +635,7 @@
 );
 
 <span class="cmt">-- Orders table</span>
-<span class="kw">CREATE TABLE</span> Orders
+<span class="kw">CREATE TABLE</span> sales.orders
 (
     OrderID     <span class="kw">INT</span> <span class="fn">IDENTITY</span>(<span class="nm">1</span>,<span class="nm">1</span>) <span class="kw">PRIMARY KEY</span>,
     CustomerID  <span class="kw">INT</span>,
@@ -714,7 +714,7 @@
     <div class="code-wrap">
       <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
       <pre><span class="kw">SELECT</span> <span class="op">*</span>
-<span class="kw">FROM</span> Employees;</pre>
+<span class="kw">FROM</span> sales.employees;</pre>
     </div>
 
     <div class="callout danger">

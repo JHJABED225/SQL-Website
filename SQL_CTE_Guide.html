@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL Server CTE – Complete Learning Guide | MD Jaberul Hossen Jabed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2230;
+    --border: #30363d;
+    --accent: #f0a500;
+    --accent2: #3b82f6;
+    --accent3: #10b981;
+    --accent4: #ef4444;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --text-dim: #6e7681;
+    --warning: #f97316;
+    --tip: #a78bfa;
+    --code-bg: #0d1117;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', Georgia, serif;
+    font-size: 16px;
+    line-height: 1.75;
+  }
+
+  /* ── HEADER ──────────────────────────────────────────────── */
+  header {
+    position: relative;
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 55%, #1a2035 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 60px 40px 50px;
+    text-align: center;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 30% 50%, rgba(240,165,0,.07) 0%, transparent 60%),
+      radial-gradient(ellipse at 70% 50%, rgba(59,130,246,.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .header-badge {
+    display: inline-block;
+    background: rgba(240,165,0,.15);
+    border: 1px solid rgba(240,165,0,.4);
+    border-radius: 20px;
+    padding: 5px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: .06em;
+    margin-bottom: 20px;
+  }
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    color: #fff;
+    line-height: 1.15;
+    margin-bottom: 14px;
+    position: relative;
+  }
+  header h1 .hl { color: var(--accent); }
+  .sub {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    color: var(--text-muted);
+    max-width: 560px;
+    margin: 0 auto 18px;
+    font-size: 1.05rem;
+  }
+  .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: .04em;
+  }
+  .meta span { color: var(--accent); }
+
+  /* ── LAYOUT ──────────────────────────────────────────────── */
+  .wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 50px 32px 80px;
+  }
+  section { margin-bottom: 56px; }
+
+  /* ── TOC ─────────────────────────────────────────────────── */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 56px;
+  }
+  .toc-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: .8rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 18px;
+  }
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 4px 24px;
+  }
+  .toc a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+    text-decoration: none;
+    display: block;
+    padding: 3px 0;
+    transition: color .2s;
+  }
+  .toc a:hover { color: var(--accent); }
+  .toc-num { color: var(--text-dim); margin-right: 6px; }
+
+  /* ── SECTION TITLES ──────────────────────────────────────── */
+  .sec-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.55rem;
+    color: #fff;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 12px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .num {
+    background: var(--accent);
+    color: #000;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .75rem;
+    font-weight: 600;
+    border-radius: 4px;
+    padding: 2px 8px;
+    letter-spacing: .02em;
+    flex-shrink: 0;
+  }
+  h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--accent2);
+    margin: 24px 0 10px;
+  }
+  h4 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: .95rem;
+    color: var(--accent3);
+    margin: 20px 0 8px;
+  }
+  p { margin-bottom: 14px; }
+  p:last-child { margin-bottom: 0; }
+  ul, ol { padding-left: 22px; margin-bottom: 14px; }
+  li { margin-bottom: 6px; }
+
+  /* ── CODE BLOCKS ─────────────────────────────────────────── */
+  .code-wrap {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 18px 0;
+  }
+  .code-header {
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    gap: 8px;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .dot-r { background: #ef4444; }
+  .dot-y { background: #f59e0b; }
+  .dot-g { background: #10b981; }
+  .lang {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: .04em;
+  }
+  pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    padding: 20px 22px;
+    overflow-x: auto;
+    color: var(--text);
+    white-space: pre;
+  }
+  code {
+    background: rgba(240,165,0,.12);
+    color: var(--accent);
+    border: 1px solid rgba(240,165,0,.25);
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .85em;
+    padding: 1px 6px;
+  }
+  .kw  { color: #ff7b72; }
+  .fn  { color: #d2a8ff; }
+  .str { color: #a5d6ff; }
+  .num { color: #79c0ff; }
+  .cmt { color: #8b949e; font-style: italic; }
+  .op  { color: var(--accent); }
+
+  /* ── CALLOUTS ────────────────────────────────────────────── */
+  .callout {
+    display: flex;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: 8px;
+    margin: 18px 0;
+  }
+  .callout-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+  .callout-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 4px;
+  }
+  .callout.tip    { background: rgba(167,139,250,.1); border: 1px solid rgba(167,139,250,.3); color: var(--tip); }
+  .callout.warn   { background: rgba(249,115,22,.1);  border: 1px solid rgba(249,115,22,.3);  color: var(--warning); }
+  .callout.gem    { background: rgba(16,185,129,.1);  border: 1px solid rgba(16,185,129,.3);  color: var(--accent3); }
+  .callout.danger { background: rgba(239,68,68,.1);   border: 1px solid rgba(239,68,68,.3);   color: var(--accent4); }
+  .callout.info   { background: rgba(59,130,246,.1);  border: 1px solid rgba(59,130,246,.3);  color: var(--accent2); }
+  .callout p { color: var(--text); margin: 0; font-size: .95rem; }
+
+  /* ── SYNTAX BLOCK ────────────────────────────────────────── */
+  .syntax-block {
+    background: var(--surface);
+    border: 1px solid rgba(59,130,246,.3);
+    border-left: 4px solid var(--accent2);
+    border-radius: 8px;
+    padding: 18px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+    margin: 16px 0;
+    line-height: 1.8;
+    overflow-x: auto;
+  }
+
+  /* ── TABLES ──────────────────────────────────────────────── */
+  .tbl-wrap { overflow-x: auto; margin: 18px 0; border-radius: 10px; border: 1px solid var(--border); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+  }
+  thead tr { background: var(--surface2); border-bottom: 2px solid var(--border); }
+  thead th {
+    color: var(--accent);
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: .06em;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+  tbody tr:hover { background: rgba(255,255,255,.02); }
+  tbody tr:last-child { border-bottom: none; }
+  td { padding: 11px 16px; color: var(--text-muted); font-family: 'Lora', serif; font-size: 14px; }
+  td:first-child { color: var(--text); font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+  .yes, .good { color: var(--accent3); font-weight: 600; }
+  .no,  .bad  { color: var(--accent4); font-weight: 600; }
+
+  /* ── TASK BOX ────────────────────────────────────────────── */
+  .task-box {
+    background: linear-gradient(135deg, rgba(240,165,0,.08), rgba(240,165,0,.03));
+    border: 1px solid rgba(240,165,0,.35);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 20px 22px;
+    margin: 18px 0;
+  }
+  .task-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .task-box ol { padding-left: 18px; }
+  .task-box li { color: var(--text); font-size: .95rem; margin-bottom: 8px; }
+
+  /* ── PRACTICE SECTION ────────────────────────────────────── */
+  .practice-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 26px;
+    margin: 18px 0;
+  }
+  .practice-section h4 { font-family: 'Syne', sans-serif; color: var(--accent3); margin-top: 0; }
+  .practice-item {
+    background: var(--code-bg);
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin: 10px 0;
+  }
+  .pnum {
+    background: var(--accent3);
+    color: #000;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .practice-item p { margin: 0; color: var(--text); font-size: .93rem; }
+
+  /* ── GRID CARDS ──────────────────────────────────────────── */
+  .type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin: 18px 0;
+  }
+  .type-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .type-card-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    color: var(--accent2);
+    font-size: .95rem;
+    margin-bottom: 8px;
+  }
+  .type-card p { font-size: .9rem; color: var(--text-muted); margin: 0; }
+
+  .facts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin: 18px 0;
+  }
+  .fact-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .fact-icon { font-size: 1.5rem; margin-bottom: 8px; }
+  .fact-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  .fact-val { font-family: 'Syne', sans-serif; font-weight: 700; color: #fff; font-size: 1.05rem; }
+
+  .badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+  .badge {
+    background: rgba(59,130,246,.12);
+    border: 1px solid rgba(59,130,246,.3);
+    color: var(--accent2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    border-radius: 20px;
+    padding: 4px 14px;
+  }
+
+  /* ── INTERVIEW Q&A ───────────────────────────────────────── */
+  .qa-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 14px 0;
+    overflow: hidden;
+  }
+  .qa-q {
+    background: var(--surface2);
+    padding: 14px 18px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: .95rem;
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
+  }
+  .qa-q .qlabel {
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim);
+    margin-right: 8px;
+  }
+  .qa-a { padding: 16px 18px; font-size: .94rem; color: var(--text); }
+  .qa-a p { margin-bottom: 10px; }
+  .qa-a p:last-child { margin-bottom: 0; }
+
+  /* ── FOOTER ──────────────────────────────────────────────── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 20px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: .04em;
+  }
+  footer span { color: var(--accent); }
+
+  /* ── SCROLL TO TOP ───────────────────────────────────────── */
+  .back-top {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: var(--accent);
+    color: #000;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none;
+    box-shadow: 0 4px 18px rgba(240,165,0,.35);
+    transition: transform .2s;
+    z-index: 100;
+  }
+  .back-top:hover { transform: translateY(-3px); }
+
+  /* ── RESPONSIVE ──────────────────────────────────────────── */
+  @media (max-width: 640px) {
+    header { padding: 40px 20px 36px; }
+    .wrap { padding: 32px 18px 60px; }
+    .toc { padding: 20px 18px; }
+    .toc-grid { grid-template-columns: 1fr; }
+    pre { font-size: 12px; padding: 14px 14px; }
+    .sec-title { font-size: 1.25rem; }
+    .type-grid, .facts-grid { grid-template-columns: 1fr; }
+    .callout { flex-direction: column; gap: 8px; }
+    thead th, td { padding: 9px 10px; font-size: 13px; }
+    .back-top { bottom: 16px; right: 16px; }
+  }
+
+  /* ── VISUAL FLOW BOX ─────────────────────────────────────── */
+  .flow-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 18px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 2;
+    color: var(--text);
+    overflow-x: auto;
+  }
+  .flow-step { color: var(--accent); font-weight: 600; }
+  .flow-arrow { color: var(--text-dim); }
+
+  /* ── HIGHLIGHT BOX ───────────────────────────────────────── */
+  .highlight-box {
+    background: linear-gradient(135deg, rgba(59,130,246,.08), rgba(59,130,246,.03));
+    border: 1px solid rgba(59,130,246,.25);
+    border-left: 4px solid var(--accent2);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: .94rem;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header id="top">
+  <div class="header-badge">SQL Server T-SQL · Enterprise Learning Guide</div>
+  <h1>Common Table Expressions<br><span class="hl">(CTE) in SQL Server</span></h1>
+  <p class="sub">A complete beginner-to-advanced guide covering theory, recursion, optimization, business scenarios, and interview preparation.</p>
+  <div class="meta">Author: <span>MD Jaberul Hossen Jabed</span> &nbsp;·&nbsp; Platform: <span>SQL Server (T-SQL)</span> &nbsp;·&nbsp; Level: <span>Beginner → Advanced</span></div>
+</header>
+
+<div class="wrap">
+
+<!-- TABLE OF CONTENTS -->
+<nav class="toc">
+  <div class="toc-title">📋 Table of Contents</div>
+  <div class="toc-grid">
+    <a href="#s1"><span class="toc-num">01</span> What is a CTE?</a>
+    <a href="#s2"><span class="toc-num">02</span> Why Use CTEs?</a>
+    <a href="#s3"><span class="toc-num">03</span> How CTEs Work Internally</a>
+    <a href="#s4"><span class="toc-num">04</span> CTE Syntax Breakdown</a>
+    <a href="#s5"><span class="toc-num">05</span> Simple CTE Examples</a>
+    <a href="#s6"><span class="toc-num">06</span> Multiple CTEs</a>
+    <a href="#s7"><span class="toc-num">07</span> Recursive CTEs</a>
+    <a href="#s8"><span class="toc-num">08</span> Employee-Manager Hierarchy</a>
+    <a href="#s9"><span class="toc-num">09</span> Category Tree Structure</a>
+    <a href="#s10"><span class="toc-num">10</span> Date Series Generation</a>
+    <a href="#s11"><span class="toc-num">11</span> CTE with DML (INSERT/UPDATE/DELETE/MERGE)</a>
+    <a href="#s12"><span class="toc-num">12</span> CTE vs Subquery vs Temp Table vs View</a>
+    <a href="#s13"><span class="toc-num">13</span> Performance & Optimization</a>
+    <a href="#s14"><span class="toc-num">14</span> MAXRECURSION & Infinite Loops</a>
+    <a href="#s15"><span class="toc-num">15</span> Common Mistakes & Best Practices</a>
+    <a href="#s16"><span class="toc-num">16</span> Advanced Business Scenarios</a>
+    <a href="#s17"><span class="toc-num">17</span> Interview Questions & Answers</a>
+    <a href="#s18"><span class="toc-num">18</span> Practice Tasks</a>
+    <a href="#s19"><span class="toc-num">19</span> Summary</a>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 1 -->
+<section id="s1">
+  <h2 class="sec-title"><span class="num">01</span> What is a CTE?</h2>
+  <p>A <strong>Common Table Expression (CTE)</strong> is a named, temporary result set that you define within a single SQL statement. Think of it as giving a name to a complex query so you can refer to it simply, like a variable for a result set — but without creating any permanent database object.</p>
+
+  <div class="callout info">
+    <div class="callout-icon">ℹ️</div>
+    <div>
+      <div class="callout-title">Definition</div>
+      <p>A CTE provides a way to write auxiliary statements for use in a larger <code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, or <code>MERGE</code> statement. It exists only for the duration of a single query execution.</p>
+    </div>
+  </div>
+
+  <h3>Key Characteristics</h3>
+  <div class="facts-grid">
+    <div class="fact-card"><div class="fact-icon">⏱️</div><div class="fact-label">Lifetime</div><div class="fact-val">Single Query</div></div>
+    <div class="fact-card"><div class="fact-icon">💾</div><div class="fact-label">Storage</div><div class="fact-val">No Disk I/O</div></div>
+    <div class="fact-card"><div class="fact-icon">🔁</div><div class="fact-label">Recursion</div><div class="fact-val">Supported</div></div>
+    <div class="fact-card"><div class="fact-icon">🧩</div><div class="fact-label">Nestability</div><div class="fact-val">Multiple CTEs</div></div>
+    <div class="fact-card"><div class="fact-icon">📋</div><div class="fact-label">DML Support</div><div class="fact-val">Full</div></div>
+    <div class="fact-card"><div class="fact-icon">⚙️</div><div class="fact-label">Introduced</div><div class="fact-val">SQL Server 2005</div></div>
+  </div>
+
+  <p>Introduced in SQL Server 2005 as part of the ANSI SQL:1999 standard, CTEs have become one of the most powerful and readable features in T-SQL. They are especially valued for recursive operations like organizational hierarchies and bill-of-materials processing.</p>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 2 -->
+<section id="s2">
+  <h2 class="sec-title"><span class="num">02</span> Why Use CTEs?</h2>
+  <p>CTEs solve several real problems that arise when writing complex SQL:</p>
+
+  <div class="type-grid">
+    <div class="type-card">
+      <div class="type-card-title">🧹 Readability</div>
+      <p>Break one massive query into named, logical steps. Future you (and teammates) will thank you.</p>
+    </div>
+    <div class="type-card">
+      <div class="type-card-title">🔁 Reusability</div>
+      <p>Reference the same CTE multiple times in the outer query instead of repeating the subquery.</p>
+    </div>
+    <div class="type-card">
+      <div class="type-card-title">🌳 Recursion</div>
+      <p>Only CTEs (not subqueries or views) support recursive self-reference — essential for hierarchical data.</p>
+    </div>
+    <div class="type-card">
+      <div class="type-card-title">⚡ No Persistence</div>
+      <p>Zero schema pollution. No temp tables or views left behind — the CTE evaporates after the statement.</p>
+    </div>
+    <div class="type-card">
+      <div class="type-card-title">🛠️ DML Friendly</div>
+      <p>Use CTEs as the source for <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, and <code>MERGE</code> statements.</p>
+    </div>
+    <div class="type-card">
+      <div class="type-card-title">📐 Structured Thinking</div>
+      <p>Forces you to decompose the problem into clear stages, improving both development and debugging.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 3 -->
+<section id="s3">
+  <h2 class="sec-title"><span class="num">03</span> How CTEs Work Internally</h2>
+  <p>Understanding internals helps you write efficient CTEs and avoid surprises.</p>
+
+  <div class="callout warn">
+    <div class="callout-icon">⚠️</div>
+    <div>
+      <div class="callout-title">Common Misconception</div>
+      <p>CTEs are <strong>not</strong> materialized (pre-computed and cached) by default in SQL Server. The optimizer may inline the CTE definition wherever it is referenced — just like a subquery. This means a CTE referenced twice may execute twice.</p>
+    </div>
+  </div>
+
+  <h3>Execution Flow</h3>
+  <div class="flow-box">
+    <span class="flow-step">Step 1:</span> Parser reads the WITH clause and registers the CTE name.<br>
+    <span class="flow-arrow">  ↓</span><br>
+    <span class="flow-step">Step 2:</span> Query optimizer receives the full statement (CTE + main query).<br>
+    <span class="flow-arrow">  ↓</span><br>
+    <span class="flow-step">Step 3:</span> Optimizer may inline the CTE definition or spool it depending on cost.<br>
+    <span class="flow-arrow">  ↓</span><br>
+    <span class="flow-step">Step 4:</span> Execution plan is generated and executed.<br>
+    <span class="flow-arrow">  ↓</span><br>
+    <span class="flow-step">Step 5:</span> Results returned. CTE scope ends immediately.
+  </div>
+
+  <h3>Spool vs. Inline</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Behavior</th><th>When It Happens</th><th>Effect</th></tr></thead>
+      <tbody>
+        <tr><td>Inlined</td><td>Default — optimizer merges CTE into main query</td><td>No extra cost; CTE is "transparent"</td></tr>
+        <tr><td>Spooled (Row/Table Spool)</td><td>Recursive CTE or optimizer chooses it for join reuse</td><td>Results stored in tempdb worktable</td></tr>
+        <tr><td>Recursive Anchor</td><td>First part of a recursive CTE</td><td>Executed once; seeds the result set</td></tr>
+        <tr><td>Recursive Recursion</td><td>Second part references CTE itself</td><td>Repeated until no rows returned</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon">💡</div>
+    <div>
+      <div class="callout-title">Pro Tip</div>
+      <p>Use <code>SET STATISTICS IO ON</code> and check execution plans with <code>Ctrl+M</code> in SSMS to see exactly how SQL Server handles your CTE — whether it spools or inlines.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 4 -->
+<section id="s4">
+  <h2 class="sec-title"><span class="num">04</span> CTE Syntax Breakdown</h2>
+
+  <h3>Basic Syntax</h3>
+  <div class="syntax-block">
+<span class="kw">WITH</span> CTE_Name <span class="op">(</span>Column1, Column2, ...<span class="op">)</span>   <span class="cmt">-- optional column list</span><br>
+<span class="kw">AS</span> <span class="op">(</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt">-- CTE query definition</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">SELECT</span> ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">FROM</span> ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">WHERE</span> ...<br>
+<span class="op">)</span><br>
+<span class="cmt">-- Main query that uses the CTE</span><br>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> CTE_Name;
+  </div>
+
+  <h3>Syntax Rules</h3>
+  <ul>
+    <li>The <code>WITH</code> keyword must be the first word of the statement, OR it must be preceded by a semicolon if another statement appears before it.</li>
+    <li>The CTE name must be unique within the same <code>WITH</code> clause.</li>
+    <li>The column alias list is optional unless the inner query uses expressions without explicit aliases.</li>
+    <li>The final outer query (SELECT, INSERT, UPDATE, DELETE, MERGE) must immediately follow the CTE block with no intervening statements.</li>
+    <li>You <strong>cannot</strong> define indexes, defaults, or constraints on a CTE.</li>
+    <li>A CTE cannot reference itself unless it is a recursive CTE.</li>
+  </ul>
+
+  <div class="callout danger">
+    <div class="callout-icon">🚨</div>
+    <div>
+      <div class="callout-title">Important</div>
+      <p>Always use a semicolon (<code>;</code>) to terminate the statement before a <code>WITH</code> clause. If you don't, SQL Server may interpret <code>WITH</code> as part of the previous statement.</p>
+    </div>
+  </div>
+
+  <h3>Semicolon Best Practice</h3>
+  <div class="code-wrap">
+    <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+    <pre><span class="cmt">-- ✔ Safe approach: always precede WITH with a semicolon</span>
+<span class="op">;</span><span class="kw">WITH</span> MyCTE <span class="kw">AS</span>
+<span class="op">(</span>
+    <span class="kw">SELECT</span> EmployeeID, Name, Salary
+    <span class="kw">FROM</span> Employees
+<span class="op">)</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> MyCTE;</pre>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 5 -->
+<section id="s5">
+  <h2 class="sec-title"><span class="num">05</span> Simple CTE Examples</h2>
+
+  <h3>Setup: Sample Tables</h3>
+  <div class="code-wrap">
+    <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL · Setup</span></div>
+    <pre><span class="cmt">-- Employees table</span>
+<span class="kw">CREATE TABLE</span> Employees (
+    EmployeeID   <span class="fn">INT</span>          <span class="kw">PRIMARY KEY</span>,
+    Name         <span class="fn">VARCHAR</span>(<span class="num">100</span>),
+    Department   <span class="fn">VARCHAR</span>(<span class="num">50</span>),
+    Salary       <span class="fn">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>),
+    ManagerID    <span class="fn">INT</span> <span class="kw">NULL</span>,     <span class="cmt">-- NULL = top-level manager</span>
+    HireDate     <span class="fn">DATE</span>
+);
+
+<span class="kw">INSERT INTO</span> Employees <span class="kw">VALUES</span>
+(<span class="num">1</span>,  <span class="str">'Alice Johnson'</span>,  <span class="str">'Executive'</span>,    <span class="num">120000</span>, <span class="kw">NULL</span>, <span class="str">'2015-03-01'</span>),
+(<span class="num">2</span>,  <span class="str">'Bob Smith'</span>,      <span class="str">'Engineering'</span>,  <span class="num">95000</span>,  <span class="num">1</span>,    <span class="str">'2017-06-15'</span>),
+(<span class="num">3</span>,  <span class="str">'Carol White'</span>,   <span class="str">'Engineering'</span>,  <span class="num">88000</span>,  <span class="num">2</span>,    <span class="str">'2018-09-10'</span>),
+(<span class="num">4</span>,  <span class="str">'David Brown'</span>,   <span class="str">'Sales'</span>,        <span class="num">75000</span>,  <span class="num">1</span>,    <span class="str">'2019-01-20'</span>),
+(<span class="num">5</span>,  <span class="str">'Eva Davis'</span>,     <span class="str">'Sales'</span>,        <span class="num">68000</span>,  <span class="num">4</span>,    <span class="str">'2020-05-01'</span>),
+(<span class="num">6</span>,  <span class="str">'Frank Lee'</span>,     <span class="str">'Engineering'</span>,  <span class="num">92000</span>,  <span class="num">2</span>,    <span class="str">'2016-11-30'</span>),
+(<span class="num">7</span>,  <span class="str">'Grace Kim'</span>,     <span class="str">'HR'</span>,           <span class="num">72000</span>,  <span class="num">1</span>,    <span class="str">'2021-02-14'</span>),
+(<span class="num">8</span>,  <span class="str">'Henry Patel'</span>,   <span class="str">'Engineering'</span>,  <span class="num">85000</span>,  <span class="num">3</span>,    <span class="str">'2022-07-01'</span>);</pre>
+  </div>
+
+  <h3>Example 1 – Above-Average Salary</h3>
+  <div class="code-wrap">
+    <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+    <pre><span class="op">;</span><span class="kw">WITH</span> AvgSalary <span class="kw">AS</span>
+<span class="op">(</span>
+    <span class="kw">SELECT</span> <span class="fn">AVG</span>(Salary) <span class="kw">AS</span> AvgPay
+    <span class="kw">FROM</span>  Employees
+<span class="op">)</span>
+<span class="kw">SELECT</span> e.Name, e.Department, e.Salary
+<span class="kw">FROM</span>   Employees e
+<span class="kw">JOIN</span>   AvgSalary a <span class="kw">ON</span> e.Salary <span class="op">&gt;</span> a.AvgPay
+<span class="kw">ORDER BY</span> e.Salary <span class="kw">DESC</span>;</pre>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Name</th><th>Department</th><th>Salary</th></tr></thead>
+      <tbody>
+        <tr><td>Alice Johnson</td><td>Executive</td><td>120,000.00</td></tr>
+        <tr><td>Bob Smith</td><td>Engineering</td><td>95,000.00</td></tr>
+        <tr><td>Frank Lee</td><td>Engineering</td><td>92,000.00</td></tr>
+        <tr><td>Carol White</td><td>Engineering</td><td>88,000.00</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Line-by-line explanation:</strong> The CTE <code>AvgSalary</code> computes a single number — the company-wide average salary ($86,437.50). The outer query joins every employee row against that single-row CTE. Only rows where the employee's salary exceeds the average pass through.</p>
+
+  <h3>Example 2 – Department Summary</h3>
+  <div class="code-wrap">
+    <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+    <pre><span class="op">;</span><span class="kw">WITH</span> DeptStats <span class="kw">AS</span>
+<span class="op">(</span>
+    <span class="kw">SELECT</span>
+        Department,
+        <span class="fn">COUNT</span>(<span class="op">*</span>)       <span class="kw">AS</span> HeadCount,
+        <span class="fn">AVG</span>(Salary)     <span class="kw">AS</span> AvgSalary,
+        <span class="fn">MAX</span>(Salary)     <span class="kw">AS</span> MaxSalary,
+        <span class="fn">MIN</span>(Salary)     <span class="kw">AS</span> MinSalary
+    <span class="kw">FROM</span>   Employees
+    <span class="kw">GROUP BY</span> Department
+<span class="op">)</span>
+<span class="kw">SELECT</span> <span class="op">*</span>
+<span class="kw">FROM</span>   DeptStats
+<span class="kw">WHERE</span>  HeadCount <span class="op">&gt;=</span> <span class="num">2</span>
+<span class="kw">ORDER BY</span> AvgSalary <span class="kw">DESC</span>;</pre>
+  </div>
+  <p>The CTE aggregates all employees by department. The outer query then filters only departments with at least 2 people — a filter you cannot easily push into a <code>WHERE</code> clause (it would need <code>HAVING</code>), but with a CTE it reads like plain English.</p>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 6 -->
+<section id="s6">
+  <h2 class="sec-title"><span class="num">06</span> Multiple CTEs</h2>
+  <p>You can chain multiple CTEs in a single <code>WITH</code> clause, separated by commas. Later CTEs can reference earlier ones, allowing step-by-step data pipeline logic.</p>
+
+  <h3>Syntax</h3>
+  <div class="syntax-block">
+<span class="kw">WITH</span><br>
+&nbsp;&nbsp;CTE_One <span class="kw">AS</span> <span class="op">(</span> ... <span class="op">)</span>,<br>
+&nbsp;&nbsp;CTE_Two <span class="kw">AS</span> <span class="op">(</span> <span class="cmt">-- can reference CTE_One</span> ... <span class="op">)</span>,<br>
+&nbsp;&nbsp;CTE_Three <span class="kw">AS</span> <span class="op">(</span> <span class="cmt">-- can reference CTE_One and CTE_Two</span> ... <span class="op">)</span><br>
+<span class="kw">SELECT</span> ... <span class="kw">FROM</span> CTE_Three ...;
+  </div>
+
+  <h3>Business Example – Sales Pipeline Report</h3>
+  <div class="code-wrap">
+    <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL</span></div>
+    <pre><span class="op">;</span><span class="kw">WITH</span>
+<span class="cmt">-- Step 1: Summarize sales per employee per month</span>
+MonthlySales <span class="kw">AS</span>
+<span class="op">(</span>
+    <span class="kw">SELECT</span>
+        EmployeeID,
+        <span class="fn">FORMAT</span>(SaleDate, <span class="str">'yyyy-MM'</span>) <span class="kw">AS</span> SaleMonth,
+        <span class="fn">SUM</span>(Amount) <span class="kw">AS</span> TotalSales
+    <span class="kw">FROM</span>   Sales
+    <span class="kw">GROUP BY</span> EmployeeID, <span class="fn">FORMAT</span>(SaleDate, <span class="str">'yyyy-MM'</span>)
+<span class="op">)</span>,
+<span class="cmt">-- Step 2: Rank employees within each month</span>
+RankedSales <span class="kw">AS</span>
+<span class="op">(</span>
+    <span class="kw">SELECT</span>
+        ms.EmployeeID,
+        e.Name,
+        ms.SaleMonth,
+        ms.TotalSales,
+        <span class="fn">RANK</span>() <span class="kw">OVER</span> (<span class="kw">PARTITION BY</span> ms.SaleMonth <span class="kw">ORDER BY</span> ms.TotalSales <span class="kw">DESC</span>) <span class="kw">AS</span> SaleRank
+    <span class="kw">FROM</span>   MonthlySales ms
+    <span class="kw">JOIN</span>   Employees e <span class="kw">ON</span> ms.EmployeeID <span class="op">=</span> e.EmployeeID
+<span class="op">)</span>
+<span class="cmt">-- Step 3: Pick top-3 each month</span>
+<span class="kw">SELECT</span> SaleMonth, Name, TotalSales, SaleRank
+<span class="kw">FROM</span>   RankedSales
+<span class="kw">WHERE</span>  SaleRank <span class="op">&lt;=</span> <span class="num">3</span>
+<span class="kw">ORDER BY</span> SaleMonth, SaleRank;</pre>
+  </div>
+  <p>Notice how the pipeline reads clearly: aggregate → rank → filter. Each step is self-documenting. Without CTEs, this would be deeply nested subqueries that are very hard to debug.</p>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 7 -->
+<section id="s7">
+  <h2 class="sec-title"><span class="num">07</span> Recursive CTEs</h2>
+  <p>A recursive CTE references itself, allowing it to traverse hierarchical or graph-structured data — trees, org charts, bill of materials, network paths. It is one of the most powerful features of SQL.</p>
+
+  <h3>Structure</h3>
+  <div class="syntax-block">
+<span class="kw">WITH</span> RecursiveCTE <span class="kw">AS</span>
+<span class="op">(</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt">-- 1. ANCHOR MEMBER: the starting rows (no self-reference)</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">SELECT</span> ... <span class="kw">FROM</span> BaseTable <span class="kw">WHERE</span> &lt;base condition&gt;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">UNION ALL</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt">-- 2. RECURSIVE MEMBER: self-reference builds the next level</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">SELECT</span> ... <span class="kw">FROM</span> BaseTable bt<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">JOIN</span> RecursiveCTE r <span class="kw">ON</span> bt.ParentID <span class="op">=</span> r.ChildID<br>
+<span class="op">)</span><br>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> RecursiveCTE;
+  </div>
+
+  <h3>Step-by-Step Execution Visualization</h3>
+  <div class="flow-box">
+<span class="flow-step">Iteration 0 (Anchor):</span>  Execute anchor SELECT → produce initial result set R0<br>
+<span class="flow-arrow">                    ↓</span><br>
+<span class="flow-step">Iteration 1:</span>         JOIN BaseTable ON ... WHERE parent IN R0 → produce R1<br>
+<span class="flow-arrow">                    ↓</span><br>
+<span class="flow-step">Iteration 2:</span>         JOIN BaseTable ON ... WHERE parent IN R1 → produce R2<br>
+<span class="flow-arrow">                    ↓</span><br>
+<span class="flow-step">...</span>                  Continue until recursive member returns 0 rows<br>
+<span class="flow-arrow">                    ↓</span><br>
+<span class="flow-step">Final Result:</span>        UNION ALL of R0 ∪ R1 ∪ R2 ∪ ... ∪ Rn
+  </div>
+
+  <div class="callout gem">
+    <div class="callout-icon">💎</div>
+    <div>
+      <div class="callout-title">Key Rule</div>
+      <p>The recursive member must use <code>UNION ALL</code> (not <code>UNION</code>, <code>INTERSECT</code>, or <code>EXCEPT</code>). The anchor and recursive parts must have the same number of columns with compatible data types. Aggregates (<code>GROUP BY</code>, <code>HAVING</code>, <code>SUM</code>, etc.) are not allowed in the recursive member.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 8 -->
+<section id="s8">
+  <h2 class="sec-title"><span class="num">08</span> Employee-Manager Hierarchy</h2>
+  <p>The classic use case: traverse an org chart from CEO down to every individual contributor.</p>
+
+  <div class="code-wrap">
+    <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL · Recursive Hierarchy</span></div>
+    <pre><span class="op">;</span><span class="kw">WITH</span> OrgChart <span class="kw">AS</span>
+<span class="op">(</span>
+    <span class="cmt">-- ANCHOR: top-level employee (no manager)</span>
+    <span class="kw">SELECT</span>
+        EmployeeID,
+        Name,
+        ManagerID,
+        <span class="num">0</span>                        <span class="kw">AS</span> Level,
+        <span class="fn">CAST</span>(Name <span class="kw">AS</span> <span class="fn">VARCHAR</span>(<span class="num">1000</span>)) <span class="kw">AS</span> HierarchyPath
+    <span class="kw">FROM</span>   Employees
+    <span class="kw">WHERE</span>  ManagerID <span class="kw">IS NULL</span>
+
+    <span class="kw">UNION ALL</span>
+
+    <span class="cmt">-- RECURSIVE: join next level</span>
+    <span class="kw">SELECT</span>
+        e.EmployeeID,
+        e.Name,
+        e.ManagerID,
+        oc.Level <span class="op">+</span> <span class="num">1</span>,
+        <span class="fn">CAST</span>(oc.HierarchyPath <span class="op">+</span> <span class="str">' → '</span> <span class="op">+</span> e.Name <span class="kw">AS</span> <span class="fn">VARCHAR</span>(<span class="num">1000</span>))
+    <span class="kw">FROM</span>   Employees e
+    <span class="kw">JOIN</span>   OrgChart  oc <span class="kw">ON</span> e.ManagerID <span class="op">=</span> oc.EmployeeID
+<span class="op">)</span>
+<span class="kw">SELECT</span>
+    <span class="fn">REPLICATE</span>(<span class="str">'    '</span>, Level) <span class="op">+</span> Name <span class="kw">AS</span> OrgView,
+    Level,
+    HierarchyPath
+<span class="kw">FROM</span>   OrgChart
+<span class="kw">ORDER BY</span> HierarchyPath;</pre>
+  </div>
+
+  <h3>Expected Output</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>OrgView</th><th>Level</th><th>HierarchyPath</th></tr></thead>
+      <tbody>
+        <tr><td>Alice Johnson</td><td>0</td><td>Alice Johnson</td></tr>
+        <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;Bob Smith</td><td>1</td><td>Alice Johnson → Bob Smith</td></tr>
+        <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Carol White</td><td>2</td><td>Alice Johnson → Bob Smith → Carol White</td></tr>
+        <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Henry Patel</td><td>3</td><td>Alice Johnson → Bob Smith → Carol White → Henry Patel</td></tr>
+        <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Frank Lee</td><td>2</td><td>Alice Johnson → Bob Smith → Frank Lee</td></tr>
+        <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;David Brown</td><td>1</td><td>Alice Johnson → David Brown</td></tr>
+        <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Eva Davis</td><td>2</td><td>Alice Johnson → David Brown → Eva Davis</td></tr>
+        <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;Grace Kim</td><td>1</td><td>Alice Johnson → Grace Kim</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Recursive Traversal Visualization</h3>
+  <div class="flow-box">
+<span class="flow-step">Anchor  →</span>  [Alice Johnson] (Level 0)<br>
+<span class="flow-step">Iter 1  →</span>  [Bob Smith, David Brown, Grace Kim] (Level 1) — all report to Alice<br>
+<span class="flow-step">Iter 2  →</span>  [Carol White, Frank Lee, Eva Davis] (Level 2)<br>
+<span class="flow-step">Iter 3  →</span>  [Henry Patel] (Level 3) — reports to Carol<br>
+<span class="flow-step">Iter 4  →</span>  0 rows returned → recursion STOPS<br>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 9 -->
+<section id="s9">
+  <h2 class="sec-title"><span class="num">09</span> Category Tree Structure</h2>
+  <p>E-commerce and content management systems frequently store product categories or content folders as self-referencing trees. CTEs traverse these naturally.</p>
+
+  <div class="code-wrap">
+    <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL · Category Tree</span></div>
+    <pre><span class="kw">CREATE TABLE</span> Categories (
+    CategoryID   <span class="fn">INT</span> <span class="kw">PRIMARY KEY</span>,
+    CategoryName <span class="fn">VARCHAR</span>(<span class="num">100</span>),
+    ParentID     <span class="fn">INT</span> <span class="kw">NULL</span>   <span class="cmt">-- NULL = root category</span>
+);
+
+<span class="kw">INSERT INTO</span> Categories <span class="kw">VALUES</span>
+(<span class="num">1</span>, <span class="str">'Electronics'</span>,   <span class="kw">NULL</span>),
+(<span class="num">2</span>, <span class="str">'Computers'</span>,      <span class="num">1</span>),
+(<span class="num">3</span>, <span class="str">'Laptops'</span>,        <span class="num">2</span>),
+(<span class="num">4</span>, <span class="str">'Gaming Laptops'</span>, <span class="num">3</span>),
+(<span class="num">5</span>, <span class="str">'Phones'</span>,         <span class="num">1</span>),
+(<span class="num">6</span>, <span class="str">'Smartphones'</span>,    <span class="num">5</span>),
+(<span class="num">7</span>, <span class="str">'Clothing'</span>,       <span class="kw">NULL</span>),
+(<span class="num">8</span>, <span class="str">'Men''s'</span>,          <span class="num">7</span>);
+
+<span class="op">;</span><span class="kw">WITH</span> CategoryTree <span class="kw">AS</span>
+<span class="op">(</span>
+    <span class="kw">SELECT</span>
+        CategoryID,
+        CategoryName,
+        ParentID,
+        <span class="num">0</span>                              <span class="kw">AS</span> Depth,
+        <span class="fn">CAST</span>(CategoryName <span class="kw">AS</span> <span class="fn">NVARCHAR</span>(<span class="num">500</span>)) <span class="kw">AS</span> FullPath
+    <span class="kw">FROM</span>   Categories
+    <span class="kw">WHERE</span>  ParentID <span class="kw">IS NULL</span>
+
+    <span class="kw">UNION ALL</span>
+
+    <span class="kw">SELECT</span>
+        c.CategoryID,
+        c.CategoryName,
+        c.ParentID,
+        ct.Depth <span class="op">+</span> <span class="num">1</span>,
+        <span class="fn">CAST</span>(ct.FullPath <span class="op">+</span> <span class="str">' &gt; '</span> <span class="op">+</span> c.CategoryName <span class="kw">AS</span> <span class="fn">NVARCHAR</span>(<span class="num">500</span>))
+    <span class="kw">FROM</span>   Categories c
+    <span class="kw">JOIN</span>   CategoryTree ct <span class="kw">ON</span> c.ParentID <span class="op">=</span> ct.CategoryID
+<span class="op">)</span>
+<span class="kw">SELECT</span>
+    <span class="fn">REPLICATE</span>(<span class="str">'── '</span>, Depth) <span class="op">+</span> CategoryName <span class="kw">AS</span> Tree,
+    FullPath
+<span class="kw">FROM</span>   CategoryTree
+<span class="kw">ORDER BY</span> FullPath;</pre>
+  </div>
+
+  <div class="callout gem">
+    <div class="callout-icon">💎</div>
+    <div>
+      <div class="callout-title">Real-World Applications</div>
+      <p>This same pattern powers: product category navigation, file system browsing, organizational reporting, menu systems, geographic region rollups, and comment thread nesting.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 10 -->
+<section id="s10">
+  <h2 class="sec-title"><span class="num">10</span> Date Series Generation</h2>
+  <p>Generating a complete sequence of dates without gaps is a classic reporting requirement. A recursive CTE can produce one row per day, month, or any interval — without needing a calendar table.</p>
+
+  <div class="code-wrap">
+    <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL · Date Series</span></div>
+    <pre><span class="cmt">-- Generate every day in a 3-month range</span>
+<span class="op">;</span><span class="kw">WITH</span> DateSeries <span class="kw">AS</span>
+<span class="op">(</span>
+    <span class="kw">SELECT</span> <span class="fn">CAST</span>(<span class="str">'2024-01-01'</span> <span class="kw">AS</span> <span class="fn">DATE</span>) <span class="kw">AS</span> dt   <span class="cmt">-- Anchor: start date</span>
+
+    <span class="kw">UNION ALL</span>
+
+    <span class="kw">SELECT</span> <span class="fn">DATEADD</span>(DAY, <span class="num">1</span>, dt)               <span class="cmt">-- Recursive: +1 day each step</span>
+    <span class="kw">FROM</span>   DateSeries
+    <span class="kw">WHERE</span>  dt <span class="op">&lt;</span> <span class="str">'2024-03-31'</span>                 <span class="cmt">-- Termination condition</span>
+<span class="op">)</span>
+<span class="kw">SELECT</span>
+    dt <span class="kw">AS</span> ReportDate,
+    <span class="fn">DATENAME</span>(WEEKDAY, dt)   <span class="kw">AS</span> DayName,
+    <span class="fn">MONTH</span>(dt)               <span class="kw">AS</span> MonthNum
+<span class="kw">FROM</span>   DateSeries
+<span class="kw">OPTION</span> (<span class="fn">MAXRECURSION</span> <span class="num">366</span>);  <span class="cmt">-- Allow up to 366 iterations for full year</span></pre>
+  </div>
+
+  <h3>Revenue by Day (Left Join to Keep Zero-Sales Days)</h3>
+  <div class="code-wrap">
+    <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL · Revenue Trend</span></div>
+    <pre><span class="op">;</span><span class="kw">WITH</span> DateSeries <span class="kw">AS</span>
+<span class="op">(</span>
+    <span class="kw">SELECT</span> <span class="fn">CAST</span>(<span class="str">'2024-01-01'</span> <span class="kw">AS</span> <span class="fn">DATE</span>) <span class="kw">AS</span> dt
+    <span class="kw">UNION ALL</span>
+    <span class="kw">SELECT</span> <span class="fn">DATEADD</span>(DAY, <span class="num">1</span>, dt) <span class="kw">FROM</span> DateSeries <span class="kw">WHERE</span> dt <span class="op">&lt;</span> <span class="str">'2024-01-31'</span>
+<span class="op">)</span>
+<span class="kw">SELECT</span>
+    ds.dt                       <span class="kw">AS</span> SaleDate,
+    <span class="fn">ISNULL</span>(<span class="fn">SUM</span>(s.Amount), <span class="num">0</span>)   <span class="kw">AS</span> DailyRevenue
+<span class="kw">FROM</span>       DateSeries ds
+<span class="kw">LEFT JOIN</span>  Sales      s  <span class="kw">ON</span>  <span class="fn">CAST</span>(s.SaleDate <span class="kw">AS</span> <span class="fn">DATE</span>) <span class="op">=</span> ds.dt
+<span class="kw">GROUP BY</span>   ds.dt
+<span class="kw">ORDER BY</span>   ds.dt
+<span class="kw">OPTION</span>    (<span class="fn">MAXRECURSION</span> <span class="num">100</span>);</pre>
+  </div>
+  <p>Without the date series CTE, days with no sales would be missing from the result. The <code>LEFT JOIN</code> ensures every date appears, with revenue defaulting to 0.</p>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 11 -->
+<section id="s11">
+  <h2 class="sec-title"><span class="num">11</span> CTE with DML Operations</h2>
+
+  <h3>CTE with INSERT</h3>
+  <div class="code-wrap">
+    <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL · INSERT</span></div>
+    <pre><span class="op">;</span><span class="kw">WITH</span> NewHires <span class="kw">AS</span>
+<span class="op">(</span>
+    <span class="kw">SELECT</span> Name, Department, Salary, HireDate
+    <span class="kw">FROM</span>  StagingEmployees    <span class="cmt">-- staging table from ETL</span>
+    <span class="kw">WHERE</span> HireDate <span class="op">&gt;=</span> <span class="str">'2024-01-01'</span>
+<span class="op">)</span>
+<span class="kw">INSERT INTO</span> Employees (Name, Department, Salary, HireDate)
+<span class="kw">SELECT</span> Name, Department, Salary, HireDate <span class="kw">FROM</span> NewHires;</pre>
+  </div>
+
+  <h3>CTE with UPDATE</h3>
+  <div class="code-wrap">
+    <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL · UPDATE</span></div>
+    <pre><span class="cmt">-- Give Engineering employees a 10% raise</span>
+<span class="op">;</span><span class="kw">WITH</span> EngineeringStaff <span class="kw">AS</span>
+<span class="op">(</span>
+    <span class="kw">SELECT</span> EmployeeID, Salary
+    <span class="kw">FROM</span>  Employees
+    <span class="kw">WHERE</span> Department <span class="op">=</span> <span class="str">'Engineering'</span>
+<span class="op">)</span>
+<span class="kw">UPDATE</span> EngineeringStaff
+<span class="kw">SET</span>    Salary <span class="op">=</span> Salary <span class="op">*</span> <span class="num">1.10</span>;</pre>
+  </div>
+
+  <h3>CTE with DELETE</h3>
+  <div class="code-wrap">
+    <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL · DELETE (with ROW_NUMBER)</span></div>
+    <pre><span class="cmt">-- Remove duplicate email records, keeping only the most recent one</span>
+<span class="op">;</span><span class="kw">WITH</span> Dupes <span class="kw">AS</span>
+<span class="op">(</span>
+    <span class="kw">SELECT</span>
+        CustomerID,
+        Email,
+        <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span> (
+            <span class="kw">PARTITION BY</span> Email
+            <span class="kw">ORDER BY</span> CreatedAt <span class="kw">DESC</span>
+        ) <span class="kw">AS</span> rn
+    <span class="kw">FROM</span> Customers
+<span class="op">)</span>
+<span class="kw">DELETE FROM</span> Dupes
+<span class="kw">WHERE</span>  rn <span class="op">&gt;</span> <span class="num">1</span>;   <span class="cmt">-- keep rn=1 (most recent), delete all others</span></pre>
+  </div>
+
+  <div class="callout gem">
+    <div class="callout-icon">💎</div>
+    <div>
+      <div class="callout-title">De-duplication Pattern</div>
+      <p>The CTE + <code>ROW_NUMBER()</code> + <code>DELETE WHERE rn &gt; 1</code> pattern is the standard, reliable way to remove duplicate rows in SQL Server. It is safer and more readable than <code>NOT IN</code> or <code>NOT EXISTS</code> alternatives.</p>
+    </div>
+  </div>
+
+  <h3>CTE with MERGE</h3>
+  <div class="code-wrap">
+    <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL · MERGE (Upsert)</span></div>
+    <pre><span class="op">;</span><span class="kw">WITH</span> SourceData <span class="kw">AS</span>
+<span class="op">(</span>
+    <span class="kw">SELECT</span> ProductID, ProductName, Price, Stock
+    <span class="kw">FROM</span>  StageProducts
+    <span class="kw">WHERE</span> LoadDate <span class="op">=</span> <span class="fn">CAST</span>(<span class="fn">GETDATE</span>() <span class="kw">AS</span> <span class="fn">DATE</span>)
+<span class="op">)</span>
+<span class="kw">MERGE</span> Products <span class="kw">AS</span> tgt
+<span class="kw">USING</span> SourceData <span class="kw">AS</span> src
+    <span class="kw">ON</span> tgt.ProductID <span class="op">=</span> src.ProductID
+<span class="kw">WHEN MATCHED THEN</span>
+    <span class="kw">UPDATE SET</span> tgt.Price <span class="op">=</span> src.Price, tgt.Stock <span class="op">=</span> src.Stock
+<span class="kw">WHEN NOT MATCHED BY TARGET THEN</span>
+    <span class="kw">INSERT</span> (ProductID, ProductName, Price, Stock)
+    <span class="kw">VALUES</span> (src.ProductID, src.ProductName, src.Price, src.Stock)
+<span class="kw">WHEN NOT MATCHED BY SOURCE THEN</span>
+    <span class="kw">UPDATE SET</span> tgt.IsActive <span class="op">=</span> <span class="num">0</span>;   <span class="cmt">-- soft-delete removed products</span></pre>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 12 -->
+<section id="s12">
+  <h2 class="sec-title"><span class="num">12</span> CTE vs Subquery vs Temp Table vs View</h2>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>CTE</th>
+          <th>Subquery</th>
+          <th>Temp Table</th>
+          <th>View</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Lifetime</td>
+          <td>Single statement</td>
+          <td>Single statement</td>
+          <td>Session / explicit drop</td>
+          <td>Permanent until dropped</td>
+        </tr>
+        <tr>
+          <td>Materialized</td>
+          <td class="no">Usually No</td>
+          <td class="no">No</td>
+          <td class="yes">Yes</td>
+          <td class="no">No (unless indexed)</td>
+        </tr>
+        <tr>
+          <td>Recursion</td>
+          <td class="yes">✔ Yes</td>
+          <td class="no">✘ No</td>
+          <td class="no">✘ No</td>
+          <td class="no">✘ No</td>
+        </tr>
+        <tr>
+          <td>Schema object</td>
+          <td class="no">No</td>
+          <td class="no">No</td>
+          <td class="no">No (session-scoped)</td>
+          <td class="yes">Yes</td>
+        </tr>
+        <tr>
+          <td>Indexable</td>
+          <td class="no">No</td>
+          <td class="no">No</td>
+          <td class="yes">Yes</td>
+          <td class="yes">Yes (indexed views)</td>
+        </tr>
+        <tr>
+          <td>Reuse across queries</td>
+          <td class="no">No</td>
+          <td class="no">No</td>
+          <td class="yes">Yes (same session)</td>
+          <td class="yes">Yes (all sessions)</td>
+        </tr>
+        <tr>
+          <td>Readability</td>
+          <td class="yes">High</td>
+          <td class="no">Low (nested)</td>
+          <td>Medium</td>
+          <td class="yes">High</td>
+        </tr>
+        <tr>
+          <td>DML source</td>
+          <td class="yes">Yes</td>
+          <td class="yes">Yes</td>
+          <td class="yes">Yes</td>
+          <td>Limited</td>
+        </tr>
+        <tr>
+          <td>Best for</td>
+          <td>Complex single query, recursion</td>
+          <td>Simple inline filters</td>
+          <td>Large intermediate data, reuse</td>
+          <td>Shared reusable logic</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon">💡</div>
+    <div>
+      <div class="callout-title">Decision Guide</div>
+      <p>Use a <strong>CTE</strong> when writing a complex single query that benefits from named intermediate steps. Use a <strong>Temp Table</strong> when the intermediate result set is large (millions of rows) and will be used multiple times or needs indexing. Use a <strong>View</strong> when the logic is shared across many queries or teams. Use a <strong>Subquery</strong> only for simple inline filtering.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 13 -->
+<section id="s13">
+  <h2 class="sec-title"><span class="num">13</span> Performance & Optimization</h2>
+
+  <h3>CTE Performance Fundamentals</h3>
+  <p>Because non-recursive CTEs are typically inlined, their performance is usually equivalent to the equivalent subquery. However, there are important nuances:</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Scenario</th><th>Behavior</th><th>Recommendation</th></tr></thead>
+      <tbody>
+        <tr><td>CTE referenced once</td><td>Inlined; optimizer treats it as a subquery</td><td>Use CTE freely — no overhead</td></tr>
+        <tr><td>CTE referenced twice+</td><td>May execute twice (no automatic caching)</td><td>Consider <code>#temp</code> table if expensive</td></tr>
+        <tr><td>Recursive CTE (shallow)</td><td>Row spooling in tempdb; fast for small hierarchies</td><td>Works well up to ~10,000 rows</td></tr>
+        <tr><td>Recursive CTE (deep/wide)</td><td>Spool grows; potential memory pressure</td><td>Use indexed #temp or HierarchyID type</td></tr>
+        <tr><td>CTE over large table, no filter</td><td>Full scans if no predicate pushdown</td><td>Add WHERE in the CTE or verify plan</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Checking the Execution Plan</h3>
+  <div class="code-wrap">
+    <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL · Statistics</span></div>
+    <pre><span class="kw">SET STATISTICS IO ON</span>;
+<span class="kw">SET STATISTICS TIME ON</span>;
+
+<span class="op">;</span><span class="kw">WITH</span> MyCTE <span class="kw">AS</span> (<span class="kw">SELECT</span> ... <span class="kw">FROM</span> BigTable <span class="kw">WHERE</span> ...)
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> MyCTE;
+
+<span class="cmt">-- Check Messages tab in SSMS for logical reads and elapsed time
+-- Use Ctrl+M (Include Actual Execution Plan) for visual plan</span></pre>
+  </div>
+
+  <h3>Optimization Example – CTE vs Temp Table</h3>
+  <div class="code-wrap">
+    <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL · Comparison</span></div>
+    <pre><span class="cmt">-- CTE approach (may re-execute if referenced twice)</span>
+<span class="op">;</span><span class="kw">WITH</span> BigCalc <span class="kw">AS</span>
+<span class="op">(</span>
+    <span class="kw">SELECT</span> CustomerID, <span class="fn">SUM</span>(Amount) TotalSpend
+    <span class="kw">FROM</span>  Orders  <span class="cmt">-- 10 million rows</span>
+    <span class="kw">GROUP BY</span> CustomerID
+<span class="op">)</span>
+<span class="kw">SELECT</span> c.Name, b.TotalSpend
+<span class="kw">FROM</span>   BigCalc b <span class="kw">JOIN</span> Customers c <span class="kw">ON</span> b.CustomerID <span class="op">=</span> c.CustomerID
+<span class="kw">WHERE</span>  b.TotalSpend <span class="op">&gt;</span> <span class="num">10000</span>;
+
+<span class="cmt">-- Better for large data — materialize first, then index</span>
+<span class="kw">SELECT</span> CustomerID, <span class="fn">SUM</span>(Amount) TotalSpend
+<span class="kw">INTO</span>   #BigCalc
+<span class="kw">FROM</span>   Orders
+<span class="kw">GROUP BY</span> CustomerID;
+
+<span class="kw">CREATE INDEX</span> IX_BigCalc <span class="kw">ON</span> #BigCalc (CustomerID);
+
+<span class="kw">SELECT</span> c.Name, b.TotalSpend
+<span class="kw">FROM</span>   #BigCalc b <span class="kw">JOIN</span> Customers c <span class="kw">ON</span> b.CustomerID <span class="op">=</span> c.CustomerID
+<span class="kw">WHERE</span>  b.TotalSpend <span class="op">&gt;</span> <span class="num">10000</span>;</pre>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 14 -->
+<section id="s14">
+  <h2 class="sec-title"><span class="num">14</span> MAXRECURSION & Infinite Loops</h2>
+
+  <h3>The MAXRECURSION Option</h3>
+  <p>SQL Server protects against infinite recursion by limiting the default number of recursive iterations to <strong>100</strong>. If your recursion exceeds this, you get an error:</p>
+
+  <div class="callout danger">
+    <div class="callout-icon">🚨</div>
+    <div>
+      <div class="callout-title">Error Message</div>
+      <p><em>The statement terminated. The maximum recursion 100 has been exhausted before statement completion.</em></p>
+    </div>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL · MAXRECURSION</span></div>
+    <pre><span class="op">;</span><span class="kw">WITH</span> LargeHierarchy <span class="kw">AS</span>
+<span class="op">(</span>
+    <span class="kw">SELECT</span> NodeID, ParentID, <span class="num">0</span> <span class="kw">AS</span> Level <span class="kw">FROM</span> Tree <span class="kw">WHERE</span> ParentID <span class="kw">IS NULL</span>
+    <span class="kw">UNION ALL</span>
+    <span class="kw">SELECT</span> t.NodeID, t.ParentID, lh.Level <span class="op">+</span> <span class="num">1</span>
+    <span class="kw">FROM</span>   Tree t <span class="kw">JOIN</span> LargeHierarchy lh <span class="kw">ON</span> t.ParentID <span class="op">=</span> lh.NodeID
+<span class="op">)</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> LargeHierarchy
+<span class="kw">OPTION</span> (<span class="fn">MAXRECURSION</span> <span class="num">500</span>);  <span class="cmt">-- allow up to 500 levels</span>
+
+<span class="cmt">-- Use MAXRECURSION 0 to allow UNLIMITED recursion (dangerous!)</span>
+<span class="kw">OPTION</span> (<span class="fn">MAXRECURSION</span> <span class="num">0</span>);</pre>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Value</th><th>Meaning</th><th>Use Case</th></tr></thead>
+      <tbody>
+        <tr><td>100 (default)</td><td>Max 100 recursion levels</td><td>Most shallow hierarchies</td></tr>
+        <tr><td>1–32767</td><td>Custom limit</td><td>Known deep trees, date series</td></tr>
+        <tr><td>0</td><td>Unlimited</td><td>Only with guaranteed termination</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Preventing Infinite Recursion</h3>
+  <p>Infinite recursion happens when the termination condition is never met — usually caused by circular references in data (e.g., Employee A reports to B, and B reports to A).</p>
+
+  <div class="code-wrap">
+    <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL · Cycle Detection</span></div>
+    <pre><span class="op">;</span><span class="kw">WITH</span> SafeHierarchy <span class="kw">AS</span>
+<span class="op">(</span>
+    <span class="kw">SELECT</span>
+        EmployeeID,
+        ManagerID,
+        <span class="num">0</span> <span class="kw">AS</span> Level,
+        <span class="fn">CAST</span>(<span class="str">','</span> <span class="op">+</span> <span class="fn">CAST</span>(EmployeeID <span class="kw">AS</span> <span class="fn">VARCHAR</span>) <span class="op">+</span> <span class="str">','</span> <span class="kw">AS</span> <span class="fn">VARCHAR</span>(<span class="num">1000</span>)) <span class="kw">AS</span> Visited
+    <span class="kw">FROM</span>   Employees <span class="kw">WHERE</span> ManagerID <span class="kw">IS NULL</span>
+
+    <span class="kw">UNION ALL</span>
+
+    <span class="kw">SELECT</span>
+        e.EmployeeID,
+        e.ManagerID,
+        sh.Level <span class="op">+</span> <span class="num">1</span>,
+        sh.Visited <span class="op">+</span> <span class="fn">CAST</span>(e.EmployeeID <span class="kw">AS</span> <span class="fn">VARCHAR</span>) <span class="op">+</span> <span class="str">','</span>
+    <span class="kw">FROM</span>   Employees e
+    <span class="kw">JOIN</span>   SafeHierarchy sh <span class="kw">ON</span> e.ManagerID <span class="op">=</span> sh.EmployeeID
+    <span class="kw">WHERE</span>  sh.Visited <span class="kw">NOT LIKE</span> <span class="str">'%,'</span> <span class="op">+</span> <span class="fn">CAST</span>(e.EmployeeID <span class="kw">AS</span> <span class="fn">VARCHAR</span>) <span class="op">+</span> <span class="str">','</span>  <span class="cmt">-- cycle check</span>
+<span class="op">)</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> SafeHierarchy;</pre>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 15 -->
+<section id="s15">
+  <h2 class="sec-title"><span class="num">15</span> Common Mistakes & Best Practices</h2>
+
+  <h3>Common Mistakes</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Mistake</th><th>Problem</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Missing semicolon before WITH</td>
+          <td>Parse error — SQL Server treats WITH as part of previous statement</td>
+          <td>Always write <code>;WITH</code> or place a <code>;</code> on a line by itself before</td>
+        </tr>
+        <tr>
+          <td>Referencing CTE outside its query</td>
+          <td>CTE is out of scope — "invalid object name" error</td>
+          <td>Keep CTE and its consuming query as one statement</td>
+        </tr>
+        <tr>
+          <td>UNION instead of UNION ALL in recursion</td>
+          <td>Syntax error — SQL Server requires UNION ALL in recursive member</td>
+          <td>Always use <code>UNION ALL</code> between anchor and recursive parts</td>
+        </tr>
+        <tr>
+          <td>Aggregate in recursive member</td>
+          <td>Not allowed — GROUP BY, HAVING, SUM etc. are prohibited</td>
+          <td>Move aggregation to the final outer SELECT</td>
+        </tr>
+        <tr>
+          <td>Assuming CTE is cached</td>
+          <td>CTE referenced twice executes twice — performance issue</td>
+          <td>Use #temp table when result is expensive and reused</td>
+        </tr>
+        <tr>
+          <td>No termination condition in recursive member</td>
+          <td>Infinite loop → MAXRECURSION error</td>
+          <td>Always include a WHERE clause that stops the recursion</td>
+        </tr>
+        <tr>
+          <td>ORDER BY inside CTE</td>
+          <td>ORDER BY in a subquery/CTE has no effect (or errors)</td>
+          <td>Place ORDER BY only in the final SELECT</td>
+        </tr>
+        <tr>
+          <td>Column count mismatch in recursive parts</td>
+          <td>Error: "The number of columns in the two SELECT statements do not match"</td>
+          <td>Anchor and recursive members must have the same number of columns</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Best Practices</h3>
+  <div class="badge-row">
+    <span class="badge">Always use ;WITH</span>
+    <span class="badge">Name CTEs descriptively</span>
+    <span class="badge">Filter early in CTE</span>
+    <span class="badge">Set explicit MAXRECURSION</span>
+    <span class="badge">Check execution plans</span>
+    <span class="badge">Prefer temp tables for large reused sets</span>
+    <span class="badge">Test recursion depth</span>
+    <span class="badge">Add cycle detection</span>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon">💡</div>
+    <div>
+      <div class="callout-title">Naming Convention</div>
+      <p>Use descriptive CTE names that reflect the business logic — e.g., <code>ActiveCustomersWithOrders</code>, <code>MonthlyRevenueByRegion</code>, <code>OrgChartLevel3</code>. Avoid generic names like <code>CTE1</code>, <code>temp</code>, or <code>data</code>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 16 -->
+<section id="s16">
+  <h2 class="sec-title"><span class="num">16</span> Advanced Business Scenarios</h2>
+
+  <h3>Scenario 1 – Recursive Bill of Materials (BOM)</h3>
+  <p>Manufacturing systems track how products are made from components, which are themselves made of sub-components — a classic multi-level BOM tree.</p>
+  <div class="code-wrap">
+    <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL · BOM</span></div>
+    <pre><span class="op">;</span><span class="kw">WITH</span> BOM <span class="kw">AS</span>
+<span class="op">(</span>
+    <span class="kw">SELECT</span>
+        b.ParentProductID,
+        b.ChildProductID,
+        p.ProductName,
+        b.Quantity,
+        <span class="num">1</span> <span class="kw">AS</span> Level,
+        b.Quantity <span class="kw">AS</span> TotalQty
+    <span class="kw">FROM</span>   BillOfMaterials b
+    <span class="kw">JOIN</span>   Products p <span class="kw">ON</span> b.ChildProductID <span class="op">=</span> p.ProductID
+    <span class="kw">WHERE</span>  b.ParentProductID <span class="op">=</span> <span class="num">1001</span>   <span class="cmt">-- root product ID</span>
+
+    <span class="kw">UNION ALL</span>
+
+    <span class="kw">SELECT</span>
+        b2.ParentProductID,
+        b2.ChildProductID,
+        p2.ProductName,
+        b2.Quantity,
+        bom.Level <span class="op">+</span> <span class="num">1</span>,
+        bom.TotalQty <span class="op">*</span> b2.Quantity   <span class="cmt">-- cumulative quantity</span>
+    <span class="kw">FROM</span>   BillOfMaterials b2
+    <span class="kw">JOIN</span>   Products p2 <span class="kw">ON</span> b2.ChildProductID <span class="op">=</span> p2.ProductID
+    <span class="kw">JOIN</span>   BOM <span class="kw">ON</span> b2.ParentProductID <span class="op">=</span> BOM.ChildProductID
+<span class="op">)</span>
+<span class="kw">SELECT</span>
+    <span class="fn">REPLICATE</span>(<span class="str">'  '</span>, Level) <span class="op">+</span> ProductName <span class="kw">AS</span> Component,
+    Level,
+    TotalQty <span class="kw">AS</span> RequiredQty
+<span class="kw">FROM</span>   BOM
+<span class="kw">ORDER BY</span> Level, ProductName;</pre>
+  </div>
+
+  <h3>Scenario 2 – Financial Ledger Chain</h3>
+  <p>Trace a chain of financial transactions — each transaction references the previous one (e.g., journal entry corrections, linked invoices, or payment chains).</p>
+  <div class="code-wrap">
+    <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL · Ledger Chain</span></div>
+    <pre><span class="op">;</span><span class="kw">WITH</span> TxChain <span class="kw">AS</span>
+<span class="op">(</span>
+    <span class="kw">SELECT</span>
+        TxID, Amount, TxDate, PrevTxID,
+        Amount <span class="kw">AS</span> RunningBalance,
+        <span class="num">1</span> <span class="kw">AS</span> ChainStep
+    <span class="kw">FROM</span>   Transactions
+    <span class="kw">WHERE</span>  PrevTxID <span class="kw">IS NULL</span>   <span class="cmt">-- origin transaction</span>
+
+    <span class="kw">UNION ALL</span>
+
+    <span class="kw">SELECT</span>
+        t.TxID, t.Amount, t.TxDate, t.PrevTxID,
+        tc.RunningBalance <span class="op">+</span> t.Amount,
+        tc.ChainStep <span class="op">+</span> <span class="num">1</span>
+    <span class="kw">FROM</span>   Transactions t
+    <span class="kw">JOIN</span>   TxChain tc <span class="kw">ON</span> t.PrevTxID <span class="op">=</span> tc.TxID
+<span class="op">)</span>
+<span class="kw">SELECT</span> ChainStep, TxDate, Amount, RunningBalance
+<span class="kw">FROM</span>   TxChain
+<span class="kw">ORDER BY</span> ChainStep;</pre>
+  </div>
+
+  <h3>Scenario 3 – Social Network Relationship Traversal</h3>
+  <p>Find all connections reachable from a given user within N degrees (e.g., LinkedIn "2nd degree connections").</p>
+  <div class="code-wrap">
+    <div class="code-header"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="lang">T-SQL · Social Graph</span></div>
+    <pre><span class="op">;</span><span class="kw">WITH</span> Network <span class="kw">AS</span>
+<span class="op">(</span>
+    <span class="kw">SELECT</span>
+        UserID, ConnectedUserID, <span class="num">1</span> <span class="kw">AS</span> Degree,
+        <span class="fn">CAST</span>(UserID <span class="kw">AS</span> <span class="fn">VARCHAR</span>(<span class="num">100</span>)) <span class="op">+</span> <span class="str">'->'</span> <span class="op">+</span>
+          <span class="fn">CAST</span>(ConnectedUserID <span class="kw">AS</span> <span class="fn">VARCHAR</span>(<span class="num">100</span>)) <span class="kw">AS</span> Path
+    <span class="kw">FROM</span>   Connections
+    <span class="kw">WHERE</span>  UserID <span class="op">=</span> <span class="num">42</span>   <span class="cmt">-- starting user</span>
+
+    <span class="kw">UNION ALL</span>
+
+    <span class="kw">SELECT</span>
+        c.UserID, c.ConnectedUserID, n.Degree <span class="op">+</span> <span class="num">1</span>,
+        n.Path <span class="op">+</span> <span class="str">'->'</span> <span class="op">+</span> <span class="fn">CAST</span>(c.ConnectedUserID <span class="kw">AS</span> <span class="fn">VARCHAR</span>(<span class="num">100</span>))
+    <span class="kw">FROM</span>   Connections c
+    <span class="kw">JOIN</span>   Network n <span class="kw">ON</span> c.UserID <span class="op">=</span> n.ConnectedUserID
+    <span class="kw">WHERE</span>  n.Degree <span class="op">&lt;</span> <span class="num">3</span>   <span class="cmt">-- stop at 3rd degree</span>
+      <span class="kw">AND</span>  n.Path <span class="kw">NOT LIKE</span> <span class="str">'%'</span> <span class="op">+</span> <span class="fn">CAST</span>(c.ConnectedUserID <span class="kw">AS</span> <span class="fn">VARCHAR</span>) <span class="op">+</span> <span class="str">'%'</span>
+<span class="op">)</span>
+<span class="kw">SELECT DISTINCT</span> ConnectedUserID, Degree, Path <span class="kw">FROM</span> Network <span class="kw">ORDER BY</span> Degree;</pre>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 17 -->
+<section id="s17">
+  <h2 class="sec-title"><span class="num">17</span> Interview Questions & Answers</h2>
+
+  <h3>Beginner Level</h3>
+
+  <div class="qa-item">
+    <div class="qa-q"><span class="qlabel">Q1 ·</span> What is a CTE and how is it different from a subquery?</div>
+    <div class="qa-a">
+      <p>A CTE (Common Table Expression) is a named temporary result set defined with the <code>WITH</code> keyword before a query. Like a subquery, it exists only for the duration of one statement, but differs in key ways: it has a name (reusable within the same query), it can be recursive, and it greatly improves readability. A subquery is anonymous and embedded inline; a CTE sits at the top, named and readable.</p>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q"><span class="qlabel">Q2 ·</span> Can a CTE be used with INSERT, UPDATE, and DELETE?</div>
+    <div class="qa-a">
+      <p>Yes. You can write a CTE that defines which rows to modify, and then issue an <code>UPDATE</code> or <code>DELETE</code> directly against the CTE. For example, the classic de-duplication pattern uses <code>ROW_NUMBER()</code> inside a CTE and then <code>DELETE WHERE rn &gt; 1</code> to remove duplicates cleanly.</p>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q"><span class="qlabel">Q3 ·</span> Can you define multiple CTEs in one statement?</div>
+    <div class="qa-a">
+      <p>Yes. You use a single <code>WITH</code> keyword and separate each CTE with a comma. Later CTEs can reference earlier ones. This enables a step-by-step data pipeline within a single SQL statement — for example: aggregate → rank → filter.</p>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q"><span class="qlabel">Q4 ·</span> Is a CTE materialized (stored in memory or disk)?</div>
+    <div class="qa-a">
+      <p>By default, non-recursive CTEs are <strong>not materialized</strong>. The SQL Server optimizer typically inlines the CTE definition wherever it is referenced, similar to how a subquery works. However, recursive CTEs use an internal spool (row buffer) in tempdb during execution. If you need guaranteed materialization, use a <code>#temp</code> table instead.</p>
+    </div>
+  </div>
+
+  <h3>Intermediate Level</h3>
+
+  <div class="qa-item">
+    <div class="qa-q"><span class="qlabel">Q5 ·</span> Why must you use UNION ALL (not UNION) in a recursive CTE?</div>
+    <div class="qa-a">
+      <p>SQL Server's recursive CTE syntax requires <code>UNION ALL</code> between the anchor and recursive members. <code>UNION</code> (which removes duplicates) is not permitted because: (1) duplicate elimination inside the recursion would require sorting and comparing all previous rows at every iteration — too expensive; (2) duplicates in recursive hierarchies are often meaningful (same node reachable via different paths). If you need distinct final results, apply <code>DISTINCT</code> or <code>GROUP BY</code> in the outer SELECT.</p>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q"><span class="qlabel">Q6 ·</span> What is the default MAXRECURSION value and when would you change it?</div>
+    <div class="qa-a">
+      <p>The default is <strong>100</strong>. You would increase it when processing hierarchies deeper than 100 levels (e.g., large org charts, deep BOM structures), or when generating date/number series longer than 100 rows. Use <code>OPTION (MAXRECURSION 0)</code> only when you are absolutely certain the recursion terminates — for example, iterating over a fixed list. Never use 0 on untrusted data without cycle detection.</p>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q"><span class="qlabel">Q7 ·</span> When would you choose a temp table over a CTE?</div>
+    <div class="qa-a">
+      <p>Choose a <code>#temp</code> table when: (1) the intermediate result set is very large (millions of rows) and referenced more than once — CTEs may re-execute; (2) you need to add an index to the intermediate data to speed up subsequent joins; (3) you need to reuse the result across multiple separate statements in the same session.</p>
+    </div>
+  </div>
+
+  <h3>Advanced Level</h3>
+
+  <div class="qa-item">
+    <div class="qa-q"><span class="qlabel">Q8 ·</span> How do you detect and prevent circular references in a recursive CTE?</div>
+    <div class="qa-a">
+      <p>The most common technique is to build a <strong>path string</strong> (e.g., <code>',1,3,7,'</code>) as you recurse, and in the recursive member's <code>WHERE</code> clause check that the next node ID is not already in the path using <code>NOT LIKE '%,nodeID,%'</code>. This stops the recursion if a cycle is detected. Alternatively, add a <code>Level &lt; MaxDepth</code> guard as a safety net. In production systems, data integrity constraints (e.g., preventing self-referential parent IDs) are the first line of defense.</p>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q"><span class="qlabel">Q9 ·</span> Explain how you would use a CTE to de-duplicate rows, preserving only the most recent record per group.</div>
+    <div class="qa-a">
+      <p>Use <code>ROW_NUMBER() OVER (PARTITION BY &lt;group key&gt; ORDER BY &lt;tie-breaker DESC&gt;)</code> inside the CTE. This assigns rank 1 to the row you want to keep (most recent, based on a date or ID). Then in the outer statement, <code>DELETE FROM the_cte WHERE rn &gt; 1</code>. Because the CTE is updatable (it maps 1:1 to the base table), the delete propagates correctly to the underlying rows.</p>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q"><span class="qlabel">Q10 ·</span> Scenario: You have a 50-level deep product hierarchy (BOM) and your recursive CTE throws a MAXRECURSION error. Walk through your solution.</div>
+    <div class="qa-a">
+      <p><strong>Step 1:</strong> Determine the actual depth — query the data to find the true max depth (e.g., with a preliminary recursive CTE using <code>OPTION (MAXRECURSION 0)</code> with a Level &lt; 100 guard).<br>
+      <strong>Step 2:</strong> Add <code>OPTION (MAXRECURSION 500)</code> (or the appropriate value) to the query hint.<br>
+      <strong>Step 3:</strong> Add a cycle-detection mechanism in the recursive member's WHERE clause to protect against circular BOM data.<br>
+      <strong>Step 4:</strong> For very wide or deep BOMs (10,000+ nodes), consider pre-flattening the hierarchy into a closure table or using the <code>HierarchyID</code> data type for O(log n) path operations.</p>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q"><span class="qlabel">Q11 ·</span> How does a CTE compare to an indexed view in terms of performance?</div>
+    <div class="qa-a">
+      <p>An indexed view (materialized view) stores its result set on disk with a clustered index, making queries against it extremely fast for read-heavy workloads. A CTE is computed on demand every time the query runs — it is never persisted. For reports that run frequently on expensive aggregations over large tables, an indexed view or a pre-aggregated summary table will outperform a CTE significantly. Use CTEs for query readability and single-use logic; use indexed views for frequently-queried, stable aggregations.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 18 -->
+<section id="s18">
+  <h2 class="sec-title"><span class="num">18</span> Practice Tasks</h2>
+
+  <div class="practice-section">
+    <h4>🟢 Beginner Tasks</h4>
+    <div class="practice-item"><span class="pnum">1</span><p>Write a CTE that returns all employees hired in the last 2 years, then use it to list their names and departments.</p></div>
+    <div class="practice-item"><span class="pnum">2</span><p>Create a CTE named <code>TopDepts</code> that finds departments with more than 2 employees. Use it to display department names and headcount.</p></div>
+    <div class="practice-item"><span class="pnum">3</span><p>Write a CTE to compute average salary per department, then select all departments where average salary exceeds $80,000.</p></div>
+    <div class="practice-item"><span class="pnum">4</span><p>Use a CTE with <code>ROW_NUMBER()</code> to rank employees by salary within each department and return the top earner per department.</p></div>
+  </div>
+
+  <div class="practice-section">
+    <h4>🟡 Intermediate Tasks</h4>
+    <div class="practice-item"><span class="pnum">5</span><p>Write two chained CTEs: the first computes monthly sales totals per product; the second ranks products by total sales per month. Return rank 1 products per month.</p></div>
+    <div class="practice-item"><span class="pnum">6</span><p>Use a CTE with <code>DELETE</code> to remove all duplicate customer records (same email), keeping only the oldest registration date.</p></div>
+    <div class="practice-item"><span class="pnum">7</span><p>Generate a date series for all days in the current calendar year using a recursive CTE. Join it to an Orders table to show daily revenue including zero-revenue days.</p></div>
+    <div class="practice-item"><span class="pnum">8</span><p>Write a CTE-based <code>UPDATE</code> that increases salary by 5% for all employees whose salary is below the company-wide average.</p></div>
+  </div>
+
+  <div class="practice-section">
+    <h4>🔴 Advanced Tasks</h4>
+    <div class="practice-item"><span class="pnum">9</span><p>Build a full organizational hierarchy query using recursive CTE. Include: employee name, level, manager name, and the full path from CEO to the employee. Handle the case where the data may contain circular manager references.</p></div>
+    <div class="practice-item"><span class="pnum">10</span><p>Implement a recursive Bill of Materials query for a given product. Calculate the total quantity of each raw material needed to produce 500 units of the final product (multiplying quantities at each level).</p></div>
+    <div class="practice-item"><span class="pnum">11</span><p>Write a MERGE statement using a CTE as the source that upserts customer records from a staging table — updating existing customers, inserting new ones, and soft-deleting customers no longer in the source.</p></div>
+    <div class="practice-item"><span class="pnum">12</span><p>Design a recursive CTE to traverse a social network graph and find all users reachable from User #1 within 3 degrees, without revisiting any user (cycle-safe). Return the user ID, degree of separation, and connection path.</p></div>
+  </div>
+
+  <div class="task-box">
+    <div class="task-label">🎯 Mini Project</div>
+    <p><strong>Build a complete Sales Performance Dashboard Query</strong> using only CTEs (no temp tables):</p>
+    <ol>
+      <li>CTE 1: Monthly revenue per region for the last 12 months</li>
+      <li>CTE 2: Month-over-month growth rate per region</li>
+      <li>CTE 3: Top 3 salespeople per region per month (using RANK)</li>
+      <li>CTE 4: Regions where revenue declined for 2+ consecutive months</li>
+      <li>Final SELECT: Combine all 4 CTEs into a single report</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 19 -->
+<section id="s19">
+  <h2 class="sec-title"><span class="num">19</span> Summary</h2>
+
+  <div class="type-grid">
+    <div class="type-card">
+      <div class="type-card-title">📌 What CTEs Are</div>
+      <p>Named temporary result sets defined with <code>WITH ... AS (...)</code> that exist for exactly one statement's lifetime. Introduced in SQL Server 2005, part of ANSI SQL:1999.</p>
+    </div>
+    <div class="type-card">
+      <div class="type-card-title">🔑 Core Strengths</div>
+      <p>Readability, recursion support, DML compatibility, zero schema pollution, and the ability to chain multiple named steps into one readable query.</p>
+    </div>
+    <div class="type-card">
+      <div class="type-card-title">🌳 Recursive Power</div>
+      <p>Anchor + UNION ALL + recursive member. Traverses hierarchies, trees, graphs, and chains that are impossible with plain subqueries or views.</p>
+    </div>
+    <div class="type-card">
+      <div class="type-card-title">⚙️ Performance Reality</div>
+      <p>Not automatically materialized. Referenced twice = executed twice. For large, reused results: use <code>#temp</code> tables with indexes. Check execution plans always.</p>
+    </div>
+    <div class="type-card">
+      <div class="type-card-title">🛡️ Safety Rules</div>
+      <p>Set explicit <code>MAXRECURSION</code>. Add cycle-detection to recursive queries on untrusted data. Always use <code>;WITH</code> to avoid parse errors.</p>
+    </div>
+    <div class="type-card">
+      <div class="type-card-title">🏢 Business Value</div>
+      <p>Powers org charts, BOM calculations, financial ledger chains, date series reporting, network traversal, category trees, and de-duplication pipelines.</p>
+    </div>
+  </div>
+
+  <div class="callout gem" style="margin-top:24px">
+    <div class="callout-icon">💎</div>
+    <div>
+      <div class="callout-title">Final Advice from the Author</div>
+      <p>Mastering CTEs will transform how you write SQL. Start by replacing your most deeply nested subqueries with named CTEs. Once comfortable, explore recursive CTEs on real hierarchical data — nothing else in SQL is as elegant for that class of problem. Always profile your queries: a well-written CTE that maps poorly to the execution engine should be refactored, not blindly trusted. The best SQL developer is not one who knows the most syntax, but one who understands what happens under the hood.</p>
+    </div>
+  </div>
+</section>
+
+</div><!-- /wrap -->
+
+<footer>
+  <strong style="color:var(--text)">SQL Server CTE — Complete Learning Guide</strong><br>
+  Author: <span>MD Jaberul Hossen Jabed</span> &nbsp;·&nbsp; Platform: <span>SQL Server (T-SQL)</span> &nbsp;·&nbsp; All examples use T-SQL syntax
+</footer>
+
+<a href="#top" class="back-top" title="Back to top">↑</a>
+
+</body>
+</html>

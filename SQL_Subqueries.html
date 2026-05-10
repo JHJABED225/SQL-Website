@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL Subqueries Masterclass — SQL Server T-SQL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #1c2230;
+  --border: #30363d;
+  --accent: #f0a500;
+  --accent2: #3b82f6;
+  --accent3: #10b981;
+  --accent4: #ef4444;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --text-dim: #6e7681;
+  --warning: #f97316;
+  --tip: #a78bfa;
+  --code-bg: #0d1117;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Lora', Georgia, serif;
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+/* ── HEADER ── */
+header {
+  position: relative;
+  background: linear-gradient(135deg, #0d1117 0%, #161b22 55%, #1a2035 100%);
+  border-bottom: 2px solid var(--accent);
+  padding: 60px 40px 50px;
+  text-align: center;
+  overflow: hidden;
+}
+header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 60% at 30% 50%, rgba(240,165,0,.07) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 60% at 70% 50%, rgba(59,130,246,.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.badge-pill {
+  display: inline-block;
+  background: rgba(240,165,0,.15);
+  border: 1px solid rgba(240,165,0,.4);
+  color: var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: .1em;
+  padding: 5px 16px;
+  border-radius: 20px;
+  margin-bottom: 24px;
+  text-transform: uppercase;
+}
+header h1 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.8rem, 5vw, 3.4rem);
+  color: #fff;
+  margin-bottom: 16px;
+  line-height: 1.15;
+}
+header h1 .hl { color: var(--accent); }
+header .sub {
+  font-family: 'Lora', serif;
+  font-style: italic;
+  color: var(--text-muted);
+  max-width: 560px;
+  margin: 0 auto 24px;
+  font-size: 1.05rem;
+}
+header .meta {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim);
+  font-size: 12px;
+  letter-spacing: .05em;
+}
+header .meta span { color: var(--accent); }
+
+/* ── WRAPPER ── */
+.wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 50px 32px 80px;
+}
+
+section { margin-bottom: 56px; }
+
+/* ── TOC ── */
+.toc {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 10px;
+  padding: 28px 32px;
+  margin-bottom: 56px;
+}
+.toc-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--accent);
+  margin-bottom: 18px;
+}
+.toc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 4px 24px;
+}
+.toc a {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 3px 0;
+  transition: color .2s;
+}
+.toc a:hover { color: var(--accent); }
+.toc a .tnum { color: var(--text-dim); margin-right: 6px; }
+
+/* ── SECTION TITLES ── */
+h2 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.55rem;
+  color: #fff;
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+h2 .num {
+  background: var(--accent);
+  color: #000;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .75rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+h3 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #fff;
+  margin: 28px 0 10px;
+}
+h3.blue { color: var(--accent2); }
+h3.green { color: var(--accent3); }
+h3.gold { color: var(--accent); }
+
+p { margin-bottom: 14px; }
+p:last-child { margin-bottom: 0; }
+
+ul, ol { padding-left: 22px; margin-bottom: 14px; }
+li { margin-bottom: 5px; }
+li::marker { color: var(--accent); }
+
+/* ── CODE BLOCKS ── */
+.code-wrap {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 18px 0;
+}
+.code-header {
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dot.r { background: #ef4444; }
+.dot.y { background: #f59e0b; }
+.dot.g { background: #10b981; }
+.lang { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .06em; }
+pre {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13.5px;
+  line-height: 1.7;
+  padding: 20px 22px;
+  overflow-x: auto;
+  color: var(--text);
+  white-space: pre;
+}
+.kw { color: #ff7b72; }
+.fn { color: #d2a8ff; }
+.str { color: #a5d6ff; }
+.num { color: #79c0ff; }
+.cmt { color: #8b949e; font-style: italic; }
+.op { color: var(--accent); }
+.tb { color: #ffa657; }
+
+/* ── CALLOUTS ── */
+.callout {
+  display: flex;
+  gap: 14px;
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin: 18px 0;
+}
+.callout .icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+.callout-title {
+  font-family: 'Syne', sans-serif;
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  margin-bottom: 5px;
+}
+.callout.tip { background: rgba(167,139,250,.1); border: 1px solid rgba(167,139,250,.3); color: var(--tip); }
+.callout.tip .callout-title { color: var(--tip); }
+.callout.warn { background: rgba(249,115,22,.1); border: 1px solid rgba(249,115,22,.3); color: var(--warning); }
+.callout.warn .callout-title { color: var(--warning); }
+.callout.gem { background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.3); color: var(--accent3); }
+.callout.gem .callout-title { color: var(--accent3); }
+.callout.danger { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); color: var(--accent4); }
+.callout.danger .callout-title { color: var(--accent4); }
+.callout.info { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.3); color: var(--accent2); }
+.callout.info .callout-title { color: var(--accent2); }
+.callout p { color: var(--text); margin-bottom: 0; font-size: .93rem; }
+
+/* ── SYNTAX BLOCK ── */
+.syntax-block {
+  background: var(--surface);
+  border: 1px solid rgba(59,130,246,.35);
+  border-left: 4px solid var(--accent2);
+  border-radius: 8px;
+  padding: 16px 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--text);
+  margin: 14px 0;
+  overflow-x: auto;
+  white-space: pre;
+  line-height: 1.7;
+}
+
+/* ── TABLES ── */
+.tbl-wrap { overflow-x: auto; margin: 16px 0; border-radius: 10px; border: 1px solid var(--border); }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13.5px;
+}
+thead { background: var(--surface2); }
+th {
+  padding: 12px 16px;
+  text-align: left;
+  color: var(--accent);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  font-size: 11px;
+  border-bottom: 2px solid var(--border);
+}
+td {
+  padding: 10px 16px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  font-family: 'Lora', serif;
+  font-size: 14px;
+}
+tr:last-child td { border-bottom: none; }
+td:first-child { color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+tr:hover td { background: rgba(255,255,255,.02); }
+.yes, .good { color: var(--accent3) !important; }
+.no, .bad { color: var(--accent4) !important; }
+
+/* ── TYPE GRID ── */
+.type-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin: 20px 0; }
+.type-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+.type-card h4 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: .95rem;
+  color: var(--accent2);
+  margin-bottom: 8px;
+}
+.type-card p { font-size: .88rem; color: var(--text-muted); margin: 0; }
+
+/* ── FACTS GRID ── */
+.facts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin: 18px 0; }
+.fact-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  text-align: center;
+}
+.fact-card .emoji { font-size: 1.6rem; margin-bottom: 8px; }
+.fact-card .label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 4px; }
+.fact-card .val { font-family: 'Syne', sans-serif; font-weight: 700; color: #fff; font-size: 1rem; }
+
+/* ── TASK BOX ── */
+.task-box {
+  background: linear-gradient(135deg, rgba(240,165,0,.08), rgba(240,165,0,.03));
+  border: 1px solid rgba(240,165,0,.35);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  padding: 18px 22px;
+  margin: 18px 0;
+}
+.task-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.task-box ol { margin-bottom: 0; }
+
+/* ── PRACTICE ── */
+.practice-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin: 18px 0;
+}
+.practice-section h4 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  color: var(--accent3);
+  font-size: 1rem;
+  margin-bottom: 14px;
+}
+.practice-item {
+  background: var(--code-bg);
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.pnum {
+  background: var(--accent3);
+  color: #000;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.practice-item p { font-size: .9rem; color: var(--text); margin: 0; }
+
+/* ── BADGE ROW ── */
+.badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.badge {
+  background: rgba(59,130,246,.12);
+  border: 1px solid rgba(59,130,246,.3);
+  color: var(--accent2);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* ── INLINE CODE ── */
+code {
+  background: rgba(240,165,0,.12);
+  color: var(--accent);
+  border: 1px solid rgba(240,165,0,.25);
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .85em;
+  padding: 1px 6px;
+}
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border);
+  text-align: center;
+  padding: 40px 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: .04em;
+}
+footer span { color: var(--accent); }
+
+/* ── MOBILE ── */
+@media (max-width: 640px) {
+  header { padding: 40px 20px 36px; }
+  .wrapper { padding: 32px 16px 60px; }
+  .toc { padding: 20px; }
+  .toc-grid { grid-template-columns: 1fr; }
+  h2 { font-size: 1.25rem; flex-wrap: wrap; }
+  pre { font-size: 12px; padding: 14px; }
+  .syntax-block { font-size: 12px; }
+  table { font-size: 12px; }
+  th, td { padding: 8px 10px; }
+  .type-grid { grid-template-columns: 1fr; }
+  .facts-grid { grid-template-columns: repeat(2, 1fr); }
+  .practice-section { padding: 18px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header>
+  <div class="badge-pill">SQL Server · T-SQL · Masterclass Guide</div>
+  <h1>SQL <span class="hl">Subqueries</span><br>Complete Masterclass</h1>
+  <p class="sub">From beginner foundations to advanced performance tuning — a definitive guide with real-world business scenarios</p>
+  <p class="meta">Author: <span>MD JABERUL HOSSEN JABED</span> &nbsp;·&nbsp; Platform: SQL Server (T-SQL) &nbsp;·&nbsp; Level: Beginner → Advanced</p>
+</header>
+
+<div class="wrapper">
+
+<!-- ═══════════════ TOC ═══════════════ -->
+<div class="toc" id="toc">
+  <div class="toc-title">📋 Table of Contents</div>
+  <div class="toc-grid">
+    <a href="#s1"><span class="tnum">01.</span>What Is a Subquery?</a>
+    <a href="#s2"><span class="tnum">02.</span>Why Use Subqueries?</a>
+    <a href="#s3"><span class="tnum">03.</span>How Subqueries Work Internally</a>
+    <a href="#s4"><span class="tnum">04.</span>Execution Flow</a>
+    <a href="#s5"><span class="tnum">05.</span>Types of Subqueries</a>
+    <a href="#s6"><span class="tnum">06.</span>Single-Row Subquery</a>
+    <a href="#s7"><span class="tnum">07.</span>Multiple-Row Subquery</a>
+    <a href="#s8"><span class="tnum">08.</span>Multiple-Column Subquery</a>
+    <a href="#s9"><span class="tnum">09.</span>Correlated Subquery</a>
+    <a href="#s10"><span class="tnum">10.</span>Nested Subquery</a>
+    <a href="#s11"><span class="tnum">11.</span>Scalar Subquery</a>
+    <a href="#s12"><span class="tnum">12.</span>EXISTS &amp; NOT EXISTS</a>
+    <a href="#s13"><span class="tnum">13.</span>IN &amp; NOT IN</a>
+    <a href="#s14"><span class="tnum">14.</span>ANY &amp; ALL</a>
+    <a href="#s15"><span class="tnum">15.</span>Subquery in SELECT</a>
+    <a href="#s16"><span class="tnum">16.</span>Subquery in FROM (Derived Tables)</a>
+    <a href="#s17"><span class="tnum">17.</span>Subquery in WHERE &amp; HAVING</a>
+    <a href="#s18"><span class="tnum">18.</span>Subquery in INSERT / UPDATE / DELETE</a>
+    <a href="#s19"><span class="tnum">19.</span>Subquery vs JOIN</a>
+    <a href="#s20"><span class="tnum">20.</span>Subquery vs CTE vs Temp Table</a>
+    <a href="#s21"><span class="tnum">21.</span>Performance Considerations</a>
+    <a href="#s22"><span class="tnum">22.</span>Common Mistakes &amp; NULL Traps</a>
+    <a href="#s23"><span class="tnum">23.</span>Real-World Business Scenarios</a>
+    <a href="#s24"><span class="tnum">24.</span>Interview Questions &amp; Answers</a>
+    <a href="#s25"><span class="tnum">25.</span>Practice Tasks &amp; Mini Projects</a>
+    <a href="#s26"><span class="tnum">26.</span>Summary &amp; Best Practices</a>
+  </div>
+</div>
+
+<!-- ═══════════════ S1 ═══════════════ -->
+<section id="s1">
+  <h2><span class="num">01</span>What Is a Subquery?</h2>
+  <p>A <strong>subquery</strong> (also called an <em>inner query</em> or <em>nested query</em>) is a <code>SELECT</code> statement embedded inside another SQL statement. The outer query is called the <strong>main query</strong> or <strong>outer query</strong>. The subquery executes first, and its result is passed to the outer query for further processing.</p>
+
+  <div class="callout info">
+    <div class="icon">ℹ️</div>
+    <div>
+      <div class="callout-title">Simple Definition</div>
+      <p>A subquery is a query inside a query. Think of it as asking SQL: <em>"First go find me this set of data, then use that answer to solve my bigger question."</em></p>
+    </div>
+  </div>
+
+  <h3>Basic Syntax</h3>
+  <div class="syntax-block"><span class="kw">SELECT</span> column1, column2
+<span class="kw">FROM</span>   table_name
+<span class="kw">WHERE</span>  column1 <span class="op">=</span> (
+           <span class="kw">SELECT</span> column1
+           <span class="kw">FROM</span>   another_table
+           <span class="kw">WHERE</span>  condition
+       );</div>
+
+  <h3>Sample Tables Used Throughout This Guide</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL — Setup</div></div>
+    <pre><span class="cmt">-- Employees table</span>
+<span class="kw">CREATE TABLE</span> <span class="tb">Employees</span> (
+    EmpID      <span class="fn">INT</span> <span class="kw">PRIMARY KEY</span>,
+    EmpName    <span class="fn">VARCHAR</span>(<span class="num">100</span>),
+    DeptID     <span class="fn">INT</span>,
+    Salary     <span class="fn">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>),
+    ManagerID  <span class="fn">INT</span>,
+    HireDate   <span class="fn">DATE</span>
+);
+
+<span class="cmt">-- Departments table</span>
+<span class="kw">CREATE TABLE</span> <span class="tb">Departments</span> (
+    DeptID    <span class="fn">INT</span> <span class="kw">PRIMARY KEY</span>,
+    DeptName  <span class="fn">VARCHAR</span>(<span class="num">100</span>),
+    Budget    <span class="fn">DECIMAL</span>(<span class="num">12</span>,<span class="num">2</span>)
+);
+
+<span class="cmt">-- Orders table</span>
+<span class="kw">CREATE TABLE</span> <span class="tb">Orders</span> (
+    OrderID     <span class="fn">INT</span> <span class="kw">PRIMARY KEY</span>,
+    CustomerID  <span class="fn">INT</span>,
+    ProductID   <span class="fn">INT</span>,
+    Quantity    <span class="fn">INT</span>,
+    Amount      <span class="fn">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>),
+    OrderDate   <span class="fn">DATE</span>
+);
+
+<span class="cmt">-- Customers table</span>
+<span class="kw">CREATE TABLE</span> <span class="tb">Customers</span> (
+    CustomerID    <span class="fn">INT</span> <span class="kw">PRIMARY KEY</span>,
+    CustomerName  <span class="fn">VARCHAR</span>(<span class="num">150</span>),
+    Email         <span class="fn">VARCHAR</span>(<span class="num">200</span>),
+    City          <span class="fn">VARCHAR</span>(<span class="num">100</span>)
+);
+
+<span class="cmt">-- Products table</span>
+<span class="kw">CREATE TABLE</span> <span class="tb">Products</span> (
+    ProductID    <span class="fn">INT</span> <span class="kw">PRIMARY KEY</span>,
+    ProductName  <span class="fn">VARCHAR</span>(<span class="num">150</span>),
+    Category     <span class="fn">VARCHAR</span>(<span class="num">100</span>),
+    UnitPrice    <span class="fn">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>),
+    Stock        <span class="fn">INT</span>
+);</pre>
+  </div>
+</section>
+
+<!-- ═══════════════ S2 ═══════════════ -->
+<section id="s2">
+  <h2><span class="num">02</span>Why Use Subqueries?</h2>
+  <p>Subqueries solve problems that cannot be easily solved with a single flat <code>SELECT</code> statement. They let you break a complex question into smaller, logical steps.</p>
+
+  <div class="type-grid">
+    <div class="type-card">
+      <h4>🔍 Filter with computed values</h4>
+      <p>Find employees who earn more than the <em>average salary</em> — the average itself must be calculated first.</p>
+    </div>
+    <div class="type-card">
+      <h4>🚫 Negative existence checks</h4>
+      <p>Find customers who have <em>never</em> placed an order — requires checking absence in another table.</p>
+    </div>
+    <div class="type-card">
+      <h4>📊 Aggregated comparisons</h4>
+      <p>Compare each department's salary against the company-wide average using a subquery in SELECT.</p>
+    </div>
+    <div class="type-card">
+      <h4>🏗 Multi-step logic</h4>
+      <p>First rank products by sales, then filter the top 5 — two logical steps, one query.</p>
+    </div>
+    <div class="type-card">
+      <h4>📐 Reusable result sets</h4>
+      <p>Treat a subquery like a temporary virtual table (derived table) to simplify complex joins.</p>
+    </div>
+    <div class="type-card">
+      <h4>✏️ DML operations</h4>
+      <p>UPDATE or DELETE rows that meet criteria defined by another query — subqueries inside DML.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ S3 ═══════════════ -->
+<section id="s3">
+  <h2><span class="num">03</span>How Subqueries Work Internally</h2>
+  <p>Understanding what SQL Server does behind the scenes with subqueries is key to writing efficient queries and interpreting execution plans.</p>
+
+  <h3>The Internal Processing Steps</h3>
+  <ol>
+    <li><strong>Parse:</strong> SQL Server parses the entire statement, identifying the inner and outer queries.</li>
+    <li><strong>Bind:</strong> The query optimizer resolves all object names and column references.</li>
+    <li><strong>Optimize:</strong> The optimizer may <em>unnest</em> the subquery and convert it to an equivalent JOIN, or it may keep it as-is if that is more efficient.</li>
+    <li><strong>Execute:</strong> For non-correlated subqueries, the inner query runs <strong>once</strong>. For correlated subqueries, it may run <strong>once per row</strong> of the outer query.</li>
+    <li><strong>Return:</strong> The result of the inner query (a scalar value, a list, or a table) is passed back to the outer query.</li>
+  </ol>
+
+  <div class="callout tip">
+    <div class="icon">💡</div>
+    <div>
+      <div class="callout-title">Optimizer Unnesting</div>
+      <p>SQL Server's query optimizer is very smart. It often converts subqueries into JOIN operations automatically because joins are generally easier to optimize. This is why a subquery and an equivalent JOIN often produce identical execution plans.</p>
+    </div>
+  </div>
+
+  <h3>Non-Correlated vs. Correlated Execution</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Aspect</th><th>Non-Correlated</th><th>Correlated</th></tr></thead>
+      <tbody>
+        <tr><td>Dependency</td><td>Independent of outer query</td><td>References outer query columns</td></tr>
+        <tr><td>Execution frequency</td><td>Runs once</td><td>Runs once per outer row</td></tr>
+        <tr><td>Performance</td><td class="good">Generally fast</td><td class="bad">Can be slow on large datasets</td></tr>
+        <tr><td>Optimization</td><td>Easily unnested to JOIN</td><td>Harder to unnest; may stay as loop</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════ S4 ═══════════════ -->
+<section id="s4">
+  <h2><span class="num">04</span>Execution Flow of Subqueries</h2>
+  <p>Visualizing the execution flow helps you reason about your query's correctness and performance.</p>
+
+  <h3>Non-Correlated Flow</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="cmt">-- Step 1: Inner query runs ONCE → returns 6000.00
+-- Step 2: Outer query filters using that value</span>
+
+<span class="kw">SELECT</span> EmpName, Salary
+<span class="kw">FROM</span>   <span class="tb">Employees</span>
+<span class="kw">WHERE</span>  Salary <span class="op">></span> (<span class="kw">SELECT</span> <span class="fn">AVG</span>(Salary) <span class="kw">FROM</span> <span class="tb">Employees</span>);
+
+<span class="cmt">-- FLOW:
+--   [Inner]  SELECT AVG(Salary) FROM Employees → 6000.00
+--   [Outer]  SELECT EmpName, Salary FROM Employees WHERE Salary > 6000.00</span></pre>
+  </div>
+
+  <h3>Correlated Flow</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="cmt">-- For EACH row of the outer query, the inner query re-executes</span>
+
+<span class="kw">SELECT</span> e.EmpName, e.Salary, e.DeptID
+<span class="kw">FROM</span>   <span class="tb">Employees</span> e
+<span class="kw">WHERE</span>  e.Salary <span class="op">></span> (
+           <span class="kw">SELECT</span> <span class="fn">AVG</span>(e2.Salary)
+           <span class="kw">FROM</span>   <span class="tb">Employees</span> e2
+           <span class="kw">WHERE</span>  e2.DeptID <span class="op">=</span> e.DeptID  <span class="cmt">-- references outer alias 'e'</span>
+       );
+
+<span class="cmt">-- FLOW (for 1000 rows in outer query):
+--   Row 1 (DeptID=10): Inner runs → AVG salary for Dept 10 = 5500
+--   Row 2 (DeptID=10): Inner runs → AVG salary for Dept 10 = 5500
+--   Row 3 (DeptID=20): Inner runs → AVG salary for Dept 20 = 7200
+--   ... repeats 1000 times total</span></pre>
+  </div>
+
+  <div class="callout warn">
+    <div class="icon">⚠️</div>
+    <div>
+      <div class="callout-title">Performance Warning</div>
+      <p>A correlated subquery executing once per outer row is called a <strong>row-by-row</strong> (RBAR) operation. On a table with 1 million rows, the inner query might execute 1 million times. Always look for alternatives using JOINs or window functions.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ S5 ═══════════════ -->
+<section id="s5">
+  <h2><span class="num">05</span>Types of Subqueries — Overview</h2>
+
+  <div class="facts-grid">
+    <div class="fact-card"><div class="emoji">1️⃣</div><div class="label">Return Type</div><div class="val">Single-Row</div></div>
+    <div class="fact-card"><div class="emoji">📋</div><div class="label">Return Type</div><div class="val">Multi-Row</div></div>
+    <div class="fact-card"><div class="emoji">📊</div><div class="label">Return Type</div><div class="val">Multi-Column</div></div>
+    <div class="fact-card"><div class="emoji">🔁</div><div class="label">Dependency</div><div class="val">Correlated</div></div>
+    <div class="fact-card"><div class="emoji">🪆</div><div class="label">Structure</div><div class="val">Nested</div></div>
+    <div class="fact-card"><div class="emoji">🔢</div><div class="label">Return Type</div><div class="val">Scalar</div></div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Type</th><th>Returns</th><th>Used With</th><th>Example Use Case</th></tr></thead>
+      <tbody>
+        <tr><td>Single-Row</td><td>One row, one column</td><td>=, &lt;, &gt;, &lt;=, &gt;=, &lt;&gt;</td><td>Compare salary to company max</td></tr>
+        <tr><td>Multiple-Row</td><td>Multiple rows, one column</td><td>IN, NOT IN, ANY, ALL, EXISTS</td><td>Find employees in certain departments</td></tr>
+        <tr><td>Multiple-Column</td><td>Multiple rows, multiple columns</td><td>IN, EXISTS, FROM (derived)</td><td>Match on composite key</td></tr>
+        <tr><td>Correlated</td><td>Depends on outer row</td><td>WHERE, HAVING, SELECT</td><td>Above-average salary per department</td></tr>
+        <tr><td>Nested</td><td>Any (multiple levels)</td><td>Any clause</td><td>Multi-level filtering</td></tr>
+        <tr><td>Scalar</td><td>Single value (one row, one col)</td><td>SELECT list, WHERE, HAVING</td><td>Display computed value per row</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════ S6 ═══════════════ -->
+<section id="s6">
+  <h2><span class="num">06</span>Single-Row Subquery</h2>
+  <p>A single-row subquery returns <strong>exactly one row and one column</strong>. It must be used with single-value comparison operators: <code>=</code>, <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, <code>&gt;=</code>, <code>&lt;&gt;</code>.</p>
+
+  <div class="callout danger">
+    <div class="icon">🚨</div>
+    <div>
+      <div class="callout-title">Runtime Error Risk</div>
+      <p>If a single-row subquery returns more than one row, SQL Server throws: <strong>Subquery returned more than 1 value. This is not permitted...</strong> Always ensure the inner query is guaranteed to return at most one row.</p>
+    </div>
+  </div>
+
+  <h3 class="blue">Example 1 — Find employees earning the maximum salary</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span> EmpName, Salary
+<span class="kw">FROM</span>   <span class="tb">Employees</span>
+<span class="kw">WHERE</span>  Salary <span class="op">=</span> (<span class="kw">SELECT</span> <span class="fn">MAX</span>(Salary) <span class="kw">FROM</span> <span class="tb">Employees</span>);
+
+<span class="cmt">-- Inner query: SELECT MAX(Salary) FROM Employees → 95000.00
+-- Outer query: WHERE Salary = 95000.00
+-- Output: All employees who earn exactly 95000.00</span></pre>
+  </div>
+
+  <h3 class="blue">Example 2 — Find departments with above-average budget</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span> DeptName, Budget
+<span class="kw">FROM</span>   <span class="tb">Departments</span>
+<span class="kw">WHERE</span>  Budget <span class="op">></span> (<span class="kw">SELECT</span> <span class="fn">AVG</span>(Budget) <span class="kw">FROM</span> <span class="tb">Departments</span>);
+
+<span class="cmt">-- Inner: AVG(Budget) → 500000.00
+-- Returns departments whose budget exceeds the overall average</span></pre>
+  </div>
+</section>
+
+<!-- ═══════════════ S7 ═══════════════ -->
+<section id="s7">
+  <h2><span class="num">07</span>Multiple-Row Subquery</h2>
+  <p>A multiple-row subquery returns <strong>more than one row</strong> (but typically one column). It must be used with multi-value operators: <code>IN</code>, <code>NOT IN</code>, <code>ANY</code>, <code>ALL</code>, <code>EXISTS</code>, <code>NOT EXISTS</code>.</p>
+
+  <h3 class="blue">Example — Find employees in the IT or Finance department</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span> EmpName, DeptID
+<span class="kw">FROM</span>   <span class="tb">Employees</span>
+<span class="kw">WHERE</span>  DeptID <span class="kw">IN</span> (
+           <span class="kw">SELECT</span> DeptID
+           <span class="kw">FROM</span>   <span class="tb">Departments</span>
+           <span class="kw">WHERE</span>  DeptName <span class="kw">IN</span> (<span class="str">'IT'</span>, <span class="str">'Finance'</span>)
+       );
+
+<span class="cmt">-- Inner: Returns {3, 5} (DeptIDs for IT and Finance)
+-- Outer: WHERE DeptID IN (3, 5)
+-- Result: All employees in those two departments</span></pre>
+  </div>
+
+  <div class="callout warn">
+    <div class="icon">⚠️</div>
+    <div>
+      <div class="callout-title">Do NOT use = with a multi-row subquery</div>
+      <p>Using <code>= (subquery)</code> when the subquery can return multiple rows will cause a runtime error. Use <code>IN</code> instead when multiple rows are possible.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ S8 ═══════════════ -->
+<section id="s8">
+  <h2><span class="num">08</span>Multiple-Column Subquery</h2>
+  <p>A multiple-column subquery returns <strong>multiple columns</strong>. It is commonly used in <code>FROM</code> (as a derived table) or with <code>EXISTS</code> for composite-key matching.</p>
+
+  <h3 class="blue">Example — Match on composite key (CustomerID + ProductID)</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span> o.OrderID, o.CustomerID, o.ProductID, o.Amount
+<span class="kw">FROM</span>   <span class="tb">Orders</span> o
+<span class="kw">WHERE</span>  <span class="kw">EXISTS</span> (
+           <span class="kw">SELECT</span> <span class="num">1</span>
+           <span class="kw">FROM</span>   <span class="tb">PriorityCustomers</span> pc
+           <span class="kw">WHERE</span>  pc.CustomerID <span class="op">=</span> o.CustomerID
+             <span class="kw">AND</span>  pc.ProductID  <span class="op">=</span> o.ProductID
+       );
+
+<span class="cmt">-- Finds orders where both CustomerID and ProductID
+-- match a record in the PriorityCustomers table</span></pre>
+  </div>
+</section>
+
+<!-- ═══════════════ S9 ═══════════════ -->
+<section id="s9">
+  <h2><span class="num">09</span>Correlated Subquery</h2>
+  <p>A correlated subquery references one or more columns from the <strong>outer query</strong>. This creates a dependency: the inner query cannot run independently. It re-evaluates for each row of the outer query.</p>
+
+  <h3 class="blue">Business Example — Employees earning above their department average</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span> e.EmpName, e.Salary, e.DeptID
+<span class="kw">FROM</span>   <span class="tb">Employees</span> e
+<span class="kw">WHERE</span>  e.Salary <span class="op">></span> (
+           <span class="kw">SELECT</span> <span class="fn">AVG</span>(e2.Salary)
+           <span class="kw">FROM</span>   <span class="tb">Employees</span> e2
+           <span class="kw">WHERE</span>  e2.DeptID <span class="op">=</span> e.DeptID  <span class="cmt">-- correlated reference</span>
+       );
+
+<span class="cmt">-- For each employee (outer row), the inner query calculates
+-- the average salary for THAT specific employee's department.
+-- Result: Employees whose personal salary > their dept average</span></pre>
+  </div>
+
+  <h3>Line-by-Line Output Explanation</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>EmpName</th><th>Salary</th><th>DeptID</th><th>Dept Avg</th><th>Included?</th></tr></thead>
+      <tbody>
+        <tr><td>Alice</td><td>90,000</td><td>10</td><td>70,000</td><td class="good">✔ Yes</td></tr>
+        <tr><td>Bob</td><td>65,000</td><td>10</td><td>70,000</td><td class="bad">✘ No</td></tr>
+        <tr><td>Carol</td><td>80,000</td><td>20</td><td>75,000</td><td class="good">✔ Yes</td></tr>
+        <tr><td>Dave</td><td>60,000</td><td>20</td><td>75,000</td><td class="bad">✘ No</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout gem">
+    <div class="icon">💎</div>
+    <div>
+      <div class="callout-title">Better Alternative with Window Functions</div>
+      <p>For large datasets, replace correlated subqueries with window functions. Use <code>AVG(Salary) OVER (PARTITION BY DeptID)</code> — it scans the table once instead of once per row, dramatically improving performance.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ S10 ═══════════════ -->
+<section id="s10">
+  <h2><span class="num">10</span>Nested Subquery</h2>
+  <p>A nested subquery is a subquery inside another subquery — multiple levels of nesting. SQL Server supports deep nesting (up to 32 levels), though deep nesting usually signals a design that needs rethinking.</p>
+
+  <h3 class="blue">Example — Three levels of nesting</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="cmt">-- Level 1 (outermost): Find employees
+-- Level 2: In departments with above-average budget
+-- Level 3: Where average budget is computed from all departments</span>
+
+<span class="kw">SELECT</span> EmpName, DeptID
+<span class="kw">FROM</span>   <span class="tb">Employees</span>
+<span class="kw">WHERE</span>  DeptID <span class="kw">IN</span> (
+           <span class="kw">SELECT</span> DeptID
+           <span class="kw">FROM</span>   <span class="tb">Departments</span>
+           <span class="kw">WHERE</span>  Budget <span class="op">></span> (       <span class="cmt">-- Level 2 subquery</span>
+               <span class="kw">SELECT</span> <span class="fn">AVG</span>(Budget)
+               <span class="kw">FROM</span>   <span class="tb">Departments</span>  <span class="cmt">-- Level 3 subquery</span>
+           )
+       );</pre>
+  </div>
+
+  <div class="callout tip">
+    <div class="icon">💡</div>
+    <div>
+      <div class="callout-title">Readability Tip</div>
+      <p>When you find yourself nesting more than 2 levels deep, consider rewriting using CTEs. CTEs give each logical step a name, making the query far easier to read, debug, and maintain.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ S11 ═══════════════ -->
+<section id="s11">
+  <h2><span class="num">11</span>Scalar Subquery</h2>
+  <p>A scalar subquery returns exactly <strong>one value</strong> (one row, one column). It can appear anywhere a single value is expected — in the <code>SELECT</code> list, <code>WHERE</code>, <code>HAVING</code>, or even <code>ORDER BY</code>.</p>
+
+  <h3 class="blue">Example — Show each employee's salary and company average side by side</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span>
+    EmpName,
+    Salary,
+    (<span class="kw">SELECT</span> <span class="fn">AVG</span>(Salary) <span class="kw">FROM</span> <span class="tb">Employees</span>)    <span class="kw">AS</span> CompanyAvgSalary,
+    Salary <span class="op">-</span> (<span class="kw">SELECT</span> <span class="fn">AVG</span>(Salary) <span class="kw">FROM</span> <span class="tb">Employees</span>) <span class="kw">AS</span> DiffFromAvg
+<span class="kw">FROM</span>   <span class="tb">Employees</span>;
+
+<span class="cmt">-- Output sample:
+-- EmpName  | Salary   | CompanyAvgSalary | DiffFromAvg
+-- Alice    | 90000    | 70000            | +20000
+-- Bob      | 65000    | 70000            | -5000</span></pre>
+  </div>
+</section>
+
+<!-- ═══════════════ S12 ═══════════════ -->
+<section id="s12">
+  <h2><span class="num">12</span>Subquery with EXISTS &amp; NOT EXISTS</h2>
+  <p><code>EXISTS</code> checks whether a subquery returns <strong>any rows at all</strong>. It returns <code>TRUE</code> as soon as the first matching row is found and stops — this is called a <strong>short-circuit evaluation</strong>, making it very efficient.</p>
+
+  <h3 class="blue">EXISTS — Customers who have placed at least one order</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span> c.CustomerName, c.Email
+<span class="kw">FROM</span>   <span class="tb">Customers</span> c
+<span class="kw">WHERE</span>  <span class="kw">EXISTS</span> (
+           <span class="kw">SELECT</span> <span class="num">1</span>
+           <span class="kw">FROM</span>   <span class="tb">Orders</span> o
+           <span class="kw">WHERE</span>  o.CustomerID <span class="op">=</span> c.CustomerID
+       );
+
+<span class="cmt">-- SELECT 1 is a convention — we only care if any row exists,
+-- not what the row contains. Using 1 is slightly more readable
+-- than SELECT * and signals intent clearly.</span></pre>
+  </div>
+
+  <h3 class="blue">NOT EXISTS — Customers who have NEVER ordered (churn detection)</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span> c.CustomerName, c.Email, c.City
+<span class="kw">FROM</span>   <span class="tb">Customers</span> c
+<span class="kw">WHERE</span>  <span class="kw">NOT EXISTS</span> (
+           <span class="kw">SELECT</span> <span class="num">1</span>
+           <span class="kw">FROM</span>   <span class="tb">Orders</span> o
+           <span class="kw">WHERE</span>  o.CustomerID <span class="op">=</span> c.CustomerID
+       );
+
+<span class="cmt">-- Business use: Email marketing team uses this list
+-- to send "We miss you!" re-engagement campaigns.</span></pre>
+  </div>
+
+  <div class="callout gem">
+    <div class="icon">💎</div>
+    <div>
+      <div class="callout-title">EXISTS vs IN — Which is Faster?</div>
+      <p><strong>EXISTS</strong> short-circuits on the first match — ideal when you expect many matches. <strong>IN</strong> builds the full list first. For large datasets with NULLs in the list, <code>NOT EXISTS</code> is safer and often faster than <code>NOT IN</code>, because <code>NOT IN</code> with any NULL in the subquery returns zero rows.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ S13 ═══════════════ -->
+<section id="s13">
+  <h2><span class="num">13</span>Subquery with IN &amp; NOT IN</h2>
+  <p><code>IN</code> checks if a value matches any value in the subquery's result set. <code>NOT IN</code> checks that a value does <em>not</em> appear in the result set.</p>
+
+  <h3 class="blue">IN — Products ordered in January 2024</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span> ProductName, Category, UnitPrice
+<span class="kw">FROM</span>   <span class="tb">Products</span>
+<span class="kw">WHERE</span>  ProductID <span class="kw">IN</span> (
+           <span class="kw">SELECT</span> <span class="kw">DISTINCT</span> ProductID
+           <span class="kw">FROM</span>   <span class="tb">Orders</span>
+           <span class="kw">WHERE</span>  OrderDate <span class="op">>=</span> <span class="str">'2024-01-01'</span>
+             <span class="kw">AND</span>  OrderDate <span class="op"><</span> <span class="str">'2024-02-01'</span>
+       );</pre>
+  </div>
+
+  <h3 class="blue">NOT IN — Products that have NEVER been ordered</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span> ProductName, Stock
+<span class="kw">FROM</span>   <span class="tb">Products</span>
+<span class="kw">WHERE</span>  ProductID <span class="kw">NOT IN</span> (
+           <span class="kw">SELECT</span> <span class="kw">DISTINCT</span> ProductID
+           <span class="kw">FROM</span>   <span class="tb">Orders</span>
+           <span class="kw">WHERE</span>  ProductID <span class="kw">IS NOT NULL</span>  <span class="cmt">-- CRITICAL: exclude NULLs</span>
+       );</pre>
+  </div>
+
+  <div class="callout danger">
+    <div class="icon">🚨</div>
+    <div>
+      <div class="callout-title">NULL Trap with NOT IN</div>
+      <p>If the subquery inside <code>NOT IN</code> returns even a single <code>NULL</code>, the entire <code>NOT IN</code> condition evaluates to <code>UNKNOWN</code> and returns <strong>zero rows</strong> — silently! Always add <code>WHERE column IS NOT NULL</code> inside the subquery, or use <code>NOT EXISTS</code> instead.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ S14 ═══════════════ -->
+<section id="s14">
+  <h2><span class="num">14</span>Subquery with ANY &amp; ALL</h2>
+  <p><code>ANY</code> (synonym: <code>SOME</code>) returns TRUE if the comparison is TRUE for <em>at least one</em> value in the subquery result. <code>ALL</code> returns TRUE only if the comparison is TRUE for <em>every</em> value in the result.</p>
+
+  <h3 class="blue">ANY — Employees earning more than ANY junior employee</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span> EmpName, Salary
+<span class="kw">FROM</span>   <span class="tb">Employees</span>
+<span class="kw">WHERE</span>  Salary <span class="op">></span> <span class="kw">ANY</span> (
+           <span class="kw">SELECT</span> Salary
+           <span class="kw">FROM</span>   <span class="tb">Employees</span>
+           <span class="kw">WHERE</span>  JobLevel <span class="op">=</span> <span class="str">'Junior'</span>
+       );
+
+<span class="cmt">-- Equivalent to: Salary > MIN(junior salaries)
+-- Returns all employees who earn more than the lowest-paid junior</span></pre>
+  </div>
+
+  <h3 class="blue">ALL — Employees earning more than ALL junior employees</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span> EmpName, Salary
+<span class="kw">FROM</span>   <span class="tb">Employees</span>
+<span class="kw">WHERE</span>  Salary <span class="op">></span> <span class="kw">ALL</span> (
+           <span class="kw">SELECT</span> Salary
+           <span class="kw">FROM</span>   <span class="tb">Employees</span>
+           <span class="kw">WHERE</span>  JobLevel <span class="op">=</span> <span class="str">'Junior'</span>
+       );
+
+<span class="cmt">-- Equivalent to: Salary > MAX(junior salaries)
+-- Returns employees who earn more than every single junior</span></pre>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Operator</th><th>Equivalent To</th><th>Returns rows when…</th></tr></thead>
+      <tbody>
+        <tr><td>&gt; ANY</td><td>&gt; MIN(subquery)</td><td>Value exceeds at least one subquery value</td></tr>
+        <tr><td>&gt; ALL</td><td>&gt; MAX(subquery)</td><td>Value exceeds every subquery value</td></tr>
+        <tr><td>&lt; ANY</td><td>&lt; MAX(subquery)</td><td>Value is less than at least one subquery value</td></tr>
+        <tr><td>&lt; ALL</td><td>&lt; MIN(subquery)</td><td>Value is less than every subquery value</td></tr>
+        <tr><td>= ANY</td><td>IN (subquery)</td><td>Value matches any subquery value</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════ S15 ═══════════════ -->
+<section id="s15">
+  <h2><span class="num">15</span>Subquery Inside SELECT</h2>
+  <p>A subquery in the <code>SELECT</code> list must return a single scalar value (one row, one column) for each row of the outer query. This is called a <strong>scalar subquery in the projection</strong>.</p>
+
+  <h3 class="blue">Example — Show employee salary as % of department total</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span>
+    e.EmpName,
+    e.Salary,
+    (<span class="kw">SELECT</span> <span class="fn">SUM</span>(e2.Salary)
+     <span class="kw">FROM</span>   <span class="tb">Employees</span> e2
+     <span class="kw">WHERE</span>  e2.DeptID <span class="op">=</span> e.DeptID)       <span class="kw">AS</span> DeptTotalSalary,
+    <span class="fn">CAST</span>(e.Salary <span class="op">*</span> <span class="num">100.0</span> <span class="op">/</span>
+        (<span class="kw">SELECT</span> <span class="fn">SUM</span>(e2.Salary)
+         <span class="kw">FROM</span>   <span class="tb">Employees</span> e2
+         <span class="kw">WHERE</span>  e2.DeptID <span class="op">=</span> e.DeptID) <span class="kw">AS</span> <span class="fn">DECIMAL</span>(<span class="num">5</span>,<span class="num">2</span>)) <span class="kw">AS</span> PctOfDeptSalary
+<span class="kw">FROM</span>   <span class="tb">Employees</span> e;
+
+<span class="cmt">-- Better approach for production: use window functions
+-- SUM(Salary) OVER (PARTITION BY DeptID) — computes in one pass</span></pre>
+  </div>
+</section>
+
+<!-- ═══════════════ S16 ═══════════════ -->
+<section id="s16">
+  <h2><span class="num">16</span>Subquery Inside FROM — Derived Tables</h2>
+  <p>When a subquery appears in the <code>FROM</code> clause, it is called a <strong>derived table</strong>. It acts like a temporary, inline view. Derived tables <strong>must</strong> be given an alias.</p>
+
+  <h3 class="blue">Example — Average salary by department, then filter high-paid departments</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span>
+    dept_stats.DeptID,
+    dept_stats.AvgSalary,
+    dept_stats.HeadCount
+<span class="kw">FROM</span> (
+    <span class="kw">SELECT</span>
+        DeptID,
+        <span class="fn">AVG</span>(Salary)   <span class="kw">AS</span> AvgSalary,
+        <span class="fn">COUNT</span>(<span class="op">*</span>)     <span class="kw">AS</span> HeadCount
+    <span class="kw">FROM</span> <span class="tb">Employees</span>
+    <span class="kw">GROUP BY</span> DeptID
+) <span class="kw">AS</span> dept_stats     <span class="cmt">-- alias is REQUIRED</span>
+<span class="kw">WHERE</span> dept_stats.AvgSalary <span class="op">></span> <span class="num">60000</span>;
+
+<span class="cmt">-- This two-step approach is common:
+-- Step 1 (inner): Aggregate per department
+-- Step 2 (outer): Filter on the aggregated result
+-- You CANNOT use a WHERE clause on an aggregate directly without HAVING</span></pre>
+  </div>
+
+  <div class="callout info">
+    <div class="icon">ℹ️</div>
+    <div>
+      <div class="callout-title">Derived Table vs CTE</div>
+      <p>Derived tables are inline and cannot be referenced more than once in the same query. If you need to reference the same subquery twice, use a CTE (<code>WITH</code> clause) instead — it is cleaner and reusable within the query.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ S17 ═══════════════ -->
+<section id="s17">
+  <h2><span class="num">17</span>Subquery in WHERE &amp; HAVING</h2>
+
+  <h3 class="blue">WHERE — Filter rows with a subquery</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="cmt">-- Latest order for each customer (using MAX subquery)</span>
+<span class="kw">SELECT</span> o.CustomerID, o.OrderDate, o.Amount
+<span class="kw">FROM</span>   <span class="tb">Orders</span> o
+<span class="kw">WHERE</span>  o.OrderDate <span class="op">=</span> (
+           <span class="kw">SELECT</span> <span class="fn">MAX</span>(o2.OrderDate)
+           <span class="kw">FROM</span>   <span class="tb">Orders</span> o2
+           <span class="kw">WHERE</span>  o2.CustomerID <span class="op">=</span> o.CustomerID
+       );</pre>
+  </div>
+
+  <h3 class="blue">HAVING — Filter groups using a subquery</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="cmt">-- Departments where the total salary bill exceeds
+-- the average departmental total</span>
+<span class="kw">SELECT</span>   DeptID, <span class="fn">SUM</span>(Salary) <span class="kw">AS</span> TotalSalary
+<span class="kw">FROM</span>     <span class="tb">Employees</span>
+<span class="kw">GROUP BY</span> DeptID
+<span class="kw">HAVING</span>   <span class="fn">SUM</span>(Salary) <span class="op">></span> (
+             <span class="kw">SELECT</span> <span class="fn">AVG</span>(dept_total.TotalSal)
+             <span class="kw">FROM</span> (
+                 <span class="kw">SELECT</span> <span class="fn">SUM</span>(Salary) <span class="kw">AS</span> TotalSal
+                 <span class="kw">FROM</span>   <span class="tb">Employees</span>
+                 <span class="kw">GROUP BY</span> DeptID
+             ) <span class="kw">AS</span> dept_total
+         );</pre>
+  </div>
+</section>
+
+<!-- ═══════════════ S18 ═══════════════ -->
+<section id="s18">
+  <h2><span class="num">18</span>Subquery in INSERT / UPDATE / DELETE</h2>
+
+  <h3 class="blue">INSERT with Subquery — Archive old orders</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">INSERT INTO</span> <span class="tb">Orders_Archive</span> (OrderID, CustomerID, Amount, OrderDate)
+<span class="kw">SELECT</span> OrderID, CustomerID, Amount, OrderDate
+<span class="kw">FROM</span>   <span class="tb">Orders</span>
+<span class="kw">WHERE</span>  OrderDate <span class="op"><</span> <span class="str">'2022-01-01'</span>;
+
+<span class="cmt">-- Copies all orders older than 2022 into the archive table</span></pre>
+  </div>
+
+  <h3 class="blue">UPDATE with Subquery — Apply loyalty discount</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">UPDATE</span> <span class="tb">Orders</span>
+<span class="kw">SET</span>    Amount <span class="op">=</span> Amount <span class="op">*</span> <span class="num">0.90</span>   <span class="cmt">-- 10% discount</span>
+<span class="kw">WHERE</span>  CustomerID <span class="kw">IN</span> (
+           <span class="kw">SELECT</span> CustomerID
+           <span class="kw">FROM</span>   <span class="tb">Customers</span>
+           <span class="kw">WHERE</span>  LoyaltyTier <span class="op">=</span> <span class="str">'Gold'</span>
+       );
+
+<span class="cmt">-- Updates order amounts for all Gold tier customers</span></pre>
+  </div>
+
+  <h3 class="blue">DELETE with Subquery — Remove cancelled orders</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">DELETE FROM</span> <span class="tb">Orders</span>
+<span class="kw">WHERE</span>  CustomerID <span class="kw">IN</span> (
+           <span class="kw">SELECT</span> CustomerID
+           <span class="kw">FROM</span>   <span class="tb">Customers</span>
+           <span class="kw">WHERE</span>  Status <span class="op">=</span> <span class="str">'Cancelled'</span>
+       );
+
+<span class="cmt">-- Deletes orders belonging to cancelled customer accounts
+-- ALWAYS run as SELECT first to verify affected rows!</span></pre>
+  </div>
+
+  <div class="callout danger">
+    <div class="icon">🚨</div>
+    <div>
+      <div class="callout-title">Safety First on DELETE/UPDATE</div>
+      <p>Before executing a <code>DELETE</code> or <code>UPDATE</code> with a subquery, always convert it to a <code>SELECT</code> first and verify the affected rows. Wrap in a transaction with <code>BEGIN TRANSACTION</code> and <code>ROLLBACK</code> if uncertain.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ S19 ═══════════════ -->
+<section id="s19">
+  <h2><span class="num">19</span>Subquery vs JOIN — Comparison</h2>
+  <p>Both subqueries and JOINs can solve the same problems, but they differ in readability, performance, and flexibility.</p>
+
+  <h3 class="blue">Same Result — Two Approaches</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL — Subquery Approach</div></div>
+    <pre><span class="kw">SELECT</span> EmpName, Salary
+<span class="kw">FROM</span>   <span class="tb">Employees</span>
+<span class="kw">WHERE</span>  DeptID <span class="kw">IN</span> (
+           <span class="kw">SELECT</span> DeptID
+           <span class="kw">FROM</span>   <span class="tb">Departments</span>
+           <span class="kw">WHERE</span>  DeptName <span class="op">=</span> <span class="str">'Engineering'</span>
+       );</pre>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL — JOIN Approach</div></div>
+    <pre><span class="kw">SELECT</span> e.EmpName, e.Salary
+<span class="kw">FROM</span>   <span class="tb">Employees</span>   e
+<span class="kw">JOIN</span>   <span class="tb">Departments</span> d <span class="kw">ON</span> d.DeptID <span class="op">=</span> e.DeptID
+<span class="kw">WHERE</span>  d.DeptName <span class="op">=</span> <span class="str">'Engineering'</span>;</pre>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Aspect</th><th>Subquery</th><th>JOIN</th></tr></thead>
+      <tbody>
+        <tr><td>Readability</td><td>Clear for simple filters</td><td class="good">Better for multi-table data</td></tr>
+        <tr><td>Return columns</td><td>Outer table only</td><td class="good">Columns from any joined table</td></tr>
+        <tr><td>Duplicate rows</td><td class="good">No duplicates (IN/EXISTS)</td><td>May produce duplicates without DISTINCT</td></tr>
+        <tr><td>NULL handling</td><td class="bad">NOT IN NULL trap</td><td class="good">LEFT JOIN handles NULLs cleanly</td></tr>
+        <tr><td>Performance</td><td>Often converted to JOIN by optimizer</td><td class="good">Generally equal after optimization</td></tr>
+        <tr><td>Negative test</td><td class="good">NOT EXISTS is intuitive</td><td>LEFT JOIN + IS NULL is less obvious</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════ S20 ═══════════════ -->
+<section id="s20">
+  <h2><span class="num">20</span>Subquery vs CTE vs Temp Table</h2>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Feature</th><th>Subquery</th><th>CTE (WITH)</th><th>Temp Table (#)</th></tr></thead>
+      <tbody>
+        <tr><td>Reusable in same query</td><td class="bad">No</td><td class="good">Yes</td><td class="good">Yes</td></tr>
+        <tr><td>Recursive support</td><td class="bad">No</td><td class="good">Yes</td><td class="bad">No</td></tr>
+        <tr><td>Indexes</td><td class="bad">No</td><td class="bad">No</td><td class="good">Yes</td></tr>
+        <tr><td>Statistics</td><td class="bad">No</td><td class="bad">No</td><td class="good">Yes</td></tr>
+        <tr><td>Performance on large data</td><td>Varies</td><td>Varies</td><td class="good">Best (indexed)</td></tr>
+        <tr><td>Readability</td><td>Good (inline)</td><td class="good">Best (named)</td><td>Good (named)</td></tr>
+        <tr><td>Scope</td><td>Local to query</td><td>Local to query</td><td>Session-scoped</td></tr>
+        <tr><td>Materialized</td><td class="bad">No (usually)</td><td class="bad">No (usually)</td><td class="good">Yes</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="blue">When to Use Each</h3>
+  <ul>
+    <li><strong>Subquery:</strong> Simple, one-time filters or scalar values. Short queries where inline context is clear.</li>
+    <li><strong>CTE:</strong> Complex queries with multiple logical steps, recursion (hierarchy trees), or when the same subquery is needed multiple times in one query.</li>
+    <li><strong>Temp Table:</strong> Large intermediate result sets that benefit from indexing, or when the result needs to be used across multiple separate statements.</li>
+  </ul>
+</section>
+
+<!-- ═══════════════ S21 ═══════════════ -->
+<section id="s21">
+  <h2><span class="num">21</span>Performance Considerations</h2>
+
+  <h3 class="gold">Execution Plan Analysis</h3>
+  <p>Always check the execution plan with <code>SET STATISTICS IO ON</code> and <code>INCLUDE ACTUAL EXECUTION PLAN</code> in SSMS. Look for:</p>
+  <ul>
+    <li><strong>Nested Loop Join:</strong> May indicate correlated subquery inefficiency</li>
+    <li><strong>Table Scans vs Index Seeks:</strong> Scans on large tables are expensive</li>
+    <li><strong>Estimated vs Actual rows:</strong> Large discrepancy means stale statistics</li>
+    <li><strong>Spool operations:</strong> Often introduced for correlated subqueries</li>
+  </ul>
+
+  <h3 class="gold">SARGability — Making Subquery Filters Index-Friendly</h3>
+  <p>A condition is <strong>SARGable</strong> (Search ARGument Able) if SQL Server can use an index seek rather than a full scan. Subquery conditions must also be SARGable to be efficient.</p>
+
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL — Non-SARGable vs SARGable</div></div>
+    <pre><span class="cmt">-- ❌ Non-SARGable (function wraps the column → full scan)</span>
+<span class="kw">WHERE</span> <span class="fn">YEAR</span>(OrderDate) <span class="op">=</span> <span class="num">2024</span>
+
+<span class="cmt">-- ✔ SARGable (range condition → index seek)</span>
+<span class="kw">WHERE</span> OrderDate <span class="op">>=</span> <span class="str">'2024-01-01'</span> <span class="kw">AND</span> OrderDate <span class="op"><</span> <span class="str">'2025-01-01'</span>
+
+<span class="cmt">-- ❌ Non-SARGable (function on column)</span>
+<span class="kw">WHERE</span> <span class="fn">UPPER</span>(EmpName) <span class="op">=</span> <span class="str">'ALICE'</span>
+
+<span class="cmt">-- ✔ SARGable (apply function to the literal)</span>
+<span class="kw">WHERE</span> EmpName <span class="op">=</span> <span class="str">'Alice'</span> <span class="cmt">-- with a case-insensitive collation</span></pre>
+  </div>
+
+  <h3 class="gold">Correlated Subquery → Window Function Optimization</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL — Before & After Optimization</div></div>
+    <pre><span class="cmt">-- ❌ BEFORE: Correlated subquery — O(n²) on large tables</span>
+<span class="kw">SELECT</span> e.EmpName, e.Salary
+<span class="kw">FROM</span>   <span class="tb">Employees</span> e
+<span class="kw">WHERE</span>  e.Salary <span class="op">></span> (
+           <span class="kw">SELECT</span> <span class="fn">AVG</span>(e2.Salary) <span class="kw">FROM</span> <span class="tb">Employees</span> e2
+           <span class="kw">WHERE</span> e2.DeptID <span class="op">=</span> e.DeptID
+       );
+
+<span class="cmt">-- ✔ AFTER: Window function — single table pass O(n)</span>
+<span class="kw">SELECT</span> EmpName, Salary
+<span class="kw">FROM</span> (
+    <span class="kw">SELECT</span>
+        EmpName, Salary,
+        <span class="fn">AVG</span>(Salary) <span class="kw">OVER</span> (<span class="kw">PARTITION BY</span> DeptID) <span class="kw">AS</span> DeptAvg
+    <span class="kw">FROM</span> <span class="tb">Employees</span>
+) ranked
+<span class="kw">WHERE</span> Salary <span class="op">></span> DeptAvg;</pre>
+  </div>
+
+  <h3 class="gold">Indexing Guidance for Subqueries</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Subquery Pattern</th><th>Recommended Index</th></tr></thead>
+      <tbody>
+        <tr><td>WHERE col IN (subquery returning col)</td><td>Index on the subquery's filter column AND result column</td></tr>
+        <tr><td>EXISTS (WHERE outer.col = inner.col)</td><td>Index on inner table's join column</td></tr>
+        <tr><td>Scalar in SELECT referencing outer DeptID</td><td>Covering index on (DeptID) INCLUDE (Salary)</td></tr>
+        <tr><td>Derived table with GROUP BY DeptID</td><td>Index on GROUP BY column (DeptID)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════ S22 ═══════════════ -->
+<section id="s22">
+  <h2><span class="num">22</span>Common Mistakes &amp; NULL Traps</h2>
+
+  <h3 class="blue">Mistake 1 — NOT IN with NULLs (Silent Bug)</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="cmt">-- ❌ BUGGY: If Orders.CustomerID has any NULL, returns 0 rows!</span>
+<span class="kw">SELECT</span> CustomerName <span class="kw">FROM</span> <span class="tb">Customers</span>
+<span class="kw">WHERE</span>  CustomerID <span class="kw">NOT IN</span> (<span class="kw">SELECT</span> CustomerID <span class="kw">FROM</span> <span class="tb">Orders</span>);
+
+<span class="cmt">-- ✔ SAFE: Use NOT EXISTS to handle NULLs correctly</span>
+<span class="kw">SELECT</span> CustomerName <span class="kw">FROM</span> <span class="tb">Customers</span> c
+<span class="kw">WHERE</span>  <span class="kw">NOT EXISTS</span> (
+           <span class="kw">SELECT</span> <span class="num">1</span> <span class="kw">FROM</span> <span class="tb">Orders</span> o
+           <span class="kw">WHERE</span>  o.CustomerID <span class="op">=</span> c.CustomerID
+       );</pre>
+  </div>
+
+  <h3 class="blue">Mistake 2 — Single-row subquery returning multiple rows</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="cmt">-- ❌ ERROR if multiple employees share the max salary</span>
+<span class="kw">SELECT</span> EmpName <span class="kw">FROM</span> <span class="tb">Employees</span>
+<span class="kw">WHERE</span>  Salary <span class="op">=</span> (<span class="kw">SELECT</span> Salary <span class="kw">FROM</span> <span class="tb">Employees</span> <span class="kw">WHERE</span> DeptID <span class="op">=</span> <span class="num">10</span>);
+
+<span class="cmt">-- ✔ SAFE: Use aggregation to guarantee scalar</span>
+<span class="kw">SELECT</span> EmpName <span class="kw">FROM</span> <span class="tb">Employees</span>
+<span class="kw">WHERE</span>  Salary <span class="op">=</span> (<span class="kw">SELECT</span> <span class="fn">MAX</span>(Salary) <span class="kw">FROM</span> <span class="tb">Employees</span> <span class="kw">WHERE</span> DeptID <span class="op">=</span> <span class="num">10</span>);</pre>
+  </div>
+
+  <h3 class="blue">Mistake 3 — Forgetting the alias on a derived table</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="cmt">-- ❌ ERROR: Every derived table must have an alias</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> (<span class="kw">SELECT</span> EmpName, Salary <span class="kw">FROM</span> <span class="tb">Employees</span>);
+
+<span class="cmt">-- ✔ CORRECT</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> (<span class="kw">SELECT</span> EmpName, Salary <span class="kw">FROM</span> <span class="tb">Employees</span>) <span class="kw">AS</span> emp_data;</pre>
+  </div>
+
+  <h3 class="blue">Mistake 4 — Using ORDER BY inside a subquery (invalid in SQL Server)</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="cmt">-- ❌ ERROR: ORDER BY not allowed in subqueries without TOP/OFFSET</span>
+<span class="kw">SELECT</span> EmpName <span class="kw">FROM</span> <span class="tb">Employees</span>
+<span class="kw">WHERE</span>  DeptID <span class="kw">IN</span> (<span class="kw">SELECT</span> DeptID <span class="kw">FROM</span> <span class="tb">Departments</span> <span class="kw">ORDER BY</span> Budget);
+
+<span class="cmt">-- ✔ CORRECT: Add TOP to allow ORDER BY</span>
+<span class="kw">WHERE</span>  DeptID <span class="kw">IN</span> (<span class="kw">SELECT</span> <span class="kw">TOP</span> <span class="num">100</span> <span class="kw">PERCENT</span> DeptID <span class="kw">FROM</span> <span class="tb">Departments</span> <span class="kw">ORDER BY</span> Budget);</pre>
+  </div>
+</section>
+
+<!-- ═══════════════ S23 ═══════════════ -->
+<section id="s23">
+  <h2><span class="num">23</span>Real-World Business Scenarios</h2>
+
+  <h3 class="gold">Scenario 1 — HR: Employees above their department average salary</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span>
+    e.EmpName, e.Salary, d.DeptName,
+    dept.AvgSalary,
+    e.Salary <span class="op">-</span> dept.AvgSalary <span class="kw">AS</span> AboveAvgBy
+<span class="kw">FROM</span>      <span class="tb">Employees</span>    e
+<span class="kw">JOIN</span>      <span class="tb">Departments</span>  d    <span class="kw">ON</span> d.DeptID <span class="op">=</span> e.DeptID
+<span class="kw">JOIN</span> (
+    <span class="kw">SELECT</span> DeptID, <span class="fn">AVG</span>(Salary) <span class="kw">AS</span> AvgSalary
+    <span class="kw">FROM</span>   <span class="tb">Employees</span>
+    <span class="kw">GROUP BY</span> DeptID
+) dept <span class="kw">ON</span> dept.DeptID <span class="op">=</span> e.DeptID
+<span class="kw">WHERE</span> e.Salary <span class="op">></span> dept.AvgSalary
+<span class="kw">ORDER BY</span> AboveAvgBy <span class="kw">DESC</span>;</pre>
+  </div>
+
+  <h3 class="gold">Scenario 2 — Marketing: Customers who never placed an order</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span> c.CustomerName, c.Email, c.City
+<span class="kw">FROM</span>   <span class="tb">Customers</span> c
+<span class="kw">WHERE</span>  <span class="kw">NOT EXISTS</span> (
+           <span class="kw">SELECT</span> <span class="num">1</span> <span class="kw">FROM</span> <span class="tb">Orders</span> o
+           <span class="kw">WHERE</span>  o.CustomerID <span class="op">=</span> c.CustomerID
+       )
+<span class="kw">ORDER BY</span> c.CustomerName;
+
+<span class="cmt">-- Use case: Re-engagement email campaign targeting inactive registrants</span></pre>
+  </div>
+
+  <h3 class="gold">Scenario 3 — Sales: Top 5 selling products</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span> p.ProductName, p.Category, sales.TotalRevenue
+<span class="kw">FROM</span>   <span class="tb">Products</span> p
+<span class="kw">JOIN</span> (
+    <span class="kw">SELECT</span>   ProductID, <span class="fn">SUM</span>(Amount) <span class="kw">AS</span> TotalRevenue
+    <span class="kw">FROM</span>     <span class="tb">Orders</span>
+    <span class="kw">GROUP BY</span> ProductID
+) sales <span class="kw">ON</span> sales.ProductID <span class="op">=</span> p.ProductID
+<span class="kw">ORDER BY</span> sales.TotalRevenue <span class="kw">DESC</span>
+<span class="kw">OFFSET</span> <span class="num">0</span> <span class="kw">ROWS FETCH NEXT</span> <span class="num">5</span> <span class="kw">ROWS ONLY</span>;</pre>
+  </div>
+
+  <h3 class="gold">Scenario 4 — Data Quality: Detecting duplicate records</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span> CustomerID, Email, <span class="fn">COUNT</span>(<span class="op">*</span>) <span class="kw">AS</span> DuplicateCount
+<span class="kw">FROM</span>   <span class="tb">Customers</span>
+<span class="kw">WHERE</span>  Email <span class="kw">IN</span> (
+           <span class="kw">SELECT</span>   Email
+           <span class="kw">FROM</span>     <span class="tb">Customers</span>
+           <span class="kw">GROUP BY</span> Email
+           <span class="kw">HAVING</span>   <span class="fn">COUNT</span>(<span class="op">*</span>) <span class="op">></span> <span class="num">1</span>
+       )
+<span class="kw">GROUP BY</span> CustomerID, Email
+<span class="kw">ORDER BY</span> Email;</pre>
+  </div>
+
+  <h3 class="gold">Scenario 5 — Finance: Latest transaction per account</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span> t.AccountID, t.TransactionDate, t.Amount, t.TransactionType
+<span class="kw">FROM</span>   <span class="tb">Transactions</span> t
+<span class="kw">WHERE</span>  t.TransactionDate <span class="op">=</span> (
+           <span class="kw">SELECT</span> <span class="fn">MAX</span>(t2.TransactionDate)
+           <span class="kw">FROM</span>   <span class="tb">Transactions</span> t2
+           <span class="kw">WHERE</span>  t2.AccountID <span class="op">=</span> t.AccountID
+       )
+<span class="kw">ORDER BY</span> t.AccountID;</pre>
+  </div>
+
+  <h3 class="gold">Scenario 6 — Fraud Detection: Customers with unusually large orders</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span> o.OrderID, o.CustomerID, o.Amount, c.CustomerName
+<span class="kw">FROM</span>   <span class="tb">Orders</span>    o
+<span class="kw">JOIN</span>   <span class="tb">Customers</span> c <span class="kw">ON</span> c.CustomerID <span class="op">=</span> o.CustomerID
+<span class="kw">WHERE</span>  o.Amount <span class="op">></span> (
+           <span class="kw">SELECT</span> <span class="fn">AVG</span>(Amount) <span class="op">+</span> <span class="num">3</span> <span class="op">*</span> <span class="fn">STDEV</span>(Amount)
+           <span class="kw">FROM</span>   <span class="tb">Orders</span>
+       )
+<span class="kw">ORDER BY</span> o.Amount <span class="kw">DESC</span>;
+
+<span class="cmt">-- Flags orders more than 3 standard deviations above the mean
+-- Classic statistical anomaly detection for fraud review</span></pre>
+  </div>
+
+  <h3 class="gold">Scenario 7 — Inventory: Products below reorder threshold</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span> p.ProductName, p.Stock, p.ReorderLevel,
+       (<span class="kw">SELECT</span> <span class="fn">SUM</span>(o.Quantity)
+        <span class="kw">FROM</span>   <span class="tb">Orders</span> o
+        <span class="kw">WHERE</span>  o.ProductID <span class="op">=</span> p.ProductID
+          <span class="kw">AND</span>  o.OrderDate <span class="op">>=</span> <span class="fn">DATEADD</span>(<span class="kw">DAY</span>, <span class="op">-</span><span class="num">30</span>, <span class="fn">GETDATE</span>())) <span class="kw">AS</span> Last30DaySales
+<span class="kw">FROM</span>   <span class="tb">Products</span> p
+<span class="kw">WHERE</span>  p.Stock <span class="op"><</span> p.ReorderLevel;</pre>
+  </div>
+
+  <h3 class="gold">Scenario 8 — Financial Reporting: Department budget utilization</h3>
+  <div class="code-wrap">
+    <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+    <pre><span class="kw">SELECT</span>
+    d.DeptName,
+    d.Budget,
+    dept_spend.TotalSalary,
+    <span class="fn">CAST</span>(dept_spend.TotalSalary <span class="op">*</span> <span class="num">100.0</span> <span class="op">/</span> d.Budget <span class="kw">AS</span> <span class="fn">DECIMAL</span>(<span class="num">5</span>,<span class="num">2</span>)) <span class="kw">AS</span> BudgetUsedPct
+<span class="kw">FROM</span>   <span class="tb">Departments</span> d
+<span class="kw">JOIN</span> (
+    <span class="kw">SELECT</span>   DeptID, <span class="fn">SUM</span>(Salary) <span class="kw">AS</span> TotalSalary
+    <span class="kw">FROM</span>     <span class="tb">Employees</span>
+    <span class="kw">GROUP BY</span> DeptID
+) dept_spend <span class="kw">ON</span> dept_spend.DeptID <span class="op">=</span> d.DeptID
+<span class="kw">ORDER BY</span> BudgetUsedPct <span class="kw">DESC</span>;</pre>
+  </div>
+</section>
+
+<!-- ═══════════════ S24 ═══════════════ -->
+<section id="s24">
+  <h2><span class="num">24</span>Interview Questions &amp; Answers</h2>
+
+  <h3 class="blue">🟢 Beginner Level</h3>
+
+  <div class="task-box">
+    <div class="task-label">Q1 — What is a subquery?</div>
+    <p><strong>Answer:</strong> A subquery is a <code>SELECT</code> statement nested inside another SQL statement. The inner query runs first and its result is passed to the outer query. Subqueries can appear in <code>SELECT</code>, <code>FROM</code>, <code>WHERE</code>, or <code>HAVING</code> clauses.</p>
+  </div>
+
+  <div class="task-box">
+    <div class="task-label">Q2 — What is the difference between a correlated and non-correlated subquery?</div>
+    <p><strong>Answer:</strong> A <strong>non-correlated subquery</strong> is independent of the outer query — it runs once, and the result is reused. A <strong>correlated subquery</strong> references columns from the outer query, so it must re-execute for every row the outer query processes. Correlated subqueries are more powerful but potentially much slower on large data.</p>
+  </div>
+
+  <div class="task-box">
+    <div class="task-label">Q3 — Can a subquery return multiple columns?</div>
+    <p><strong>Answer:</strong> Yes — but only when used in specific contexts. In a <code>FROM</code> clause (derived table), a subquery can return multiple columns. In a <code>WHERE</code> clause with comparison operators like <code>=</code>, it must return exactly one column. With <code>EXISTS</code>, the columns returned are irrelevant since only row existence is checked.</p>
+  </div>
+
+  <h3 class="blue">🟡 Intermediate Level</h3>
+
+  <div class="task-box">
+    <div class="task-label">Q4 — Why does NOT IN with a subquery sometimes return 0 rows unexpectedly?</div>
+    <p><strong>Answer:</strong> Because of NULLs. If the subquery returns any <code>NULL</code> value, every row in the outer query evaluates to <code>UNKNOWN</code> (not TRUE or FALSE) when compared with <code>NOT IN</code>, so no rows pass the filter. The fix is to add <code>WHERE column IS NOT NULL</code> inside the subquery, or replace <code>NOT IN</code> with <code>NOT EXISTS</code>.</p>
+  </div>
+
+  <div class="task-box">
+    <div class="task-label">Q5 — What is the difference between EXISTS and IN?</div>
+    <p><strong>Answer:</strong> <code>EXISTS</code> checks for the <em>presence</em> of any matching row and stops as soon as it finds one (short-circuit). <code>IN</code> builds the complete result set first, then checks membership. <code>EXISTS</code> is generally preferred for large datasets or when the subquery may return many rows. <code>EXISTS</code> also handles NULLs safely, while <code>NOT IN</code> does not.</p>
+  </div>
+
+  <div class="task-box">
+    <div class="task-label">Q6 — What is a derived table?</div>
+    <p><strong>Answer:</strong> A derived table is a subquery placed in the <code>FROM</code> clause and given an alias. It acts as an inline view — the result set of the subquery is treated as a virtual table for the outer query. Every derived table must have an alias. Example: <code>SELECT * FROM (SELECT DeptID, AVG(Salary) AS AvgSal FROM Employees GROUP BY DeptID) AS dept_stats</code>.</p>
+  </div>
+
+  <h3 class="blue">🔴 Advanced Level</h3>
+
+  <div class="task-box">
+    <div class="task-label">Q7 — When would you choose a CTE over a subquery?</div>
+    <p><strong>Answer:</strong> Use a CTE when: (1) the same subquery result is needed more than once in the query; (2) the query has multiple logical steps that benefit from being named; (3) recursion is needed (hierarchical data like org charts, bill of materials); (4) readability is a priority for long-term maintenance. Subqueries are fine for simple, one-time inline logic.</p>
+  </div>
+
+  <div class="task-box">
+    <div class="task-label">Q8 — How would you optimize a correlated subquery that runs slowly?</div>
+    <p><strong>Answer:</strong> Several approaches: (1) Replace with a window function (<code>AVG() OVER (PARTITION BY ...)</code>) which does a single table scan; (2) Rewrite as a JOIN with a derived table or CTE that pre-aggregates; (3) Add appropriate indexes on the correlated column and the aggregate column; (4) Check the execution plan for nested loop operations which indicate row-by-row processing.</p>
+  </div>
+
+  <div class="task-box">
+    <div class="task-label">Q9 — Tricky: Write a query to find the second-highest salary using a subquery</div>
+    <div class="code-wrap" style="margin-top:10px">
+      <div class="code-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="lang">T-SQL</div></div>
+      <pre><span class="cmt">-- Method 1: Subquery</span>
+<span class="kw">SELECT</span> <span class="fn">MAX</span>(Salary) <span class="kw">AS</span> SecondHighest
+<span class="kw">FROM</span>   <span class="tb">Employees</span>
+<span class="kw">WHERE</span>  Salary <span class="op"><</span> (<span class="kw">SELECT</span> <span class="fn">MAX</span>(Salary) <span class="kw">FROM</span> <span class="tb">Employees</span>);
+
+<span class="cmt">-- Method 2: Window function (more flexible)</span>
+<span class="kw">SELECT</span> Salary
+<span class="kw">FROM</span> (
+    <span class="kw">SELECT</span> Salary,
+           <span class="fn">DENSE_RANK</span>() <span class="kw">OVER</span> (<span class="kw">ORDER BY</span> Salary <span class="kw">DESC</span>) <span class="kw">AS</span> Rnk
+    <span class="kw">FROM</span>   <span class="tb">Employees</span>
+) ranked
+<span class="kw">WHERE</span> Rnk <span class="op">=</span> <span class="num">2</span>;</pre>
+    </div>
+  </div>
+
+  <div class="task-box">
+    <div class="task-label">Q10 — Scenario: You have a query using NOT IN that was working, then suddenly returns 0 rows after new data was inserted. What is likely wrong?</div>
+    <p><strong>Answer:</strong> A <code>NULL</code> value was inserted into the column referenced by the subquery in <code>NOT IN</code>. When a <code>NULL</code> appears in the subquery result, SQL Server cannot determine if any outer value is "not equal to NULL" (since <code>NULL ≠ NULL</code> is <code>UNKNOWN</code>), so the entire result collapses to zero rows. Fix: add <code>WHERE column IS NOT NULL</code> in the subquery or convert to <code>NOT EXISTS</code>.</p>
+  </div>
+</section>
+
+<!-- ═══════════════ S25 ═══════════════ -->
+<section id="s25">
+  <h2><span class="num">25</span>Practice Tasks &amp; Mini Projects</h2>
+
+  <div class="practice-section">
+    <h4>🟢 Beginner Tasks</h4>
+    <div class="practice-item"><div class="pnum">1</div><p>Write a query to find all employees whose salary is greater than the company-wide average salary.</p></div>
+    <div class="practice-item"><div class="pnum">2</div><p>Find all products whose unit price is above the average price in their category.</p></div>
+    <div class="practice-item"><div class="pnum">3</div><p>Find the customer who placed the highest single-order amount ever.</p></div>
+    <div class="practice-item"><div class="pnum">4</div><p>List all departments that have at least one employee hired after January 1, 2023.</p></div>
+    <div class="practice-item"><div class="pnum">5</div><p>Write a subquery using <code>IN</code> to find all orders placed by customers living in 'New York'.</p></div>
+  </div>
+
+  <div class="practice-section">
+    <h4>🟡 Intermediate Tasks</h4>
+    <div class="practice-item"><div class="pnum">1</div><p>Using a correlated subquery, find each department's highest-paid employee along with their salary.</p></div>
+    <div class="practice-item"><div class="pnum">2</div><p>Find all customers who placed at least 3 orders, using a subquery in <code>WHERE</code>.</p></div>
+    <div class="practice-item"><div class="pnum">3</div><p>Write a derived table query that groups orders by month and then finds months where total revenue exceeded $50,000.</p></div>
+    <div class="practice-item"><div class="pnum">4</div><p>Using <code>NOT EXISTS</code>, find all products that have never appeared in any order.</p></div>
+    <div class="practice-item"><div class="pnum">5</div><p>Write a query using <code>ANY</code> and <code>ALL</code> to demonstrate the difference with a salary comparison between departments.</p></div>
+  </div>
+
+  <div class="practice-section">
+    <h4>🔴 Advanced Tasks / Mini Projects</h4>
+    <div class="practice-item"><div class="pnum">1</div><p><strong>Employee Ranking Report:</strong> For each department, show each employee's salary, their department's average and maximum salary, and their rank within the department — using both subquery and window function approaches. Compare performance.</p></div>
+    <div class="practice-item"><div class="pnum">2</div><p><strong>Customer Segmentation:</strong> Classify customers into 'Platinum' (orders &gt; $10K total), 'Gold' ($5K–$10K), 'Silver' ($1K–$5K), and 'Bronze' (&lt; $1K) using subqueries in a <code>CASE</code> expression inside <code>SELECT</code>.</p></div>
+    <div class="practice-item"><div class="pnum">3</div><p><strong>Duplicate Cleaner:</strong> Write a <code>DELETE</code> statement using a subquery that removes duplicate customer records (keeping the one with the lowest CustomerID for each email).</p></div>
+    <div class="practice-item"><div class="pnum">4</div><p><strong>Monthly Sales Dashboard:</strong> Using derived tables, produce a report showing each month's total revenue, the running average up to that month, and whether that month was above or below the overall annual average.</p></div>
+    <div class="practice-item"><div class="pnum">5</div><p><strong>Fraud Flag Update:</strong> Write an <code>UPDATE</code> that marks an <code>IsSuspicious</code> flag on orders where the amount is more than 3 standard deviations above the customer's own historical average order amount.</p></div>
+  </div>
+</section>
+
+<!-- ═══════════════ S26 ═══════════════ -->
+<section id="s26">
+  <h2><span class="num">26</span>Summary &amp; Best Practices</h2>
+
+  <div class="callout gem">
+    <div class="icon">💎</div>
+    <div>
+      <div class="callout-title">Golden Rules of Subqueries</div>
+      <p>Follow these rules to write subqueries that are correct, readable, and performant.</p>
+    </div>
+  </div>
+
+  <div class="badge-row">
+    <div class="badge">Use EXISTS over IN for large sets</div>
+    <div class="badge">Always filter NULLs in NOT IN</div>
+    <div class="badge">Alias every derived table</div>
+    <div class="badge">Prefer window functions over correlated subqueries</div>
+    <div class="badge">Run SELECT before DELETE/UPDATE</div>
+    <div class="badge">Check execution plans regularly</div>
+    <div class="badge">Use SARGable conditions</div>
+    <div class="badge">Prefer CTEs for readability</div>
+  </div>
+
+  <div class="tbl-wrap" style="margin-top:24px">
+    <table>
+      <thead><tr><th>Situation</th><th>Best Choice</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>Simple scalar comparison</td><td>Subquery with =</td><td>Clear intent, optimizer handles well</td></tr>
+        <tr><td>Check row existence</td><td>EXISTS</td><td>Short-circuits, NULL-safe</td></tr>
+        <tr><td>Check non-existence</td><td>NOT EXISTS</td><td>Safer than NOT IN with NULLs</td></tr>
+        <tr><td>Per-group aggregate comparison</td><td>Window function</td><td>Single table scan vs. N scans</td></tr>
+        <tr><td>Complex multi-step logic</td><td>CTE</td><td>Readable, maintainable, debuggable</td></tr>
+        <tr><td>Large intermediate result with reuse</td><td>Temp Table with index</td><td>Materialized, index-optimizable</td></tr>
+        <tr><td>Negative membership test</td><td>NOT EXISTS or LEFT JOIN IS NULL</td><td>Handles NULLs correctly</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout tip">
+    <div class="icon">💡</div>
+    <div>
+      <div class="callout-title">Final Thought</div>
+      <p>Subqueries are one of the most expressive tools in SQL. Master them by understanding <em>when</em> the inner query executes, <em>what</em> it returns, and <em>how</em> the optimizer processes it. Always validate with actual execution plans on real data sizes, because performance characteristics that hold for 1,000 rows may break down at 10 million rows.</p>
+    </div>
+  </div>
+</section>
+
+</div><!-- /wrapper -->
+
+<footer>
+  <p>SQL Subqueries Masterclass &nbsp;·&nbsp; Author: <span>MD JABERUL HOSSEN JABED</span> &nbsp;·&nbsp; Platform: SQL Server (T-SQL) &nbsp;·&nbsp; All examples use realistic business tables and production-safe patterns.</p>
+</footer>
+
+</body>
+</html>

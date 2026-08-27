@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>System Details — Metadata Configuration Guide</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
+
+  <link href="style.css" rel="stylesheet" /></head> 
+<body>
+
+<!-- ═══════════════════════════ TOP NAV ════════════════════════════ -->
+<nav class="top-nav">
+  <div class="nav-container">
+    <a href="index.html" class="nav-link">← Back to SQL Hub</a>
+    <div class="nav-title">SQL Server Documentation Series <span class="nav-badge">T-SQL</span></div>
+  </div>
+</nav>
+
+
+<!-- ══════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════ -->
+<header>
+  <div class="badge">SQL Learning Guide Series</div>
+  <h1>System <span>Details</span></h1>
+  <p class="sub">System Information, Triggers, Tables, Schema &amp; Metadata Procedures — with Rename, Find &amp; Solve Techniques</p>
+  <div class="meta">Author: MD Jaberul Hossen Jabed &nbsp;·&nbsp; Version 1.0 &nbsp;·&nbsp; SQL Server / T-SQL Reference</div>
+</header>
+
+<!-- ══════════════════════════════════════════
+     MAIN WRAPPER
+══════════════════════════════════════════ -->
+<div class="wrapper">
+
+  <!-- TABLE OF CONTENTS -->
+  <nav class="toc" id="top">
+    <div class="toc-heading">📋 Table of Contents</div>
+    <div class="toc-grid">
+      <a href="#sys-info">01 · System Information</a>
+      <a href="#sys-catalog">02 · System Catalog Views</a>
+      <a href="#triggers-meta">03 · Trigger Metadata</a>
+      <a href="#trigger-code">04 · Trigger Code &amp; Examples</a>
+      <a href="#tables-meta">05 · Tables Metadata</a>
+      <a href="#schema-meta">06 · Schema Metadata</a>
+      <a href="#procedures-meta">07 · Stored Procedure Metadata</a>
+      <a href="#rename-ops">08 · Rename Operations</a>
+      <a href="#find-meta">09 · Finding Metadata Objects</a>
+      <a href="#solve-meta">10 · Solving Metadata Issues</a>
+      <a href="#cheatsheet">11 · Quick-Reference Cheatsheet</a>
+    </div>
+  </nav>
+
+
+  <!-- ══ SECTION 1 — SYSTEM INFORMATION ══ -->
+  <section id="sys-info">
+    <h2 class="sec-title"><span class="num">01</span> System Information</h2>
+
+    <p>SQL Server exposes a rich set of built-in functions and dynamic management views (DMVs) that let you query the current state of the server, database, and session. These are the first tools to reach for when diagnosing an environment.</p>
+
+    <h3 class="sub-title">🖥️ Server-Level Functions</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <pre><span class="cmt">-- Current SQL Server version and edition</span>
+<span class="kw">SELECT</span> <span class="fn">@@VERSION</span>                        <span class="cmt">-- full build string</span>
+<span class="kw">SELECT</span> <span class="fn">SERVERPROPERTY</span>(<span class="str">'ProductVersion'</span>)  <span class="cmt">-- e.g. 16.0.4003.1</span>
+<span class="kw">SELECT</span> <span class="fn">SERVERPROPERTY</span>(<span class="str">'Edition'</span>)         <span class="cmt">-- Developer / Standard / Enterprise</span>
+<span class="kw">SELECT</span> <span class="fn">SERVERPROPERTY</span>(<span class="str">'InstanceName'</span>)    <span class="cmt">-- NULL = default instance</span>
+<span class="kw">SELECT</span> <span class="fn">SERVERPROPERTY</span>(<span class="str">'Collation'</span>)       <span class="cmt">-- server collation</span>
+
+<span class="cmt">-- Active database context</span>
+<span class="kw">SELECT</span> <span class="fn">DB_NAME</span>()     <span class="cmt">-- current database</span>
+<span class="kw">SELECT</span> <span class="fn">USER_NAME</span>()   <span class="cmt">-- current database user</span>
+<span class="kw">SELECT</span> <span class="fn">SUSER_NAME</span>() <span class="cmt">-- current login name</span>
+<span class="kw">SELECT</span> <span class="fn">@@SERVERNAME</span> <span class="cmt">-- server\instance name</span></pre>
+    </div>
+
+    <h3 class="sub-title">📊 Key Server Properties at a Glance</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Property</th><th>Function / View</th><th>Returns</th><th>Notes</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>Server Name</td><td><code>@@SERVERNAME</code></td><td>NVARCHAR</td><td>Includes instance name</td></tr>
+          <tr><td>Product Version</td><td><code>SERVERPROPERTY('ProductVersion')</code></td><td>NVARCHAR</td><td>Major.Minor.Build.Revision</td></tr>
+          <tr><td>Product Level</td><td><code>SERVERPROPERTY('ProductLevel')</code></td><td>NVARCHAR</td><td>RTM, SP1, CU15 etc.</td></tr>
+          <tr><td>Edition</td><td><code>SERVERPROPERTY('Edition')</code></td><td>NVARCHAR</td><td>Enterprise, Developer…</td></tr>
+          <tr><td>Is Clustered</td><td><code>SERVERPROPERTY('IsClustered')</code></td><td>INT 0/1</td><td>1 = part of failover cluster</td></tr>
+          <tr><td>Collation</td><td><code>SERVERPROPERTY('Collation')</code></td><td>NVARCHAR</td><td>e.g. SQL_Latin1_General_CP1_CI_AS</td></tr>
+          <tr><td>Current DB</td><td><code>DB_NAME()</code></td><td>NVARCHAR</td><td>Context-dependent</td></tr>
+          <tr><td>Current Login</td><td><code>SUSER_NAME()</code></td><td>NVARCHAR</td><td>Windows or SQL login</td></tr>
+          <tr><td>Active Connections</td><td><code>sys.dm_exec_sessions</code></td><td>DMV rows</td><td>Filter by <code>is_user_process=1</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">⚙️ Database-Level Properties</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <pre><span class="cmt">-- All databases on the server</span>
+<span class="kw">SELECT</span> <span class="nm">name</span>, <span class="nm">database_id</span>, <span class="nm">create_date</span>,
+       <span class="nm">compatibility_level</span>, <span class="nm">collation_name</span>,
+       <span class="nm">state_desc</span>, <span class="nm">recovery_model_desc</span>
+<span class="kw">FROM</span>   <span class="nm">sys.databases</span>
+<span class="kw">ORDER BY</span> <span class="nm">name</span>;
+
+<span class="cmt">-- Database-level property (single value)</span>
+<span class="kw">SELECT</span> <span class="fn">DATABASEPROPERTYEX</span>(<span class="fn">DB_NAME</span>(), <span class="str">'Status'</span>)     <span class="cmt">-- ONLINE / OFFLINE</span>
+<span class="kw">SELECT</span> <span class="fn">DATABASEPROPERTYEX</span>(<span class="fn">DB_NAME</span>(), <span class="str">'Recovery'</span>)   <span class="cmt">-- FULL / SIMPLE</span>
+<span class="kw">SELECT</span> <span class="fn">DATABASEPROPERTYEX</span>(<span class="fn">DB_NAME</span>(), <span class="str">'Collation'</span>)  <span class="cmt">-- DB collation</span></pre>
+    </div>
+
+    <div class="callout tip">
+      <span class="icon">💡</span>
+      <div class="body">
+        <strong>Tip — Compatibility Level</strong>
+        <p>The <code>compatibility_level</code> in <code>sys.databases</code> controls which T-SQL features and query-optimizer behaviours are active. It does <em>not</em> have to match the installed SQL Server version — teams often keep it lower for safe upgrades.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══ SECTION 2 — SYSTEM CATALOG VIEWS ══ -->
+  <section id="sys-catalog">
+    <h2 class="sec-title"><span class="num">02</span> System Catalog Views</h2>
+
+    <p>Catalog views are the primary metadata API in SQL Server. Every object — table, view, procedure, trigger, index, constraint — has an entry in the <code>sys</code> schema. They are read-only and transactionally consistent.</p>
+
+    <div class="type-grid">
+      <div class="type-card">
+        <div class="tc-title">Object Catalog</div>
+        <ul>
+          <li><code>sys.objects</code> — all objects</li>
+          <li><code>sys.tables</code> — user tables</li>
+          <li><code>sys.views</code> — views</li>
+          <li><code>sys.procedures</code> — stored procs</li>
+          <li><code>sys.triggers</code> — DDL &amp; DML triggers</li>
+          <li><code>sys.synonyms</code> — synonyms</li>
+        </ul>
+      </div>
+      <div class="type-card">
+        <div class="tc-title">Column &amp; Type Catalog</div>
+        <ul>
+          <li><code>sys.columns</code> — all columns</li>
+          <li><code>sys.types</code> — data types</li>
+          <li><code>sys.computed_columns</code></li>
+          <li><code>sys.identity_columns</code></li>
+          <li><code>sys.default_constraints</code></li>
+          <li><code>sys.check_constraints</code></li>
+        </ul>
+      </div>
+      <div class="type-card">
+        <div class="tc-title">Keys &amp; Indexes</div>
+        <ul>
+          <li><code>sys.indexes</code></li>
+          <li><code>sys.index_columns</code></li>
+          <li><code>sys.key_constraints</code></li>
+          <li><code>sys.foreign_keys</code></li>
+          <li><code>sys.foreign_key_columns</code></li>
+          <li><code>sys.stats</code></li>
+        </ul>
+      </div>
+      <div class="type-card">
+        <div class="tc-title">Schema &amp; Security</div>
+        <ul>
+          <li><code>sys.schemas</code></li>
+          <li><code>sys.principals</code></li>
+          <li><code>sys.database_permissions</code></li>
+          <li><code>sys.server_principals</code></li>
+          <li><code>sys.database_role_members</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">T-SQL — Catalog Quick Queries</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <pre><span class="cmt">-- List every user-created object with its type</span>
+<span class="kw">SELECT</span> <span class="nm">o.name</span>, <span class="nm">o.type_desc</span>, <span class="nm">s.name</span> <span class="kw">AS</span> schema_name,
+       <span class="nm">o.create_date</span>, <span class="nm">o.modify_date</span>
+<span class="kw">FROM</span>   <span class="nm">sys.objects</span> <span class="nm">o</span>
+<span class="kw">JOIN</span>   <span class="nm">sys.schemas</span> <span class="nm">s</span> <span class="kw">ON</span> <span class="nm">s.schema_id</span> = <span class="nm">o.schema_id</span>
+<span class="kw">WHERE</span>  <span class="nm">o.is_ms_shipped</span> = <span class="op">0</span>
+<span class="kw">ORDER BY</span> <span class="nm">o.type_desc</span>, <span class="nm">o.name</span>;</pre>
+    </div>
+
+    <div class="callout info">
+      <span class="icon">ℹ️</span>
+      <div class="body">
+        <strong>INFORMATION_SCHEMA vs sys.*</strong>
+        <p>SQL Server also exposes ANSI-standard <code>INFORMATION_SCHEMA</code> views (e.g. <code>INFORMATION_SCHEMA.TABLES</code>, <code>INFORMATION_SCHEMA.COLUMNS</code>). They are portable across RDBMS vendors but contain less detail than <code>sys.*</code>. Prefer <code>sys.*</code> for SQL Server-specific work.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══ SECTION 3 — TRIGGER METADATA ══ -->
+  <section id="triggers-meta">
+    <h2 class="sec-title"><span class="num">03</span> Trigger Metadata</h2>
+
+    <p>Triggers are stored as first-class objects. Their metadata is split between <code>sys.triggers</code> (DML triggers), <code>sys.server_triggers</code> (server-scope DDL triggers), and <code>sys.trigger_events</code> which records which events activate each trigger.</p>
+
+    <h3 class="sub-title">🔍 Querying Trigger Metadata</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <pre><span class="cmt">-- All DML triggers in the current database</span>
+<span class="kw">SELECT</span>
+    <span class="nm">t.name</span>                                         <span class="kw">AS</span> trigger_name,
+    <span class="fn">OBJECT_NAME</span>(<span class="nm">t.parent_id</span>)                       <span class="kw">AS</span> parent_table,
+    <span class="nm">t.type_desc</span>,
+    <span class="nm">t.is_disabled</span>,
+    <span class="nm">t.is_instead_of_trigger</span>,
+    <span class="nm">t.create_date</span>,
+    <span class="nm">t.modify_date</span>,
+    <span class="fn">OBJECT_DEFINITION</span>(<span class="nm">t.object_id</span>)                <span class="kw">AS</span> trigger_definition
+<span class="kw">FROM</span>   <span class="nm">sys.triggers</span> <span class="nm">t</span>
+<span class="kw">WHERE</span>  <span class="nm">t.parent_class</span> = <span class="op">1</span>   <span class="cmt">-- 1 = OBJECT_OR_COLUMN (DML)</span>
+<span class="kw">ORDER BY</span> parent_table, trigger_name;
+
+<span class="cmt">-- Trigger events (INSERT / UPDATE / DELETE)</span>
+<span class="kw">SELECT</span>
+    <span class="fn">OBJECT_NAME</span>(<span class="nm">te.object_id</span>) <span class="kw">AS</span> trigger_name,
+    <span class="nm">te.type_desc</span>               <span class="kw">AS</span> event_type
+<span class="kw">FROM</span>   <span class="nm">sys.trigger_events</span> <span class="nm">te</span>
+<span class="kw">ORDER BY</span> trigger_name;
+
+<span class="cmt">-- DDL triggers (database-scope)</span>
+<span class="kw">SELECT</span> <span class="nm">name</span>, <span class="nm">type_desc</span>, <span class="nm">is_disabled</span>, <span class="nm">create_date</span>
+<span class="kw">FROM</span>   <span class="nm">sys.triggers</span>
+<span class="kw">WHERE</span>  <span class="nm">parent_class</span> = <span class="op">0</span>;  <span class="cmt">-- 0 = DATABASE</span></pre>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Column</th><th>Type</th><th>Meaning</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>name</td><td>sysname</td><td>Trigger identifier</td></tr>
+          <tr><td>parent_id</td><td>int</td><td>object_id of the table/view the trigger is attached to</td></tr>
+          <tr><td>type_desc</td><td>nvarchar</td><td>Always SQL_TRIGGER for T-SQL triggers</td></tr>
+          <tr><td>is_disabled</td><td>bit</td><td>1 = trigger is disabled, will not fire</td></tr>
+          <tr><td>is_instead_of_trigger</td><td>bit</td><td>1 = INSTEAD OF; 0 = AFTER</td></tr>
+          <tr><td>create_date</td><td>datetime</td><td>Date trigger was created</td></tr>
+          <tr><td>modify_date</td><td>datetime</td><td>Date trigger was last altered</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+
+  <!-- ══ SECTION 4 — TRIGGER CODE ══ -->
+  <section id="trigger-code">
+    <h2 class="sec-title"><span class="num">04</span> Trigger Code &amp; Examples</h2>
+
+    <h3 class="sub-title">AFTER INSERT Trigger — Audit Log</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">T-SQL — DML Trigger</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <pre><span class="kw">CREATE OR ALTER TRIGGER</span> <span class="nm">dbo.trg_Orders_AfterInsert</span>
+<span class="kw">ON</span>  <span class="nm">dbo.Orders</span>
+<span class="kw">AFTER</span> <span class="kw">INSERT</span>
+<span class="kw">AS</span>
+<span class="kw">BEGIN</span>
+    <span class="kw">SET</span> <span class="nm">NOCOUNT</span> <span class="kw">ON</span>;
+
+    <span class="kw">INSERT INTO</span> <span class="nm">dbo.AuditLog</span> (<span class="nm">TableName</span>, <span class="nm">ActionType</span>, <span class="nm">RecordID</span>, <span class="nm">ChangedBy</span>, <span class="nm">ChangedAt</span>)
+    <span class="kw">SELECT</span> <span class="str">'Orders'</span>, <span class="str">'INSERT'</span>, <span class="nm">i.OrderID</span>, <span class="fn">SUSER_NAME</span>(), <span class="fn">GETDATE</span>()
+    <span class="kw">FROM</span> <span class="nm">inserted</span> <span class="nm">i</span>;
+<span class="kw">END</span>;
+<span class="kw">GO</span></pre>
+    </div>
+
+    <h3 class="sub-title">INSTEAD OF DELETE Trigger — Soft Delete</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">T-SQL — INSTEAD OF Trigger</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <pre><span class="kw">CREATE OR ALTER TRIGGER</span> <span class="nm">dbo.trg_Employees_SoftDelete</span>
+<span class="kw">ON</span>  <span class="nm">dbo.Employees</span>
+<span class="kw">INSTEAD OF</span> <span class="kw">DELETE</span>
+<span class="kw">AS</span>
+<span class="kw">BEGIN</span>
+    <span class="kw">SET</span> <span class="nm">NOCOUNT</span> <span class="kw">ON</span>;
+
+    <span class="kw">UPDATE</span> <span class="nm">dbo.Employees</span>
+    <span class="kw">SET</span>    <span class="nm">IsDeleted</span>  = <span class="op">1</span>,
+           <span class="nm">DeletedAt</span>  = <span class="fn">GETDATE</span>(),
+           <span class="nm">DeletedBy</span>  = <span class="fn">SUSER_NAME</span>()
+    <span class="kw">WHERE</span>  <span class="nm">EmployeeID</span> <span class="kw">IN</span> (<span class="kw">SELECT</span> <span class="nm">EmployeeID</span> <span class="kw">FROM</span> <span class="nm">deleted</span>);
+<span class="kw">END</span>;
+<span class="kw">GO</span></pre>
+    </div>
+
+    <h3 class="sub-title">DDL Trigger — Prevent Table Drops</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">T-SQL — DDL Trigger</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <pre><span class="kw">CREATE OR ALTER TRIGGER</span> <span class="nm">safety_NoDrop</span>
+<span class="kw">ON</span>  <span class="kw">DATABASE</span>
+<span class="kw">FOR</span> DROP_TABLE, ALTER_TABLE
+<span class="kw">AS</span>
+<span class="kw">BEGIN</span>
+    <span class="fn">RAISERROR</span>(<span class="str">'DDL changes on tables are blocked. Contact the DBA.'</span>, <span class="op">16</span>, <span class="op">1</span>);
+    <span class="kw">ROLLBACK</span>;
+<span class="kw">END</span>;
+<span class="kw">GO</span>
+
+<span class="cmt">-- Disable / Enable trigger</span>
+<span class="kw">DISABLE TRIGGER</span> <span class="nm">safety_NoDrop</span> <span class="kw">ON DATABASE</span>;
+<span class="kw">ENABLE  TRIGGER</span> <span class="nm">safety_NoDrop</span> <span class="kw">ON DATABASE</span>;</pre>
+    </div>
+
+    <div class="callout warn">
+      <span class="icon">⚠️</span>
+      <div class="body">
+        <strong>Nested &amp; Recursive Triggers</strong>
+        <p>SQL Server allows triggers to fire other triggers (nesting up to 32 levels). Check <code>@@NESTLEVEL</code> inside trigger code if you need to guard against recursion. Server-level setting <code>nested triggers</code> can disable this globally.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══ SECTION 5 — TABLES METADATA ══ -->
+  <section id="tables-meta">
+    <h2 class="sec-title"><span class="num">05</span> Tables Metadata</h2>
+
+    <h3 class="sub-title">📋 Listing Tables &amp; Their Properties</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <pre><span class="cmt">-- All user tables with row count and size</span>
+<span class="kw">SELECT</span>
+    <span class="nm">s.name</span>            <span class="kw">AS</span> schema_name,
+    <span class="nm">t.name</span>            <span class="kw">AS</span> table_name,
+    <span class="nm">t.create_date</span>,
+    <span class="nm">t.modify_date</span>,
+    <span class="nm">p.rows</span>            <span class="kw">AS</span> row_count,
+    <span class="fn">SUM</span>(<span class="nm">a.total_pages</span>) * <span class="op">8</span> <span class="kw">AS</span> total_kb
+<span class="kw">FROM</span>       <span class="nm">sys.tables</span>           <span class="nm">t</span>
+<span class="kw">JOIN</span>       <span class="nm">sys.schemas</span>          <span class="nm">s</span>  <span class="kw">ON</span> <span class="nm">s.schema_id</span>     = <span class="nm">t.schema_id</span>
+<span class="kw">JOIN</span>       <span class="nm">sys.indexes</span>          <span class="nm">i</span>  <span class="kw">ON</span> <span class="nm">i.object_id</span>     = <span class="nm">t.object_id</span> <span class="kw">AND</span> <span class="nm">i.index_id</span> &lt; <span class="op">2</span>
+<span class="kw">JOIN</span>       <span class="nm">sys.partitions</span>       <span class="nm">p</span>  <span class="kw">ON</span> <span class="nm">p.object_id</span>     = <span class="nm">i.object_id</span> <span class="kw">AND</span> <span class="nm">p.index_id</span>  = <span class="nm">i.index_id</span>
+<span class="kw">JOIN</span>       <span class="nm">sys.allocation_units</span> <span class="nm">a</span>  <span class="kw">ON</span> <span class="nm">a.container_id</span>  = <span class="nm">p.partition_id</span>
+<span class="kw">GROUP BY</span>   <span class="nm">s.name</span>, <span class="nm">t.name</span>, <span class="nm">t.create_date</span>, <span class="nm">t.modify_date</span>, <span class="nm">p.rows</span>
+<span class="kw">ORDER BY</span>   total_kb <span class="kw">DESC</span>;</pre>
+    </div>
+
+    <h3 class="sub-title">🧱 Column-Level Metadata</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <pre><span class="cmt">-- Full column details for a specific table</span>
+<span class="kw">SELECT</span>
+    <span class="nm">c.column_id</span>,
+    <span class="nm">c.name</span>                     <span class="kw">AS</span> column_name,
+    <span class="nm">tp.name</span>                    <span class="kw">AS</span> data_type,
+    <span class="nm">c.max_length</span>,
+    <span class="nm">c.precision</span>,
+    <span class="nm">c.scale</span>,
+    <span class="nm">c.is_nullable</span>,
+    <span class="nm">c.is_identity</span>,
+    <span class="nm">c.is_computed</span>,
+    <span class="fn">OBJECT_DEFINITION</span>(<span class="nm">c.default_object_id</span>) <span class="kw">AS</span> default_value
+<span class="kw">FROM</span>   <span class="nm">sys.columns</span> <span class="nm">c</span>
+<span class="kw">JOIN</span>   <span class="nm">sys.types</span>   <span class="nm">tp</span> <span class="kw">ON</span> <span class="nm">tp.user_type_id</span> = <span class="nm">c.user_type_id</span>
+<span class="kw">WHERE</span>  <span class="nm">c.object_id</span> = <span class="fn">OBJECT_ID</span>(<span class="str">N'dbo.Orders'</span>)
+<span class="kw">ORDER BY</span> <span class="nm">c.column_id</span>;</pre>
+    </div>
+
+    <h3 class="sub-title">🔑 Primary Keys, Foreign Keys &amp; Indexes</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <pre><span class="cmt">-- Primary key columns</span>
+<span class="kw">SELECT</span> <span class="nm">kc.name</span> <span class="kw">AS</span> pk_name, <span class="nm">c.name</span> <span class="kw">AS</span> column_name
+<span class="kw">FROM</span>   <span class="nm">sys.key_constraints</span> <span class="nm">kc</span>
+<span class="kw">JOIN</span>   <span class="nm">sys.index_columns</span>   <span class="nm">ic</span> <span class="kw">ON</span> <span class="nm">ic.object_id</span> = <span class="nm">kc.parent_object_id</span>
+                                <span class="kw">AND</span> <span class="nm">ic.index_id</span>  = <span class="nm">kc.unique_index_id</span>
+<span class="kw">JOIN</span>   <span class="nm">sys.columns</span>         <span class="nm">c</span>  <span class="kw">ON</span> <span class="nm">c.object_id</span>  = <span class="nm">ic.object_id</span>
+                                <span class="kw">AND</span> <span class="nm">c.column_id</span>  = <span class="nm">ic.column_id</span>
+<span class="kw">WHERE</span>  <span class="nm">kc.type</span> = <span class="str">'PK'</span>
+<span class="kw">AND</span>    <span class="nm">kc.parent_object_id</span> = <span class="fn">OBJECT_ID</span>(<span class="str">N'dbo.Orders'</span>);
+
+<span class="cmt">-- Foreign key relationships</span>
+<span class="kw">SELECT</span>
+    <span class="nm">fk.name</span>                               <span class="kw">AS</span> fk_name,
+    <span class="fn">OBJECT_NAME</span>(<span class="nm">fk.parent_object_id</span>)     <span class="kw">AS</span> child_table,
+    <span class="nm">cp.name</span>                               <span class="kw">AS</span> child_column,
+    <span class="fn">OBJECT_NAME</span>(<span class="nm">fk.referenced_object_id</span>) <span class="kw">AS</span> parent_table,
+    <span class="nm">rp.name</span>                               <span class="kw">AS</span> parent_column,
+    <span class="nm">fk.delete_referential_action_desc</span>,
+    <span class="nm">fk.update_referential_action_desc</span>
+<span class="kw">FROM</span>  <span class="nm">sys.foreign_keys</span>        <span class="nm">fk</span>
+<span class="kw">JOIN</span>  <span class="nm">sys.foreign_key_columns</span> <span class="nm">fc</span> <span class="kw">ON</span> <span class="nm">fc.constraint_object_id</span> = <span class="nm">fk.object_id</span>
+<span class="kw">JOIN</span>  <span class="nm">sys.columns</span>             <span class="nm">cp</span> <span class="kw">ON</span> <span class="nm">cp.object_id</span> = <span class="nm">fc.parent_object_id</span>
+                               <span class="kw">AND</span> <span class="nm">cp.column_id</span> = <span class="nm">fc.parent_column_id</span>
+<span class="kw">JOIN</span>  <span class="nm">sys.columns</span>             <span class="nm">rp</span> <span class="kw">ON</span> <span class="nm">rp.object_id</span> = <span class="nm">fc.referenced_object_id</span>
+                               <span class="kw">AND</span> <span class="nm">rp.column_id</span> = <span class="nm">fc.referenced_column_id</span>
+<span class="kw">ORDER BY</span> child_table, fk_name;</pre>
+    </div>
+  </section>
+
+
+  <!-- ══ SECTION 6 — SCHEMA METADATA ══ -->
+  <section id="schema-meta">
+    <h2 class="sec-title"><span class="num">06</span> Schema Metadata</h2>
+
+    <p>A schema is a namespace container for database objects. Beyond the default <code>dbo</code>, production databases typically use schemas to group objects by domain, team ownership, or security boundary.</p>
+
+    <h3 class="sub-title">📂 Listing Schemas</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <pre><span class="cmt">-- All schemas and their owners</span>
+<span class="kw">SELECT</span>
+    <span class="nm">s.schema_id</span>,
+    <span class="nm">s.name</span>              <span class="kw">AS</span> schema_name,
+    <span class="nm">dp.name</span>             <span class="kw">AS</span> owner,
+    <span class="nm">dp.type_desc</span>        <span class="kw">AS</span> owner_type
+<span class="kw">FROM</span>   <span class="nm">sys.schemas</span>    <span class="nm">s</span>
+<span class="kw">JOIN</span>   <span class="nm">sys.principals</span> <span class="nm">dp</span> <span class="kw">ON</span> <span class="nm">dp.principal_id</span> = <span class="nm">s.principal_id</span>
+<span class="kw">ORDER BY</span> <span class="nm">s.name</span>;
+
+<span class="cmt">-- Count of objects per schema</span>
+<span class="kw">SELECT</span>
+    <span class="nm">s.name</span>            <span class="kw">AS</span> schema_name,
+    <span class="nm">o.type_desc</span>,
+    <span class="fn">COUNT</span>(*)          <span class="kw">AS</span> object_count
+<span class="kw">FROM</span>   <span class="nm">sys.objects</span> <span class="nm">o</span>
+<span class="kw">JOIN</span>   <span class="nm">sys.schemas</span> <span class="nm">s</span> <span class="kw">ON</span> <span class="nm">s.schema_id</span> = <span class="nm">o.schema_id</span>
+<span class="kw">WHERE</span>  <span class="nm">o.is_ms_shipped</span> = <span class="op">0</span>
+<span class="kw">GROUP BY</span> <span class="nm">s.name</span>, <span class="nm">o.type_desc</span>
+<span class="kw">ORDER BY</span> <span class="nm">s.name</span>, <span class="nm">o.type_desc</span>;</pre>
+    </div>
+
+    <h3 class="sub-title">🏗️ Create &amp; Transfer Schema</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">T-SQL — DDL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <pre><span class="cmt">-- Create a new schema owned by a specific user</span>
+<span class="kw">CREATE SCHEMA</span> <span class="nm">Sales</span> <span class="kw">AUTHORIZATION</span> <span class="nm">dbo</span>;
+<span class="kw">GO</span>
+
+<span class="cmt">-- Move a table to a different schema</span>
+<span class="kw">ALTER SCHEMA</span> <span class="nm">Sales</span> <span class="kw">TRANSFER</span> <span class="nm">dbo.Orders</span>;
+<span class="kw">GO</span>
+
+<span class="cmt">-- Change schema owner</span>
+<span class="kw">ALTER AUTHORIZATION ON SCHEMA</span>::<span class="nm">Sales</span> <span class="kw">TO</span> <span class="nm">SalesUser</span>;
+<span class="kw">GO</span></pre>
+    </div>
+
+    <div class="callout gem">
+      <span class="icon">✅</span>
+      <div class="body">
+        <strong>Schema Best Practice</strong>
+        <p>Never put objects directly into the <code>guest</code> or <code>sys</code> schemas. Use domain schemas (e.g. <code>Sales</code>, <code>HR</code>, <code>Finance</code>) to clarify ownership and simplify permission grants — <code>GRANT SELECT ON SCHEMA::Sales TO ReportReader</code>.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══ SECTION 7 — STORED PROCEDURE METADATA ══ -->
+  <section id="procedures-meta">
+    <h2 class="sec-title"><span class="num">07</span> Stored Procedure Metadata</h2>
+
+    <h3 class="sub-title">📜 Listing &amp; Inspecting Procedures</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <pre><span class="cmt">-- All stored procedures with schema and dates</span>
+<span class="kw">SELECT</span>
+    <span class="nm">s.name</span>          <span class="kw">AS</span> schema_name,
+    <span class="nm">p.name</span>          <span class="kw">AS</span> procedure_name,
+    <span class="nm">p.create_date</span>,
+    <span class="nm">p.modify_date</span>,
+    <span class="nm">p.is_ms_shipped</span>
+<span class="kw">FROM</span>   <span class="nm">sys.procedures</span> <span class="nm">p</span>
+<span class="kw">JOIN</span>   <span class="nm">sys.schemas</span>    <span class="nm">s</span> <span class="kw">ON</span> <span class="nm">s.schema_id</span> = <span class="nm">p.schema_id</span>
+<span class="kw">WHERE</span>  <span class="nm">p.is_ms_shipped</span> = <span class="op">0</span>
+<span class="kw">ORDER BY</span> <span class="nm">s.name</span>, <span class="nm">p.name</span>;
+
+<span class="cmt">-- Retrieve procedure source code</span>
+<span class="kw">SELECT</span> <span class="fn">OBJECT_DEFINITION</span>(<span class="fn">OBJECT_ID</span>(<span class="str">N'dbo.usp_GetOrders'</span>));
+
+<span class="cmt">-- Parameters of a stored procedure</span>
+<span class="kw">SELECT</span>
+    <span class="nm">pm.name</span>         <span class="kw">AS</span> param_name,
+    <span class="nm">tp.name</span>         <span class="kw">AS</span> data_type,
+    <span class="nm">pm.max_length</span>,
+    <span class="nm">pm.is_output</span>,
+    <span class="nm">pm.has_default_value</span>,
+    <span class="nm">pm.default_value</span>
+<span class="kw">FROM</span>   <span class="nm">sys.parameters</span> <span class="nm">pm</span>
+<span class="kw">JOIN</span>   <span class="nm">sys.types</span>      <span class="nm">tp</span> <span class="kw">ON</span> <span class="nm">tp.user_type_id</span> = <span class="nm">pm.user_type_id</span>
+<span class="kw">WHERE</span>  <span class="nm">pm.object_id</span> = <span class="fn">OBJECT_ID</span>(<span class="str">N'dbo.usp_GetOrders'</span>)
+<span class="kw">ORDER BY</span> <span class="nm">pm.parameter_id</span>;</pre>
+    </div>
+
+    <h3 class="sub-title">🔧 System Stored Procedures for Metadata</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>System SP</th><th>Purpose</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>sp_help</td><td>General object info (columns, constraints, indexes)</td><td><code>EXEC sp_help 'dbo.Orders'</code></td></tr>
+          <tr><td>sp_helptext</td><td>Source code of views, procs, triggers, functions</td><td><code>EXEC sp_helptext 'dbo.usp_GetOrders'</code></td></tr>
+          <tr><td>sp_columns</td><td>Column metadata (ODBC-compatible)</td><td><code>EXEC sp_columns 'Orders'</code></td></tr>
+          <tr><td>sp_depends</td><td>Object dependencies (legacy)</td><td><code>EXEC sp_depends 'dbo.Orders'</code></td></tr>
+          <tr><td>sp_rename</td><td>Rename objects, columns, indexes</td><td><code>EXEC sp_rename 'dbo.Orders', 'SalesOrders'</code></td></tr>
+          <tr><td>sp_who2</td><td>Active connections and blocking</td><td><code>EXEC sp_who2</code></td></tr>
+          <tr><td>sp_spaceused</td><td>Row count and space consumed</td><td><code>EXEC sp_spaceused 'dbo.Orders'</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+
+  <!-- ══ SECTION 8 — RENAME OPERATIONS ══ -->
+  <section id="rename-ops">
+    <h2 class="sec-title"><span class="num">08</span> Rename Operations</h2>
+
+    <p>All renaming in SQL Server goes through <code>sp_rename</code>. It updates the name in <code>sys.objects</code> (or <code>sys.columns</code>, <code>sys.indexes</code>) but does <strong>not</strong> update references inside other objects — views, procedures, and triggers that reference the old name will break until you fix them.</p>
+
+    <h3 class="sub-title">✏️ Renaming Syntax Reference</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">T-SQL — sp_rename</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <pre><span class="cmt">-- Rename a TABLE</span>
+<span class="kw">EXEC</span> <span class="fn">sp_rename</span>
+    @objname  = <span class="str">N'dbo.OldTableName'</span>,
+    @newname  = <span class="str">N'NewTableName'</span>,
+    @objtype  = <span class="str">N'OBJECT'</span>;
+
+<span class="cmt">-- Rename a COLUMN</span>
+<span class="kw">EXEC</span> <span class="fn">sp_rename</span>
+    @objname  = <span class="str">N'dbo.Customers.Fname'</span>,  <span class="cmt">-- table.column format</span>
+    @newname  = <span class="str">N'FirstName'</span>,
+    @objtype  = <span class="str">N'COLUMN'</span>;
+
+<span class="cmt">-- Rename an INDEX</span>
+<span class="kw">EXEC</span> <span class="fn">sp_rename</span>
+    @objname  = <span class="str">N'dbo.Orders.IX_Orders_CustomerID'</span>,
+    @newname  = <span class="str">N'IX_Orders_CustID'</span>,
+    @objtype  = <span class="str">N'INDEX'</span>;
+
+<span class="cmt">-- Rename a STORED PROCEDURE</span>
+<span class="kw">EXEC</span> <span class="fn">sp_rename</span>
+    @objname  = <span class="str">N'dbo.usp_GetOldName'</span>,
+    @newname  = <span class="str">N'usp_GetNewName'</span>;
+
+<span class="cmt">-- Move table to a different schema (uses ALTER, not sp_rename)</span>
+<span class="kw">ALTER SCHEMA</span> <span class="nm">NewSchema</span> <span class="kw">TRANSFER</span> <span class="nm">OldSchema.TableName</span>;</pre>
+    </div>
+
+    <div class="callout danger">
+      <span class="icon">🚨</span>
+      <div class="body">
+        <strong>After Any Rename — Refresh Dependent Objects</strong>
+        <p>Run <code>EXEC sp_refreshview 'dbo.YourView'</code> for views, and use <code>sys.sql_expression_dependencies</code> to locate all objects referencing the renamed item. Rebuild those with <code>CREATE OR ALTER</code>. Failure to do so results in silent runtime errors.</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">🔗 Finding Dependencies Before Rename</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <pre><span class="cmt">-- Objects that reference dbo.Orders</span>
+<span class="kw">SELECT</span>
+    <span class="fn">OBJECT_NAME</span>(<span class="nm">sed.referencing_id</span>) <span class="kw">AS</span> referencing_object,
+    <span class="nm">o.type_desc</span>
+<span class="kw">FROM</span>   <span class="nm">sys.sql_expression_dependencies</span> <span class="nm">sed</span>
+<span class="kw">JOIN</span>   <span class="nm">sys.objects</span> <span class="nm">o</span> <span class="kw">ON</span> <span class="nm">o.object_id</span> = <span class="nm">sed.referencing_id</span>
+<span class="kw">WHERE</span>  <span class="nm">sed.referenced_entity_name</span> = <span class="str">N'Orders'</span>
+<span class="kw">AND</span>    <span class="nm">sed.referenced_schema_name</span> = <span class="str">N'dbo'</span>;</pre>
+    </div>
+  </section>
+
+
+  <!-- ══ SECTION 9 — FINDING METADATA OBJECTS ══ -->
+  <section id="find-meta">
+    <h2 class="sec-title"><span class="num">09</span> Finding Metadata Objects</h2>
+
+    <p>When you inherit a database or debug an issue, you need ways to quickly locate objects by name, column name, content in source code, or dependency chain.</p>
+
+    <h3 class="sub-title">🔎 Search by Object Name</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <pre><span class="cmt">-- Find any object whose name contains a keyword</span>
+<span class="kw">SELECT</span>
+    <span class="nm">s.name</span>      <span class="kw">AS</span> schema_name,
+    <span class="nm">o.name</span>      <span class="kw">AS</span> object_name,
+    <span class="nm">o.type_desc</span>,
+    <span class="nm">o.create_date</span>
+<span class="kw">FROM</span>   <span class="nm">sys.objects</span> <span class="nm">o</span>
+<span class="kw">JOIN</span>   <span class="nm">sys.schemas</span> <span class="nm">s</span> <span class="kw">ON</span> <span class="nm">s.schema_id</span> = <span class="nm">o.schema_id</span>
+<span class="kw">WHERE</span>  <span class="nm">o.name</span> <span class="kw">LIKE</span> <span class="str">N'%Order%'</span>
+<span class="kw">AND</span>    <span class="nm">o.is_ms_shipped</span> = <span class="op">0</span>
+<span class="kw">ORDER BY</span> <span class="nm">o.type_desc</span>, <span class="nm">o.name</span>;</pre>
+    </div>
+
+    <h3 class="sub-title">🔎 Search by Column Name Across All Tables</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <pre><span class="kw">SELECT</span>
+    <span class="fn">OBJECT_SCHEMA_NAME</span>(<span class="nm">c.object_id</span>) <span class="kw">AS</span> schema_name,
+    <span class="fn">OBJECT_NAME</span>(<span class="nm">c.object_id</span>)        <span class="kw">AS</span> table_name,
+    <span class="nm">c.name</span>                           <span class="kw">AS</span> column_name,
+    <span class="nm">tp.name</span>                          <span class="kw">AS</span> data_type
+<span class="kw">FROM</span>   <span class="nm">sys.columns</span> <span class="nm">c</span>
+<span class="kw">JOIN</span>   <span class="nm">sys.types</span>   <span class="nm">tp</span> <span class="kw">ON</span> <span class="nm">tp.user_type_id</span> = <span class="nm">c.user_type_id</span>
+<span class="kw">WHERE</span>  <span class="nm">c.name</span> <span class="kw">LIKE</span> <span class="str">N'%CustomerID%'</span>
+<span class="kw">ORDER BY</span> table_name, column_name;</pre>
+    </div>
+
+    <h3 class="sub-title">🔎 Search Inside Source Code (Procedures, Views, Triggers)</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <pre><span class="cmt">-- Search object definitions for a keyword</span>
+<span class="kw">SELECT</span>
+    <span class="nm">o.type_desc</span>,
+    <span class="nm">s.name</span>  <span class="kw">AS</span> schema_name,
+    <span class="nm">o.name</span>  <span class="kw">AS</span> object_name,
+    <span class="nm">sm.definition</span>
+<span class="kw">FROM</span>   <span class="nm">sys.sql_modules</span> <span class="nm">sm</span>
+<span class="kw">JOIN</span>   <span class="nm">sys.objects</span>     <span class="nm">o</span>  <span class="kw">ON</span> <span class="nm">o.object_id</span>  = <span class="nm">sm.object_id</span>
+<span class="kw">JOIN</span>   <span class="nm">sys.schemas</span>     <span class="nm">s</span>  <span class="kw">ON</span> <span class="nm">s.schema_id</span>  = <span class="nm">o.schema_id</span>
+<span class="kw">WHERE</span>  <span class="nm">sm.definition</span>  <span class="kw">LIKE</span> <span class="str">N'%SearchKeyword%'</span>
+<span class="kw">ORDER BY</span> <span class="nm">o.type_desc</span>, <span class="nm">o.name</span>;</pre>
+    </div>
+
+    <div class="callout tip">
+      <span class="icon">💡</span>
+      <div class="body">
+        <strong>OBJECT_ID / OBJECT_NAME Shorthand</strong>
+        <p>Use <code>OBJECT_ID(N'schema.object')</code> to check existence — it returns <code>NULL</code> if not found. Combine with <code>IF OBJECT_ID(...) IS NOT NULL</code> for safe drops or conditional DDL.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══ SECTION 10 — SOLVING METADATA ISSUES ══ -->
+  <section id="solve-meta">
+    <h2 class="sec-title"><span class="num">10</span> Solving Metadata Issues</h2>
+
+    <h3 class="sub-title">🛠️ Common Problems &amp; Fixes</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Problem</th><th>Symptom</th><th>Solution</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Stale View Metadata</td>
+            <td>Column count/type mismatch after table change</td>
+            <td><code>EXEC sp_refreshview 'dbo.YourView'</code> or <code>CREATE OR ALTER VIEW</code></td>
+          </tr>
+          <tr>
+            <td>Broken Dependencies</td>
+            <td>Proc/trigger errors after rename or drop</td>
+            <td>Query <code>sys.sql_expression_dependencies</code>, then <code>CREATE OR ALTER</code> affected objects</td>
+          </tr>
+          <tr>
+            <td>Orphaned Schemas</td>
+            <td>DROP SCHEMA fails — schema has objects</td>
+            <td>Transfer all objects: <code>ALTER SCHEMA dbo TRANSFER OldSchema.Obj</code>, then drop</td>
+          </tr>
+          <tr>
+            <td>Disabled Triggers</td>
+            <td>Expected side-effects not happening</td>
+            <td>Check <code>sys.triggers WHERE is_disabled = 1</code>, then <code>ENABLE TRIGGER</code></td>
+          </tr>
+          <tr>
+            <td>Ghost Constraints</td>
+            <td>Cannot drop column — FK/CHECK still present</td>
+            <td>Query <code>sys.foreign_keys</code> / <code>sys.check_constraints</code>, drop constraints first</td>
+          </tr>
+          <tr>
+            <td>Encrypted Object</td>
+            <td>sp_helptext returns "encrypted" message</td>
+            <td>Use DAC connection or third-party tools; avoid <code>WITH ENCRYPTION</code> for critical objects</td>
+          </tr>
+          <tr>
+            <td>Statistics Out of Date</td>
+            <td>Bad query plans, unexpected full scans</td>
+            <td><code>UPDATE STATISTICS dbo.TableName WITH FULLSCAN</code></td>
+          </tr>
+          <tr>
+            <td>Missing Index Metadata</td>
+            <td>Slow queries, DMV suggestions ignored</td>
+            <td>Query <code>sys.dm_db_missing_index_details</code> and <code>sys.dm_db_missing_index_group_stats</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">🩺 Refresh All Views in a Database</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">T-SQL — Cursor Loop</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <pre><span class="kw">DECLARE</span> @vname <span class="nm">NVARCHAR</span>(<span class="op">512</span>);
+<span class="kw">DECLARE</span> cur <span class="kw">CURSOR FOR</span>
+    <span class="kw">SELECT</span> <span class="fn">QUOTENAME</span>(<span class="nm">s.name</span>) + <span class="str">'.'</span> + <span class="fn">QUOTENAME</span>(<span class="nm">v.name</span>)
+    <span class="kw">FROM</span>   <span class="nm">sys.views</span> <span class="nm">v</span>
+    <span class="kw">JOIN</span>   <span class="nm">sys.schemas</span> <span class="nm">s</span> <span class="kw">ON</span> <span class="nm">s.schema_id</span> = <span class="nm">v.schema_id</span>;
+
+<span class="kw">OPEN</span> cur;
+<span class="kw">FETCH NEXT FROM</span> cur <span class="kw">INTO</span> @vname;
+<span class="kw">WHILE</span> <span class="fn">@@FETCH_STATUS</span> = <span class="op">0</span>
+<span class="kw">BEGIN</span>
+    <span class="kw">BEGIN TRY</span>
+        <span class="kw">EXEC</span> <span class="fn">sp_refreshview</span> @vname;
+    <span class="kw">END TRY</span>
+    <span class="kw">BEGIN CATCH</span>
+        <span class="fn">PRINT</span> <span class="str">'Failed: '</span> + @vname + <span class="str">' — '</span> + <span class="fn">ERROR_MESSAGE</span>();
+    <span class="kw">END CATCH</span>
+    <span class="kw">FETCH NEXT FROM</span> cur <span class="kw">INTO</span> @vname;
+<span class="kw">END</span>
+<span class="kw">CLOSE</span> cur; <span class="kw">DEALLOCATE</span> cur;</pre>
+    </div>
+
+    <h3 class="sub-title">🔍 Detect Invalid / Broken Objects</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <pre><span class="cmt">-- OBJECT_DEFINITION returns NULL for encrypted or missing objects</span>
+<span class="kw">SELECT</span>
+    <span class="nm">s.name</span>  <span class="kw">AS</span> schema_name,
+    <span class="nm">o.name</span>  <span class="kw">AS</span> object_name,
+    <span class="nm">o.type_desc</span>
+<span class="kw">FROM</span>   <span class="nm">sys.sql_modules</span> <span class="nm">sm</span>
+<span class="kw">JOIN</span>   <span class="nm">sys.objects</span>     <span class="nm">o</span>  <span class="kw">ON</span> <span class="nm">o.object_id</span> = <span class="nm">sm.object_id</span>
+<span class="kw">JOIN</span>   <span class="nm">sys.schemas</span>     <span class="nm">s</span>  <span class="kw">ON</span> <span class="nm">s.schema_id</span> = <span class="nm">o.schema_id</span>
+<span class="kw">WHERE</span>  <span class="nm">sm.is_recompiled</span> = <span class="op">1</span>
+   <span class="kw">OR</span>  <span class="fn">OBJECT_DEFINITION</span>(<span class="nm">o.object_id</span>) <span class="kw">IS NULL</span>;</pre>
+    </div>
+  </section>
+
+
+  <!-- ══ SECTION 11 — CHEATSHEET ══ -->
+  <section id="cheatsheet">
+    <h2 class="sec-title"><span class="num">11</span> Quick-Reference Cheatsheet</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Task</th><th>Command / View</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>Server version</td><td><code>SELECT @@VERSION</code></td></tr>
+          <tr><td>List all databases</td><td><code>SELECT name FROM sys.databases</code></td></tr>
+          <tr><td>List all user tables</td><td><code>SELECT name FROM sys.tables WHERE is_ms_shipped=0</code></td></tr>
+          <tr><td>Table columns</td><td><code>SELECT * FROM sys.columns WHERE object_id=OBJECT_ID('dbo.T')</code></td></tr>
+          <tr><td>Table row count + size</td><td><code>EXEC sp_spaceused 'dbo.TableName'</code></td></tr>
+          <tr><td>Object source code</td><td><code>EXEC sp_helptext 'dbo.ProcOrView'</code></td></tr>
+          <tr><td>All triggers on a table</td><td><code>SELECT * FROM sys.triggers WHERE parent_id=OBJECT_ID('dbo.T')</code></td></tr>
+          <tr><td>All schemas + owners</td><td><code>SELECT s.name, p.name FROM sys.schemas s JOIN sys.principals p ...</code></td></tr>
+          <tr><td>Find text in any object</td><td><code>SELECT * FROM sys.sql_modules WHERE definition LIKE '%keyword%'</code></td></tr>
+          <tr><td>Rename table</td><td><code>EXEC sp_rename 'dbo.Old', 'New'</code></td></tr>
+          <tr><td>Rename column</td><td><code>EXEC sp_rename 'dbo.T.OldCol', 'NewCol', 'COLUMN'</code></td></tr>
+          <tr><td>Move to new schema</td><td><code>ALTER SCHEMA NewSch TRANSFER OldSch.TableName</code></td></tr>
+          <tr><td>List foreign keys</td><td><code>SELECT * FROM sys.foreign_keys</code></td></tr>
+          <tr><td>Refresh view metadata</td><td><code>EXEC sp_refreshview 'dbo.ViewName'</code></td></tr>
+          <tr><td>Enable trigger</td><td><code>ENABLE TRIGGER trg_Name ON dbo.TableName</code></td></tr>
+          <tr><td>Disable trigger</td><td><code>DISABLE TRIGGER trg_Name ON dbo.TableName</code></td></tr>
+          <tr><td>Check object exists</td><td><code>IF OBJECT_ID('dbo.TableName') IS NOT NULL ...</code></td></tr>
+          <tr><td>Procedure parameters</td><td><code>SELECT * FROM sys.parameters WHERE object_id=OBJECT_ID('dbo.SP')</code></td></tr>
+          <tr><td>Missing index suggestions</td><td><code>SELECT * FROM sys.dm_db_missing_index_details</code></td></tr>
+          <tr><td>Active sessions</td><td><code>SELECT * FROM sys.dm_exec_sessions WHERE is_user_process=1</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="badge-row">
+      <span>sys.objects</span>
+      <span>sys.tables</span>
+      <span>sys.columns</span>
+      <span>sys.triggers</span>
+      <span>sys.schemas</span>
+      <span>sys.procedures</span>
+      <span>sys.indexes</span>
+      <span>sys.foreign_keys</span>
+      <span>sys.sql_modules</span>
+      <span>sys.principals</span>
+      <span>sp_rename</span>
+      <span>sp_helptext</span>
+      <span>sp_refreshview</span>
+      <span>OBJECT_DEFINITION()</span>
+    </div>
+  </section>
+
+  <hr />
+
+  <div class="callout gem">
+    <span class="icon">🎓</span>
+    <div class="body">
+      <strong>Series Note</strong>
+      <p>This guide is part of the <em>SQL Learning Guide Series</em> by MD Jaberul Hossen Jabed. See also <strong>SQL_Core_Commands.html</strong> for SELECT / INSERT / UPDATE / DELETE fundamentals, and <strong>SQL_NULL_Handling.html</strong> for NULL semantics, IS NULL, COALESCE, and NULLIF patterns.</p>
+    </div>
+  </div>
+
+</div><!-- /.wrapper -->
+
+<footer>
+  SystemDetails.html &nbsp;·&nbsp; SQL Learning Guide Series &nbsp;·&nbsp; Author: MD Jaberul Hossen Jabed &nbsp;·&nbsp; SQL Server / T-SQL Reference
+</footer>
+
+<!-- Floating Back To Top Button -->
+<button class="back-to-top" id="bttBtn" onclick="scrollToTop()" title="Back to Top">↑</button>
+
+<script>
+  function copyCode(btn) {
+    const wrap = btn.closest('.code-wrap');
+    const pre = wrap ? wrap.querySelector('pre') : null;
+    if (pre) {
+      navigator.clipboard.writeText(pre.innerText).then(() => {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }).catch(err => {
+        console.error('Copy failed: ', err);
+      });
+    }
+  }
+
+  const bttBtn = document.getElementById('bttBtn');
+  if (bttBtn) {
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) {
+        bttBtn.classList.add('visible');
+      } else {
+        bttBtn.classList.remove('visible');
+      }
+    });
+  }
+
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+
+</body>
+</html>

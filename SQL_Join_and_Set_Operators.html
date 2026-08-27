@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SQL Joins & Set Operators</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
+<link href="style.css" rel="stylesheet" /></head>
+
+<body>
+
+<!-- ═══════════════════════════ TOP NAV ════════════════════════════ -->
+<nav class="top-nav">
+  <div class="nav-container">
+    <a href="index.html" class="nav-link">← Back to SQL Hub</a>
+    <div class="nav-title">SQL Server Documentation Series <span class="nav-badge">T-SQL</span></div>
+  </div>
+</nav>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     HEADER
+════════════════════════════════════════════════════════ -->
+<header>
+  <div class="header-badge">SQL Reference Guide</div>
+  <h1>SQL <span>Joins</span> &amp; <span>Set Operators</span></h1>
+  <p class="header-sub">A comprehensive reference covering all join types, set operators, advanced techniques, and practical examples.</p>
+  <div class="header-meta">Courtesy: MD Jaberul Hossen Jabed &nbsp;·&nbsp; SQL Server / T-SQL</div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════════════════════ -->
+<div class="wrapper">
+
+  <nav class="toc" aria-label="Table of Contents">
+    <div class="toc-heading">📋 Table of Contents</div>
+    <div class="toc-grid">
+    <a href="#intro"><span class="toc-num">01. </span>Introduction to Joins</a>
+    <a href="#inner-join"><span class="toc-num">02. </span>INNER JOIN</a>
+    <a href="#left-join"><span class="toc-num">03. </span>LEFT JOIN</a>
+    <a href="#right-join"><span class="toc-num">04. </span>RIGHT JOIN</a>
+    <a href="#full-join"><span class="toc-num">05. </span>FULL JOIN</a>
+    <a href="#cross-join"><span class="toc-num">06. </span>CROSS JOIN</a>
+    <a href="#anti-join"><span class="toc-num">07. </span>ANTI JOIN</a>
+    <a href="#multi-join"><span class="toc-num">08. </span>Joining 3+ Tables</a>
+    <a href="#set-intro"><span class="toc-num">09. </span>Introduction to Set Operators</a>
+    <a href="#union"><span class="toc-num">10. </span>UNION</a>
+    <a href="#union-all"><span class="toc-num">11. </span>UNION ALL</a>
+    <a href="#except"><span class="toc-num">12. </span>EXCEPT</a>
+    <a href="#intersect"><span class="toc-num">13. </span>INTERSECT</a>
+    <a href="#comparison"><span class="toc-num">14. </span>Comparison Table</a>
+    <a href="#practice"><span class="toc-num">15. </span>Practice Tasks</a>
+    </div>
+  </nav>
+
+  <!-- ─── 01 INTRODUCTION ──────────────────────────────── -->
+  <section id="intro">
+    <h2 class="sec-title"><span class="num">01</span> Introduction to Joins</h2>
+    <p><strong>Joins</strong> combine rows from two or more tables based on a relatable column. Choosing the right type of join is important because it determines which rows to keep. You can join on the basis of more than one column.</p>
+
+    <div class="type-grid">
+      <div class="type-card">
+        <div class="type-card-title">Core Joins</div>
+        <p>INNER · LEFT · RIGHT · FULL</p>
+      </div>
+      <div class="type-card">
+        <div class="type-card-title">Advanced Joins</div>
+        <p>CROSS · ANTI JOIN (NOT EXISTS / LEFT JOIN WHERE NULL)</p>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="icon">ℹ️</div>
+      <div class="callout-body">
+        <div class="callout-title">Key Concept</div>
+        <p>The keyword <code>JOIN</code> alone (without a qualifier) defaults to <code>INNER JOIN</code> in SQL Server. Both are functionally identical.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 02 INNER JOIN ────────────────────────────────── -->
+  <section id="inner-join">
+    <h2><span class="num">02</span> INNER JOIN</h2>
+    <p>Inner join returns <strong>matching records only</strong>. Only rows where the join condition is satisfied in both tables appear in the result set.</p>
+
+    <div class="callout info">
+      <div class="icon">📌</div>
+      <div class="callout-body">
+        <div class="callout-title">Classic Example</div>
+        <p>Retrieve all customers along with their orders, but only for customers who have actually placed an order.</p>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-label">Task 01</div>
+      <p>Details about orders along with customer details.</p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="dot r"> <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div><div class="dot y"></div><div class="dot g"></div><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span> <span class="tbl">C</span>.<span class="col">CustomerID</span>,
+       <span class="fn">TRIM</span>(<span class="tbl">C</span>.<span class="col">FirstName</span>) <span class="op">+</span> <span class="str">' '</span> <span class="op">+</span> <span class="fn">TRIM</span>(<span class="tbl">C</span>.<span class="col">LastName</span>) <span class="kw">AS</span> <span class="col">FullName</span>,
+       <span class="tbl">C</span>.<span class="col">Country</span>, <span class="tbl">C</span>.<span class="col">Score</span>,
+       <span class="tbl">O</span>.<span class="col">OrderID</span>, <span class="tbl">O</span>.<span class="col">OrderDate</span>, <span class="tbl">O</span>.<span class="col">Sales</span>
+<span class="kw">FROM</span>  <span class="tbl">sales.customers</span> <span class="tbl">C</span>
+<span class="kw">INNER JOIN</span> <span class="tbl">sales.orders</span> <span class="kw">AS</span> <span class="tbl">O</span>
+  <span class="kw">ON</span> <span class="tbl">C</span>.<span class="col">CustomerID</span> <span class="op">=</span> <span class="tbl">O</span>.<span class="col">CustomerID</span>
+<span class="kw">ORDER BY</span> <span class="tbl">C</span>.<span class="col">CustomerID</span></pre>
+    </div>
+
+    <div class="task">
+      <div class="task-label">Task 02</div>
+      <p>Details about only employees who have helped in placing orders.</p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="dot r"> <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div><div class="dot y"></div><div class="dot g"></div><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span> <span class="op">*</span>
+<span class="kw">FROM</span>  <span class="tbl">sales.employees</span> <span class="tbl">e</span>
+<span class="kw">JOIN</span>  <span class="tbl">sales.orders</span> <span class="kw">AS</span> <span class="tbl">o</span>  <span class="cmt">-- JOIN = INNER JOIN</span>
+  <span class="kw">ON</span> <span class="tbl">e</span>.<span class="col">employeeID</span> <span class="op">=</span> <span class="tbl">o</span>.<span class="col">SalesPersonID</span>
+<span class="kw">ORDER BY</span> <span class="tbl">e</span>.<span class="col">employeeID</span></pre>
+    </div>
+
+    <h3>Use Cases</h3>
+    <ul>
+      <li>Get employees with valid departments.</li>
+      <li>Find orders with customers.</li>
+      <li>Data consistency check (only for matched records).</li>
+    </ul>
+  </section>
+
+  <!-- ─── 03 LEFT JOIN ─────────────────────────────────── -->
+  <section id="left-join">
+    <h2><span class="num">03</span> LEFT JOIN</h2>
+    <p>Left join returns <strong>all rows from the left table</strong> and matching rows from the right table. Unmatched right-side rows return <code>NULL</code>.</p>
+
+    <h3>Use Cases</h3>
+    <ul>
+      <li>Find employees without departments.</li>
+      <li>Show all customers along with their orders (if any).</li>
+      <li>Reporting including missing relationships.</li>
+    </ul>
+
+    <div class="task">
+      <div class="task-label">Task 01</div>
+      <p>Details about only customers who have placed orders (using LEFT JOIN + NULL filter).</p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="dot r"> <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div><div class="dot y"></div><div class="dot g"></div><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span> <span class="tbl">C</span>.<span class="col">CustomerID</span>,
+       <span class="fn">TRIM</span>(<span class="tbl">C</span>.<span class="col">FirstName</span>) <span class="op">+</span> <span class="str">' '</span> <span class="op">+</span> <span class="fn">TRIM</span>(<span class="tbl">C</span>.<span class="col">LastName</span>) <span class="kw">AS</span> <span class="col">FullName</span>,
+       <span class="tbl">C</span>.<span class="col">Country</span>, <span class="tbl">C</span>.<span class="col">Score</span>,
+       <span class="tbl">O</span>.<span class="col">OrderID</span>, <span class="tbl">O</span>.<span class="col">OrderDate</span>, <span class="tbl">O</span>.<span class="col">Sales</span>
+<span class="kw">FROM</span>  <span class="tbl">sales.customers</span> <span class="tbl">C</span>
+<span class="kw">LEFT JOIN</span> <span class="tbl">sales.orders</span> <span class="kw">AS</span> <span class="tbl">O</span>
+  <span class="kw">ON</span> <span class="tbl">C</span>.<span class="col">CustomerID</span> <span class="op">=</span> <span class="tbl">O</span>.<span class="col">CustomerID</span>
+<span class="kw">WHERE</span> <span class="tbl">O</span>.<span class="col">OrderID</span> <span class="kw">IS NOT NULL</span>
+<span class="kw">ORDER BY</span> <span class="tbl">C</span>.<span class="col">CustomerID</span></pre>
+    </div>
+
+    <div class="task">
+      <div class="task-label">Task 02</div>
+      <p>Details about all employees along with order-placing information (including those with no orders).</p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="dot r"> <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div><div class="dot y"></div><div class="dot g"></div><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span> <span class="op">*</span>
+<span class="kw">FROM</span>  <span class="tbl">sales.employees</span> <span class="tbl">e</span>
+<span class="kw">LEFT JOIN</span> <span class="tbl">sales.orders</span> <span class="kw">AS</span> <span class="tbl">o</span>
+  <span class="kw">ON</span> <span class="tbl">e</span>.<span class="col">employeeID</span> <span class="op">=</span> <span class="tbl">o</span>.<span class="col">SalesPersonID</span>
+<span class="kw">ORDER BY</span> <span class="tbl">e</span>.<span class="col">employeeID</span></pre>
+    </div>
+
+    <div class="callout tip">
+      <div class="icon">💡</div>
+      <div class="callout-body">
+        <div class="callout-title">Pro Tip</div>
+        <p>Adding <code>WHERE right_table.key IS NULL</code> after a LEFT JOIN effectively turns it into an <strong>Anti Join</strong> — returning only rows with no match in the right table.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 04 RIGHT JOIN ────────────────────────────────── -->
+  <section id="right-join">
+    <h2><span class="num">04</span> RIGHT JOIN</h2>
+    <p>Right join returns <strong>all rows from the right table</strong> and matching rows from the left. Unmatched left-side rows return <code>NULL</code>.</p>
+    <p>The task of a RIGHT JOIN can always be accomplished with a LEFT JOIN by switching the order of tables in the query.</p>
+
+    <div class="task">
+      <div class="task-label">Task</div>
+      <p>Details about all customers along with their orders (if they placed orders).</p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="dot r"> <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div><div class="dot y"></div><div class="dot g"></div><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span> <span class="tbl">c</span>.<span class="col">CustomerID</span>,
+       <span class="fn">TRIM</span>(<span class="tbl">c</span>.<span class="col">FirstName</span>) <span class="op">+</span> <span class="str">' '</span> <span class="op">+</span> <span class="fn">TRIM</span>(<span class="tbl">c</span>.<span class="col">LastName</span>) <span class="kw">AS</span> <span class="col">FullName</span>,
+       <span class="tbl">c</span>.<span class="col">Country</span>, <span class="tbl">c</span>.<span class="col">Score</span>,
+       <span class="tbl">o</span>.<span class="col">OrderID</span>, <span class="tbl">o</span>.<span class="col">OrderDate</span>, <span class="tbl">o</span>.<span class="col">Sales</span>
+<span class="kw">FROM</span>  <span class="tbl">sales.orders</span> <span class="kw">AS</span> <span class="tbl">o</span>
+<span class="kw">RIGHT JOIN</span> <span class="tbl">sales.customers</span> <span class="kw">AS</span> <span class="tbl">c</span>
+  <span class="kw">ON</span> <span class="tbl">o</span>.<span class="col">CustomerID</span> <span class="op">=</span> <span class="tbl">c</span>.<span class="col">CustomerID</span>
+<span class="kw">ORDER BY</span> <span class="tbl">c</span>.<span class="col">CustomerID</span></pre>
+    </div>
+
+    <h3>Use Cases</h3>
+    <ul>
+      <li>Find departments with no employees.</li>
+      <li>Ensure all references / master data is shown.</li>
+      <li>Reverse logic of LEFT JOIN (when the "all rows" table is the second table in FROM).</li>
+    </ul>
+  </section>
+
+  <!-- ─── 05 FULL JOIN ─────────────────────────────────── -->
+  <section id="full-join">
+    <h2><span class="num">05</span> FULL JOIN</h2>
+    <p>Full join (also called <strong>FULL OUTER JOIN</strong>) returns <strong>all rows from both tables</strong>. Where no match exists on either side, <code>NULL</code> is returned for the missing columns.</p>
+
+    <div class="task">
+      <div class="task-label">Task</div>
+      <p>All customers and all orders — matched or not.</p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="dot r"> <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div><div class="dot y"></div><div class="dot g"></div><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span> <span class="op">*</span>
+<span class="kw">FROM</span>  <span class="tbl">sales.orders</span> <span class="kw">AS</span> <span class="tbl">o</span>
+<span class="kw">FULL JOIN</span> <span class="tbl">sales.customers</span> <span class="kw">AS</span> <span class="tbl">c</span>
+  <span class="kw">ON</span> <span class="tbl">o</span>.<span class="col">CustomerID</span> <span class="op">=</span> <span class="tbl">c</span>.<span class="col">CustomerID</span></pre>
+    </div>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <div class="callout-body">
+        <div class="callout-title">Watch Out</div>
+        <p>FULL JOIN can produce large result sets with many NULL values. Use <code>WHERE</code> filters or <code>COALESCE</code> to manage NULLs in the output.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 06 CROSS JOIN ────────────────────────────────── -->
+  <section id="cross-join">
+    <h2><span class="num">06</span> CROSS JOIN</h2>
+    <p>CROSS JOIN returns <strong>all combinations</strong> of two tables — the Cartesian product. If Table A has <em>m</em> rows and Table B has <em>n</em> rows, the result has <em>m × n</em> rows.</p>
+
+    <h3>Use Cases</h3>
+    <ul>
+      <li>Generate all possible combinations (e.g., product × region).</li>
+      <li>Create test / seed data.</li>
+      <li>Matrix and report building.</li>
+    </ul>
+
+    <div class="task">
+      <div class="task-label">Task</div>
+      <p>Find all combinations of customer and employee information.</p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="dot r"> <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div><div class="dot y"></div><div class="dot g"></div><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span> <span class="op">*</span>
+<span class="kw">FROM</span>  <span class="tbl">sales.customers</span>
+<span class="kw">CROSS JOIN</span> <span class="tbl">sales.employees</span></pre>
+    </div>
+
+    <div class="callout danger">
+      <div class="icon">🚨</div>
+      <div class="callout-body">
+        <div class="callout-title">Danger — Performance Risk</div>
+        <p>CROSS JOIN on large tables can produce millions of rows and overwhelm the server. Always test on a small subset or add a <code>WHERE</code> clause to limit output.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 07 ANTI JOIN ─────────────────────────────────── -->
+  <section id="anti-join">
+    <h2><span class="num">07</span> ANTI JOIN</h2>
+    <p>An <strong>Anti Join</strong> returns rows in Table 1 that do <em>not</em> exist in Table 2. SQL Server has no direct <code>ANTI JOIN</code> syntax — it is implemented via two common approaches.</p>
+
+    <div class="callout info">
+      <div class="icon">ℹ️</div>
+      <div class="callout-body">
+        <div class="callout-title">Use Case</div>
+        <p>Return rows in table 1 that do not exist in table 2. Great for finding orphaned records, inactive users, or data gaps.</p>
+      </div>
+    </div>
+
+    <h3>Method 1 — LEFT JOIN + NULL Check</h3>
+    <div class="task">
+      <div class="task-label">Task</div>
+      <p>Find customer details with no orders.</p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="dot r"> <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div><div class="dot y"></div><div class="dot g"></div><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span> <span class="tbl">C</span>.<span class="col">CustomerID</span>, <span class="tbl">C</span>.<span class="col">FirstName</span>, <span class="tbl">C</span>.<span class="col">LastName</span>,
+       <span class="tbl">C</span>.<span class="col">Country</span>, <span class="tbl">C</span>.<span class="col">Score</span>
+<span class="kw">FROM</span>  <span class="tbl">sales.customers</span> <span class="kw">AS</span> <span class="tbl">C</span>
+<span class="kw">LEFT JOIN</span> <span class="tbl">sales.orders</span> <span class="kw">AS</span> <span class="tbl">O</span>
+  <span class="kw">ON</span> <span class="tbl">C</span>.<span class="col">CustomerID</span> <span class="op">=</span> <span class="tbl">O</span>.<span class="col">CustomerID</span>
+<span class="kw">WHERE</span> <span class="tbl">O</span>.<span class="col">OrderID</span> <span class="kw">IS NULL</span></pre>
+    </div>
+
+    <h3>Method 2 — NOT EXISTS (Best Practice)</h3>
+    <div class="task">
+      <div class="task-label">Task</div>
+      <p>Find customer details with no orders.</p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="dot r"> <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div><div class="dot y"></div><div class="dot g"></div><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span> <span class="op">*</span>
+<span class="kw">FROM</span>  <span class="tbl">sales.customers</span> <span class="kw">AS</span> <span class="tbl">C</span>
+<span class="kw">WHERE NOT EXISTS</span> (
+    <span class="kw">SELECT</span> <span class="num">1</span>
+    <span class="kw">FROM</span>  <span class="tbl">sales.orders</span> <span class="kw">AS</span> <span class="tbl">O</span>
+    <span class="kw">WHERE</span> <span class="tbl">C</span>.<span class="col">CustomerID</span> <span class="op">=</span> <span class="tbl">O</span>.<span class="col">CustomerID</span>
+)</pre>
+    </div>
+
+    <div class="callout gem">
+      <div class="icon">✅</div>
+      <div class="callout-body">
+        <div class="callout-title">Best Practice</div>
+        <p><code>NOT EXISTS</code> is generally preferred over LEFT JOIN + NULL because it short-circuits on the first match, can be more efficient with the query optimizer, and expresses intent more clearly.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 08 JOINING 3+ TABLES ─────────────────────────── -->
+  <section id="multi-join">
+    <h2><span class="num">08</span> Joining 3+ Tables</h2>
+    <p>Used when data is spread across multiple tables. Each additional <code>JOIN</code> clause links a new table to the existing result set.</p>
+
+    <div class="task">
+      <div class="task-label">Task</div>
+      <p>Join 3 tables to retrieve important information about products, orders, and customers.</p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="dot r"> <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div><div class="dot y"></div><div class="dot g"></div><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span> <span class="tbl">o</span>.<span class="col">OrderID</span>,
+       <span class="tbl">p</span>.<span class="col">Product</span>,
+       <span class="tbl">o</span>.<span class="col">Sales</span>,
+       <span class="tbl">c</span>.<span class="col">FirstName</span>,
+       <span class="tbl">c</span>.<span class="col">LastName</span>,
+       <span class="tbl">p</span>.<span class="col">Category</span>,
+       <span class="tbl">o</span>.<span class="col">OrderDate</span>
+<span class="kw">FROM</span>  <span class="tbl">sales.orders</span> <span class="kw">AS</span> <span class="tbl">o</span>
+<span class="kw">JOIN</span>  <span class="tbl">sales.customers</span> <span class="kw">AS</span> <span class="tbl">c</span>  <span class="kw">ON</span> <span class="tbl">o</span>.<span class="col">CustomerID</span> <span class="op">=</span> <span class="tbl">c</span>.<span class="col">CustomerID</span>
+<span class="kw">JOIN</span>  <span class="tbl">sales.products</span>  <span class="kw">AS</span> <span class="tbl">p</span>  <span class="kw">ON</span> <span class="tbl">o</span>.<span class="col">ProductID</span>  <span class="op">=</span> <span class="tbl">p</span>.<span class="col">ProductID</span></pre>
+    </div>
+
+    <h3>Use Cases</h3>
+    <ul>
+      <li>Reporting dashboards requiring data from multiple entities.</li>
+      <li>Data warehouse queries combining fact and dimension tables.</li>
+    </ul>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <div class="callout-body">
+        <div class="callout-title">Noticeable Facts</div>
+        <ul>
+          <li><code>LEFT JOIN + WHERE right_col IS NULL</code> = Anti Join.</li>
+          <li>Avoid <code>SELECT *</code> in joins — it reduces performance and pulls unnecessary columns.</li>
+          <li>Proper indexing on join keys is critical for query speed.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 09 SET OPERATORS INTRO ───────────────────────── -->
+  <section id="set-intro">
+    <h2><span class="num">09</span> Introduction to Set Operators</h2>
+    <p><strong>Set operators</strong> combine the results of two or more <code>SELECT</code> queries into a single result set. Think of them like set theory in mathematics:</p>
+
+    <div class="facts-grid">
+      <div class="fact-card">
+        <div class="fact-val">A ∪ B</div>
+        <div class="fact-label">UNION</div>
+        <div class="fact-label">All unique records from both sets</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-val">A ∩ B</div>
+        <div class="fact-label">INTERSECT</div>
+        <div class="fact-label">Only records present in both sets</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-val">A – B</div>
+        <div class="fact-label">EXCEPT</div>
+        <div class="fact-label">Records in A that are not in B</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-val">A ∪ B*</div>
+        <div class="fact-label">UNION ALL</div>
+        <div class="fact-label">All records including duplicates</div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="icon">📋</div>
+      <div class="callout-body">
+        <div class="callout-title">Common Rules for All Set Operators</div>
+        <ul>
+          <li>Same <strong>number of columns</strong> in both queries.</li>
+          <li>Same <strong>data types</strong> (or compatible types) in each corresponding column.</li>
+          <li>Same <strong>column order</strong> across both queries.</li>
+          <li>Column names come from the <strong>first query</strong>.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 10 UNION ─────────────────────────────────────── -->
+  <section id="union">
+    <h2><span class="num">10</span> UNION</h2>
+    <p>Combines results from two queries and <strong>removes duplicates</strong>. Equivalent to asking "give me all unique records from both tables."</p>
+
+    <div class="task">
+      <div class="task-label">Task 01</div>
+      <p>Provide all unique cities from both Customers and Suppliers tables.</p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="dot r"> <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div><div class="dot y"></div><div class="dot g"></div><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span> <span class="col">City</span> <span class="kw">FROM</span> <span class="tbl">Customers</span>
+<span class="kw">UNION</span>
+<span class="kw">SELECT</span> <span class="col">City</span> <span class="kw">FROM</span> <span class="tbl">Suppliers</span></pre>
+    </div>
+
+    <div class="task">
+      <div class="task-label">Task 02</div>
+      <p>Provide all unique names of customers and employees.</p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="dot r"> <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div><div class="dot y"></div><div class="dot g"></div><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span> <span class="fn">TRIM</span>(<span class="col">FirstName</span>) <span class="kw">AS</span> <span class="col">first_name</span>,
+       <span class="fn">TRIM</span>(<span class="col">LastName</span>)  <span class="kw">AS</span> <span class="col">last_name</span>
+<span class="kw">FROM</span>  <span class="tbl">sales.customers</span>
+
+<span class="kw">UNION</span>
+
+<span class="kw">SELECT</span> <span class="fn">TRIM</span>(<span class="col">FirstName</span>),
+       <span class="fn">TRIM</span>(<span class="col">LastName</span>)
+<span class="kw">FROM</span>  <span class="tbl">sales.employees</span></pre>
+    </div>
+
+    <h3>Use Cases</h3>
+    <ul>
+      <li><strong>Customer and supplier contact list</strong> — combined list of all unique people.</li>
+      <li><strong>Multi-region data merge</strong> — combine sales from different regions without duplication.</li>
+    </ul>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <div class="callout-body">
+        <div class="callout-title">Noticeable Facts</div>
+        <ul>
+          <li>Slower than <code>UNION ALL</code> due to duplicate removal.</li>
+          <li>Uses <code>DISTINCT</code> internally, which requires sorting or hashing.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 11 UNION ALL ─────────────────────────────────── -->
+  <section id="union-all">
+    <h2><span class="num">11</span> UNION ALL</h2>
+    <p>Combines results from two queries and <strong>keeps all duplicates</strong>. No deduplication is performed.</p>
+
+    <div class="task">
+      <div class="task-label">Task</div>
+      <p>Give all the names of customers and employees (including duplicates).</p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="dot r"> <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div><div class="dot y"></div><div class="dot g"></div><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span> <span class="fn">TRIM</span>(<span class="col">FirstName</span>) <span class="kw">AS</span> <span class="col">first_name</span>,
+       <span class="fn">TRIM</span>(<span class="col">LastName</span>)  <span class="kw">AS</span> <span class="col">last_name</span>
+<span class="kw">FROM</span>  <span class="tbl">sales.customers</span>
+
+<span class="kw">UNION ALL</span>
+
+<span class="kw">SELECT</span> <span class="fn">TRIM</span>(<span class="col">FirstName</span>),
+       <span class="fn">TRIM</span>(<span class="col">LastName</span>)
+<span class="kw">FROM</span>  <span class="tbl">sales.employees</span></pre>
+    </div>
+
+    <h3>Use Cases</h3>
+    <ul>
+      <li><strong>Transaction logs</strong> — you want all records including duplicates.</li>
+      <li><strong>Appending data</strong> from multiple sources or time periods.</li>
+    </ul>
+
+    <div class="callout gem">
+      <div class="icon">✅</div>
+      <div class="callout-body">
+        <div class="callout-title">Performance Note</div>
+        <ul>
+          <li>Faster than <code>UNION</code> — no duplicate removal step.</li>
+          <li>No sorting required.</li>
+          <li>Best choice for large datasets where duplicates are acceptable.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 12 EXCEPT ────────────────────────────────────── -->
+  <section id="except">
+    <h2><span class="num">12</span> EXCEPT</h2>
+    <p>Returns rows from the <strong>first query that are not present in the second query</strong>. Order matters — <code>A EXCEPT B</code> ≠ <code>B EXCEPT A</code>.</p>
+
+    <div class="task">
+      <div class="task-label">Task 01</div>
+      <p>Select all UserIDs that appear in the users table but not in the Logins table.</p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="dot r"> <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div><div class="dot y"></div><div class="dot g"></div><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span> <span class="col">userID</span> <span class="kw">FROM</span> <span class="tbl">users</span>
+<span class="kw">EXCEPT</span>
+<span class="kw">SELECT</span> <span class="col">UserID</span> <span class="kw">FROM</span> <span class="tbl">Logins</span></pre>
+    </div>
+
+    <div class="task">
+      <div class="task-label">Task 02</div>
+      <p>Select all names of customers that are not employees.</p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="dot r"> <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div><div class="dot y"></div><div class="dot g"></div><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span> <span class="fn">TRIM</span>(<span class="col">FirstName</span>) <span class="kw">AS</span> <span class="col">first_name</span>,
+       <span class="fn">TRIM</span>(<span class="col">LastName</span>)  <span class="kw">AS</span> <span class="col">last_name</span>
+<span class="kw">FROM</span>  <span class="tbl">sales.customers</span>
+
+<span class="kw">EXCEPT</span>
+
+<span class="kw">SELECT</span> <span class="fn">TRIM</span>(<span class="col">FirstName</span>),
+       <span class="fn">TRIM</span>(<span class="col">LastName</span>)
+<span class="kw">FROM</span>  <span class="tbl">sales.employees</span></pre>
+    </div>
+
+    <h3>Use Cases</h3>
+    <ul>
+      <li><strong>Inactive users</strong> — users registered but never logged in.</li>
+      <li><strong>Missing records / Data validation</strong> — expected records not found in a second table.</li>
+    </ul>
+
+    <div class="callout tip">
+      <div class="icon">💡</div>
+      <div class="callout-body">
+        <div class="callout-title">Noticeable Facts</div>
+        <ul>
+          <li>Automatically removes duplicates from the result.</li>
+          <li><strong>Order matters</strong> — the first query is the "left" set; position determines what gets excluded.</li>
+          <li>Works like a <strong>LEFT ANTI JOIN</strong> in join terminology.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 13 INTERSECT ─────────────────────────────────── -->
+  <section id="intersect">
+    <h2><span class="num">13</span> INTERSECT</h2>
+    <p>Returns only <strong>common rows</strong> that appear in both queries. Equivalent to "give me the matching records only."</p>
+
+    <div class="task">
+      <div class="task-label">Task 01</div>
+      <p>Select all names of customers that are also employees.</p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="dot r"> <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div><div class="dot y"></div><div class="dot g"></div><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span> <span class="fn">TRIM</span>(<span class="col">FirstName</span>) <span class="kw">AS</span> <span class="col">first_name</span>,
+       <span class="fn">TRIM</span>(<span class="col">LastName</span>)  <span class="kw">AS</span> <span class="col">last_name</span>
+<span class="kw">FROM</span>  <span class="tbl">sales.customers</span>
+
+<span class="kw">INTERSECT</span>
+
+<span class="kw">SELECT</span> <span class="fn">TRIM</span>(<span class="col">FirstName</span>),
+       <span class="fn">TRIM</span>(<span class="col">LastName</span>)
+<span class="kw">FROM</span>  <span class="tbl">sales.employees</span></pre>
+    </div>
+
+    <div class="task">
+      <div class="task-label">Task 02</div>
+      <p>Find customers active in multiple years (loyal customers).</p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="dot r"> <span class="lang">T-SQL</span> <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div><div class="dot y"></div><div class="dot g"></div><span class="lang">T-SQL</span></div>
+      <pre><span class="kw">SELECT</span> <span class="col">CustomerID</span> <span class="kw">FROM</span> <span class="tbl">Orders_2023</span>
+<span class="kw">INTERSECT</span>
+<span class="kw">SELECT</span> <span class="col">CustomerID</span> <span class="kw">FROM</span> <span class="tbl">Orders_2024</span></pre>
+    </div>
+
+    <h3>Use Cases</h3>
+    <ul>
+      <li><strong>Find loyal customers</strong> — active across several years.</li>
+      <li><strong>Students who passed all subjects</strong> — e.g., students who passed both Math and English.</li>
+    </ul>
+
+    <div class="callout gem">
+      <div class="icon">💎</div>
+      <div class="callout-body">
+        <div class="callout-title">Noticeable Facts</div>
+        <ul>
+          <li>Removes duplicates automatically.</li>
+          <li>Works like an <strong>INNER JOIN</strong> but uses simpler set logic — no need to specify join keys.</li>
+          <li>Less commonly used than UNION/EXCEPT, but very powerful for overlap analysis.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 14 COMPARISON TABLE ───────────────────────────── -->
+  <section id="comparison">
+    <h2><span class="num">14</span> Comparison Tables</h2>
+
+    <h3>Join Types — Quick Reference</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Join Type</th>
+            <th>Returns</th>
+            <th>NULLs?</th>
+            <th>Typical Use</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>INNER JOIN</strong></td><td>Matching rows only</td><td class="no">No</td><td>Validated relationships</td></tr>
+          <tr><td><strong>LEFT JOIN</strong></td><td>All left + matched right</td><td class="yes">Right side</td><td>All records + optional match</td></tr>
+          <tr><td><strong>RIGHT JOIN</strong></td><td>All right + matched left</td><td class="yes">Left side</td><td>Master data preservation</td></tr>
+          <tr><td><strong>FULL JOIN</strong></td><td>All rows from both</td><td class="yes">Both sides</td><td>Complete data audit</td></tr>
+          <tr><td><strong>CROSS JOIN</strong></td><td>Cartesian product</td><td class="no">No</td><td>Combinations, test data</td></tr>
+          <tr><td><strong>ANTI JOIN</strong></td><td>Non-matching rows only</td><td class="no">No</td><td>Missing data, exclusions</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Set Operators — Quick Reference</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Operator</th>
+            <th>Removes Duplicates</th>
+            <th>Order Matters</th>
+            <th>Performance</th>
+            <th>Analogy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>UNION</strong></td><td class="yes">Yes</td><td class="no">No</td><td>Slower</td><td>A ∪ B (unique)</td></tr>
+          <tr><td><strong>UNION ALL</strong></td><td class="no">No</td><td class="no">No</td><td>Faster</td><td>A ∪ B (all)</td></tr>
+          <tr><td><strong>EXCEPT</strong></td><td class="yes">Yes</td><td class="yes">Yes</td><td>Moderate</td><td>A – B</td></tr>
+          <tr><td><strong>INTERSECT</strong></td><td class="yes">Yes</td><td class="no">No</td><td>Moderate</td><td>A ∩ B</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Anti Join Methods Compared</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Syntax</th>
+            <th>NULLs Safe?</th>
+            <th>Performance</th>
+            <th>Recommended</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>LEFT JOIN + IS NULL</strong></td><td>LEFT JOIN … WHERE right IS NULL</td><td class="no">Risky</td><td>Good</td><td>Acceptable</td></tr>
+          <tr><td><strong>NOT EXISTS</strong></td><td>WHERE NOT EXISTS (subquery)</td><td class="yes">Yes</td><td>Best</td><td class="yes">✔ Best Practice</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ─── 15 PRACTICE TASKS ─────────────────────────────── -->
+  <section id="practice">
+    <h2><span class="num">15</span> Practice Tasks</h2>
+    <div class="practice-section">
+
+      <h4>🟢 Beginner</h4>
+      <div class="practice-item">
+        <div class="pnum">1</div>
+        <p>Write an <code>INNER JOIN</code> to retrieve all orders along with the customer's full name and country. Use the <code>sales.customers</code> and <code>sales.orders</code> tables.</p>
+      </div>
+      <div class="practice-item">
+        <div class="pnum">2</div>
+        <p>Use <code>UNION</code> to get a combined list of unique city names from the <code>Customers</code> and <code>Suppliers</code> tables.</p>
+      </div>
+      <div class="practice-item">
+        <div class="pnum">3</div>
+        <p>Write a <code>LEFT JOIN</code> query to list all employees, including those who have never processed an order (show <code>NULL</code> for missing order info).</p>
+      </div>
+
+      <h4>🟡 Intermediate</h4>
+      <div class="practice-item">
+        <div class="pnum">4</div>
+        <p>Using <code>NOT EXISTS</code>, find all customers who have never placed an order. Compare the result with the <code>LEFT JOIN + IS NULL</code> approach.</p>
+      </div>
+      <div class="practice-item">
+        <div class="pnum">5</div>
+        <p>Join three tables — <code>sales.orders</code>, <code>sales.customers</code>, and <code>sales.products</code> — to produce a report showing Order ID, Product name, Category, Customer name, and Sales amount.</p>
+      </div>
+      <div class="practice-item">
+        <div class="pnum">6</div>
+        <p>Use <code>EXCEPT</code> to find customers whose names do not appear in the employee table. Then use <code>INTERSECT</code> to find names shared by both.</p>
+      </div>
+
+      <h4>🔴 Advanced</h4>
+      <div class="practice-item">
+        <div class="pnum">7</div>
+        <p>Use a <code>CROSS JOIN</code> between a date-range CTE and the products table to generate a sales calendar scaffold for all products across 30 days.</p>
+      </div>
+      <div class="practice-item">
+        <div class="pnum">8</div>
+        <p>Combine <code>UNION ALL</code> with a <code>GROUP BY</code> aggregation to count total transactions from two separate transaction tables without deduplication.</p>
+      </div>
+      <div class="practice-item">
+        <div class="pnum">9</div>
+        <p>Write a query using <code>FULL JOIN</code> to identify mismatches between two reference tables, showing which records exist only in each table.</p>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /wrapper -->
+
+<footer>
+  <p>SQL Joins &amp; Set Operators &nbsp;·&nbsp; Courtesy: <span>MD Jaberul Hossen Jabed</span> &nbsp;·&nbsp; T-SQL / SQL Server Reference</p>
+</footer>
+
+<!-- Floating Back To Top Button -->
+<button class="back-to-top" id="bttBtn" onclick="scrollToTop()" title="Back to Top">↑</button>
+
+<script>
+  function copyCode(btn) {
+    const wrap = btn.closest('.code-wrap');
+    const pre = wrap ? wrap.querySelector('pre') : null;
+    if (pre) {
+      navigator.clipboard.writeText(pre.innerText).then(() => {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }).catch(err => {
+        console.error('Copy failed: ', err);
+      });
+    }
+  }
+
+  const bttBtn = document.getElementById('bttBtn');
+  if (bttBtn) {
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) {
+        bttBtn.classList.add('visible');
+      } else {
+        bttBtn.classList.remove('visible');
+      }
+    });
+  }
+
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+
+</body>
+</html>
